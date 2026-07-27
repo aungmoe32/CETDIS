@@ -22,14 +22,25 @@ export default function Scanner({ eventId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const activeRef = useRef(false);
+  // Refs so the scanner callback always reads the live value,
+  // not the value captured at the time startScanner was created.
+  const isOnlineRef = useRef(true);
+  const offlineEnabledRef = useRef(false);
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
+    const online = navigator.onLine;
+    setIsOnline(online);
+    isOnlineRef.current = online;
+
     const handleOnline = () => {
+      isOnlineRef.current = true;
       setIsOnline(true);
       flushSyncQueue();
     };
-    const handleOffline = () => setIsOnline(false);
+    const handleOffline = () => {
+      isOnlineRef.current = false;
+      setIsOnline(false);
+    };
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
     return () => {
@@ -75,7 +86,9 @@ export default function Scanner({ eventId }: Props) {
         activeRef.current = false;
         await scanner.stop();
 
-        if (!isOnline || offlineEnabled) {
+        // Use refs — not the closed-over state — so we always read the
+        // current online/offlineEnabled values at the moment of scan.
+        if (!isOnlineRef.current || offlineEnabledRef.current) {
           const result = await offlineCheckIn(token);
           handleResult(result as CheckInResult);
         } else {
@@ -85,7 +98,7 @@ export default function Scanner({ eventId }: Props) {
       },
       undefined,
     );
-  }, [eventId, isOnline, offlineEnabled, handleResult]);
+  }, [eventId, handleResult]); // isOnline/offlineEnabled intentionally omitted — read via refs
 
   const enableOfflineMode = async () => {
     setIsLoading(true);
@@ -94,6 +107,7 @@ export default function Scanner({ eventId }: Props) {
       alert(result.error);
     } else if (result.data) {
       await saveGuestList(result.data);
+      offlineEnabledRef.current = true;
       setOfflineEnabled(true);
       alert(`Guest list downloaded: ${result.data.length} attendees`);
     }

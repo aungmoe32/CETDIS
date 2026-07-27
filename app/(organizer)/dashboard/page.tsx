@@ -2,7 +2,7 @@ import { db } from "@/utils/db";
 import { events, tickets } from "@/drizzle/schema";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -27,7 +27,11 @@ export default async function DashboardPage() {
     .orderBy(events.dateTime);
 
   const ticketCounts = await db
-    .select({ eventId: tickets.eventId, total: count(), checkedIn: count(tickets.isCheckedIn) })
+    .select({
+      eventId: tickets.eventId,
+      total: count(),
+      checkedIn: sql<number>`count(*) filter (where ${tickets.isCheckedIn})`.mapWith(Number),
+    })
     .from(tickets)
     .groupBy(tickets.eventId);
 
