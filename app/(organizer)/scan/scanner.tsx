@@ -5,7 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { checkInAction, loadGuestListAction } from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
-import { saveGuestList } from "@/lib/idb";
+import { getTicketByToken, markCheckedInLocally, saveGuestList } from "@/lib/idb";
 import type { CheckInResult } from "./actions";
 
 interface Props {
@@ -92,13 +92,33 @@ export default function Scanner({ eventId }: Props) {
         activeRef.current = false;
         await scanner.stop();
 
-        // Use refs — not the closed-over state — so we always read the
-        // current online/offlineEnabled values at the moment of scan.
+        // ── FIX 1: Split-brain shield ────────────────────────────────────
+        // Always check local DB first, even when online.
+        // If we scanned this ticket locally (pending or already synced),
+        // reject immediately — don't ask the server.
+        const localTicket = await getTicketByToken(token);
+        if (localTicket?.is_checked_in) {
+          handleResult({ status: "already_scanned" });
+          return;
+        }
+
+        // ── Route to offline or online path ──────────────────────────────
         if (!isOnlineRef.current || offlineEnabledRef.current) {
+          // OFFLINE: check against local cache
           const result = await offlineCheckIn(token);
           handleResult(result as CheckInResult);
         } else {
+          // ONLINE: ask the server
           const result = await checkInAction(token, eventId);
+
+          // ── FIX 2: Mirror online success into local DB ────────────────
+          // If the server confirms check-in, save it locally now.
+          // If internet drops in the next few minutes, the offline DB will
+          // correctly show this ticket as already scanned.
+          if (result.status === "success" && localTicket) {
+            await markCheckedInLocally(localTicket.ticket_id);
+          }
+
           handleResult(result);
         }
       },
