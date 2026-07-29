@@ -12,7 +12,13 @@ interface Props {
   eventId: string;
 }
 
-type ScanStatus = "idle" | "scanning" | "success" | "already_scanned" | "not_found" | "error";
+type ScanStatus =
+  | "idle"
+  | "scanning"
+  | "success"
+  | "already_scanned"
+  | "not_found"
+  | "error";
 
 export default function Scanner({ eventId }: Props) {
   const [status, setStatus] = useState<ScanStatus>("idle");
@@ -100,7 +106,8 @@ export default function Scanner({ eventId }: Props) {
     );
   }, [eventId, handleResult]); // isOnline/offlineEnabled intentionally omitted — read via refs
 
-  const enableOfflineMode = async () => {
+  // Shared helper: download/refresh the local guest list from the server.
+  const downloadGuestList = async () => {
     setIsLoading(true);
     const result = await loadGuestListAction(eventId);
     if (result.error) {
@@ -114,6 +121,11 @@ export default function Scanner({ eventId }: Props) {
     setIsLoading(false);
   };
 
+  const disableOfflineMode = () => {
+    offlineEnabledRef.current = false;
+    setOfflineEnabled(false);
+  };
+
   const statusColors: Record<ScanStatus, string> = {
     idle: "bg-gray-50",
     scanning: "bg-gray-50",
@@ -124,7 +136,9 @@ export default function Scanner({ eventId }: Props) {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${statusColors[status]}`}>
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${statusColors[status]}`}
+    >
       {/* Status overlay */}
       {status !== "idle" && status !== "scanning" && (
         <div className="flex flex-col items-center justify-center flex-1 px-4">
@@ -141,7 +155,10 @@ export default function Scanner({ eventId }: Props) {
       {/* Scanner UI */}
       {(status === "idle" || status === "scanning") && (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-8 gap-4">
-          <div id="qr-reader" className="w-full max-w-xs rounded-xl overflow-hidden" />
+          <div
+            id="qr-reader"
+            className="w-full max-w-xs rounded-xl overflow-hidden"
+          />
 
           {status === "idle" && (
             <button
@@ -153,20 +170,50 @@ export default function Scanner({ eventId }: Props) {
           )}
 
           <div className="flex items-center gap-2 mt-2">
-            <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-400"}`} />
+            <span
+              className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-400"}`}
+            />
             <span className="text-xs text-gray-500">
-              {isOnline ? "Online" : "Offline"}{offlineEnabled ? " · Offline mode enabled" : ""}
+              {isOnline ? "Online" : "Offline"}
+              {offlineEnabled ? " · Offline mode enabled" : ""}
             </span>
           </div>
 
-          {!offlineEnabled && (
+          {/* Offline mode controls */}
+          {!offlineEnabled ? (
             <button
-              onClick={enableOfflineMode}
+              onClick={downloadGuestList}
               disabled={isLoading || !isOnline}
               className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
             >
-              {isLoading ? "Downloading guest list…" : "Enable Offline Mode"}
+              {isLoading ? "Downloading…" : "Enable Offline Mode"}
             </button>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5">
+              {/* Refresh: re-download the guest list to pick up late RSVPs */}
+              <button
+                onClick={downloadGuestList}
+                disabled={isLoading || !isOnline}
+                className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
+                title={
+                  !isOnline
+                    ? "No internet connection"
+                    : "Re-download guest list to pick up late RSVPs"
+                }
+              >
+                {isLoading ? "Refreshing…" : "↻ Refresh guest list"}
+              </button>
+              {/* Go back to live mode when internet is restored */}
+              {isOnline && (
+                <button
+                  onClick={disableOfflineMode}
+                  className="text-xs text-indigo-600 hover:text-gray-600 hover:underline"
+                  title="Switch back to live server check-ins"
+                >
+                  Use live mode
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

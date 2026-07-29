@@ -41,13 +41,25 @@ function getDb() {
 
 export async function saveGuestList(tickets: CachedTicket[]) {
   const db = await getDb();
+
+  // Read pending syncs BEFORE clearing, so we don't lose locally-tracked
+  // check-ins that haven't reached the server yet.
+  const pending = await getPendingSyncs();
+  const pendingIds = new Set(pending.map((p) => p.ticket_id));
+
   const tx = db.transaction("cached_tickets", "readwrite");
   await tx.objectStore("cached_tickets").clear();
   for (const ticket of tickets) {
+    // If this ticket is in the pending queue, the server doesn't know it was
+    // scanned yet — override the stale server value with true.
+    if (pendingIds.has(ticket.ticket_id)) {
+      ticket.is_checked_in = true;
+    }
     await tx.objectStore("cached_tickets").put(ticket);
   }
   await tx.done;
 }
+
 
 export async function getTicketByToken(
   token: string,
