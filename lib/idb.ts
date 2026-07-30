@@ -84,6 +84,15 @@ export async function markCheckedInLocally(ticketId: string) {
   await tx.done;
 }
 
+// Upserts a single ticket into the local cache (insert or overwrite).
+// Used to grow the offline DB dynamically as tickets are scanned online,
+// without needing to download the full guest list first.
+export async function upsertTicket(ticket: CachedTicket): Promise<void> {
+  const db = await getDb();
+  await db.put("cached_tickets", ticket);
+}
+
+
 // ─── Sync Queue ───────────────────────────────────────────────────────────────
 
 export async function addToSyncQueue(entry: SyncQueueEntry) {

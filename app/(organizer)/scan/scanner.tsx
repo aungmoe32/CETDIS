@@ -5,7 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { checkInAction, loadGuestListAction } from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
-import { getTicketByToken, markCheckedInLocally, saveGuestList } from "@/lib/idb";
+import { getTicketByToken, markCheckedInLocally, upsertTicket, saveGuestList } from "@/lib/idb";
 import type { CheckInResult } from "./actions";
 
 interface Props {
@@ -111,12 +111,18 @@ export default function Scanner({ eventId }: Props) {
           // ONLINE: ask the server
           const result = await checkInAction(token, eventId);
 
-          // ── FIX 2: Mirror online success into local DB ────────────────
-          // If the server confirms check-in, save it locally now.
-          // If internet drops in the next few minutes, the offline DB will
-          // correctly show this ticket as already scanned.
-          if (result.status === "success" && localTicket) {
-            await markCheckedInLocally(localTicket.ticket_id);
+          // ── Dynamically cache this ticket in IndexedDB ────────────────
+          // Whether the ticket was in the local DB already or not, we
+          // upsert it now with the authoritative server data.
+          // This grows the offline cache organically as scans happen, so
+          // if internet drops later the local DB has an accurate picture.
+          if (result.status === "success") {
+            await upsertTicket({
+              ticket_id: result.ticketId,
+              check_in_token: result.token,
+              full_name: result.fullName,
+              is_checked_in: true,
+            });
           }
 
           handleResult(result);

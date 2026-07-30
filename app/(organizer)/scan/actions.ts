@@ -7,7 +7,7 @@ import { profiles, tickets } from "@/drizzle/schema";
 import { and, eq } from "drizzle-orm";
 
 export type CheckInResult =
-  | { status: "success"; fullName: string }
+  | { status: "success"; fullName: string; ticketId: string; token: string }
   | { status: "not_found" }
   | { status: "already_scanned" }
   | { status: "error"; message: string };
@@ -46,7 +46,7 @@ export async function checkInAction(
     .set({ isCheckedIn: true, scannedAt: new Date() })
     .where(eq(tickets.id, ticket.id));
 
-  return { status: "success", fullName: profile.fullName };
+  return { status: "success", fullName: profile.fullName, ticketId: ticket.id, token };
 }
 
 export async function loadGuestListAction(eventId: string) {
