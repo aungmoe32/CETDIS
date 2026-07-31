@@ -1,14 +1,22 @@
 import { getPendingSyncs, markSyncCompleted } from "./idb";
 
+// Module-level lock — prevents concurrent flush calls (e.g. mount flush
+// overlapping with the online event handler or a manual sync button tap).
+let isFlushing = false;
+
 /**
  * Reads all pending entries from the sync queue and POSTs them to
  * the bulk sync API endpoint. Removes completed entries from the queue.
+ * Safe to call multiple times concurrently — extra calls are no-ops.
  */
 export async function flushSyncQueue(): Promise<void> {
-  const pending = await getPendingSyncs();
-  if (pending.length === 0) return;
+  if (isFlushing) return;
+  isFlushing = true;
 
   try {
+    const pending = await getPendingSyncs();
+    if (pending.length === 0) return;
+
     const res = await fetch("/api/checkin/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,5 +40,7 @@ export async function flushSyncQueue(): Promise<void> {
   } catch (err) {
     // Network still unavailable — will retry on next online event
     console.warn("[sync] Flush failed, will retry:", err);
+  } finally {
+    isFlushing = false;
   }
 }

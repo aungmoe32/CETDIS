@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
 import { tickets } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 interface SyncEntry {
   ticket_id: string;
@@ -14,8 +14,11 @@ interface SyncEntry {
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const entries: SyncEntry[] = await request.json();
   if (!Array.isArray(entries)) {
@@ -31,7 +34,12 @@ export async function POST(request: NextRequest) {
             isCheckedIn: true,
             scannedAt: new Date(entry.scanned_at),
           })
-          .where(eq(tickets.id, entry.ticket_id));
+          .where(
+            and(
+              eq(tickets.id, entry.ticket_id),
+              eq(tickets.isCheckedIn, false),
+            ),
+          );
         return { ticket_id: entry.ticket_id, success: true };
       } catch {
         return { ticket_id: entry.ticket_id, success: false };
