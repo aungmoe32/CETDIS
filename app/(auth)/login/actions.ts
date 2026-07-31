@@ -41,6 +41,7 @@ export async function verifyOtp(formData: FormData) {
   // Ensure a profile row exists (trigger handles it, but guard here too)
   const { db } = await import("@/utils/db");
   const { profiles } = await import("@/drizzle/schema");
+  const { eq } = await import("drizzle-orm");
 
   await db
     .insert(profiles)
@@ -51,8 +52,18 @@ export async function verifyOtp(formData: FormData) {
     })
     .onConflictDoNothing();
 
-  redirect("/my-id");
+  // Read the role so we redirect directly to the correct home page.
+  // Avoids the double redirect that happened when organizers landed on /my-id
+  // and the student layout immediately sent them to /dashboard.
+  const [profile] = await db
+    .select({ role: profiles.role })
+    .from(profiles)
+    .where(eq(profiles.id, data.user.id))
+    .limit(1);
+
+  redirect(profile?.role === "organizer" ? "/dashboard" : "/my-id");
 }
+
 
 export async function signOut() {
   const cookieStore = await cookies();

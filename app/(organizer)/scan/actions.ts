@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
-import { profiles, tickets } from "@/drizzle/schema";
+import { events, profiles, tickets } from "@/drizzle/schema";
 import { and, eq } from "drizzle-orm";
 
 export type CheckInResult =
@@ -20,6 +20,20 @@ export async function checkInAction(
   const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { status: "error", message: "Not authenticated" };
+
+  // Ownership check: the caller must be the organizer of this event.
+  // This prevents any authenticated user from scanning tickets for events
+  // they don't own.
+  const [event] = await db
+    .select({ organizerId: events.organizerId })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!event) return { status: "not_found" };
+  if (event.organizerId !== user.id) {
+    return { status: "error", message: "Forbidden" };
+  }
 
   // Query 1: resolve token → user profile
   const [profile] = await db
