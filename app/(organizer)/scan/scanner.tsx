@@ -5,7 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { checkInAction, loadGuestListAction } from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
-import { getTicketByToken, markCheckedInLocally, upsertTicket, saveGuestList } from "@/lib/idb";
+import { getTicketByToken, markCheckedInLocally, upsertTicket, saveGuestList, getPendingSyncs } from "@/lib/idb";
 import type { CheckInResult } from "./actions";
 
 interface Props {
@@ -26,6 +26,8 @@ export default function Scanner({ eventId }: Props) {
   const [isOnline, setIsOnline] = useState(true);
   const [offlineEnabled, setOfflineEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const activeRef = useRef(false);
   // Refs so the scanner callback always reads the live value,
@@ -37,6 +39,12 @@ export default function Scanner({ eventId }: Props) {
     const online = navigator.onLine;
     setIsOnline(online);
     isOnlineRef.current = online;
+
+    // Flush any pending syncs left over from a previous session on mount.
+    if (online) flushSyncQueue();
+
+    // Populate the pending count badge.
+    getPendingSyncs().then((q) => setPendingCount(q.length));
 
     const handleOnline = () => {
       isOnlineRef.current = true;
@@ -54,6 +62,7 @@ export default function Scanner({ eventId }: Props) {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
 
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
@@ -127,6 +136,10 @@ export default function Scanner({ eventId }: Props) {
 
           handleResult(result);
         }
+
+        // Refresh the pending badge after every scan so it reflects any
+        // new offline entries added to the sync queue.
+        getPendingSyncs().then((q) => setPendingCount(q.length));
       },
       undefined,
     );
@@ -150,6 +163,14 @@ export default function Scanner({ eventId }: Props) {
   const disableOfflineMode = () => {
     offlineEnabledRef.current = false;
     setOfflineEnabled(false);
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    await flushSyncQueue();
+    const remaining = await getPendingSyncs();
+    setPendingCount(remaining.length);
+    setIsSyncing(false);
   };
 
   const statusColors: Record<ScanStatus, string> = {
@@ -204,6 +225,24 @@ export default function Scanner({ eventId }: Props) {
               {offlineEnabled ? " · Offline mode enabled" : ""}
             </span>
           </div>
+
+          {/* Manual sync button — visible when online and there are pending entries */}
+          {isOnline && pendingCount > 0 && (
+            <button
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+            >
+              {isSyncing ? (
+                "Syncing…"
+              ) : (
+                <>
+                  <span>↑</span>
+                  <span>{pendingCount} pending — Sync now</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Offline mode controls */}
           {!offlineEnabled ? (
