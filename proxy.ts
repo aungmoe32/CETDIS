@@ -1,43 +1,27 @@
-import { createClient } from "@/utils/supabase/middleware";
+import { updateSession } from "@/utils/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/login"];
 
 export async function proxy(request: NextRequest) {
+  // updateSession refreshes the session cookie AND returns the current user.
+  // Both happen inside the same client, so refreshed tokens are never lost.
+  const { supabaseResponse, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  // Pass through public paths
+  // Public paths — let them through regardless of auth state.
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return createClient(request);
+    return supabaseResponse;
   }
 
-  const supabaseResponse = createClient(request);
-
-  // Re-create a server client to read the refreshed session
-  const { createServerClient } = await import("@supabase/ssr");
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll() {},
-      },
-    },
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // Protected path, no session — redirect to login.
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
+  // Authenticated — return the response with refreshed cookies attached.
   return supabaseResponse;
 }
 
