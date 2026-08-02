@@ -5,7 +5,14 @@ import { Html5Qrcode } from "html5-qrcode";
 import { checkInAction, loadGuestListAction } from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
-import { getTicketByToken, markCheckedInLocally, upsertTicket, saveGuestList, getPendingSyncs } from "@/lib/idb";
+import {
+  getTicketByToken,
+  markCheckedInLocally,
+  upsertTicket,
+  saveGuestList,
+  getPendingSyncs,
+  hasCachedTickets,
+} from "@/lib/idb";
 import type { CheckInResult } from "./actions";
 
 interface Props {
@@ -46,6 +53,15 @@ export default function Scanner({ eventId }: Props) {
     // Populate the pending count badge.
     getPendingSyncs().then((q) => setPendingCount(q.length));
 
+    // Auto-restore offline mode if a guest list was downloaded in a previous
+    // session. The organizer doesn't have to re-download every page reload.
+    hasCachedTickets(eventId).then((has) => {
+      if (has && !isOnlineRef.current) {
+        setOfflineEnabled(true);
+        offlineEnabledRef.current = true;
+      }
+    });
+
     const handleOnline = () => {
       isOnlineRef.current = true;
       setIsOnline(true);
@@ -62,7 +78,6 @@ export default function Scanner({ eventId }: Props) {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-
 
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
@@ -128,11 +143,13 @@ export default function Scanner({ eventId }: Props) {
           if (result.status === "success") {
             await upsertTicket({
               ticket_id: result.ticketId,
+              event_id: eventId,
               check_in_token: result.token,
               full_name: result.fullName,
               is_checked_in: true,
             });
           }
+
 
           handleResult(result);
         }
@@ -148,16 +165,25 @@ export default function Scanner({ eventId }: Props) {
   // Shared helper: download/refresh the local guest list from the server.
   const downloadGuestList = async () => {
     setIsLoading(true);
-    const result = await loadGuestListAction(eventId);
-    if (result.error) {
-      alert(result.error);
-    } else if (result.data) {
-      await saveGuestList(result.data);
-      offlineEnabledRef.current = true;
-      setOfflineEnabled(true);
-      alert(`Guest list downloaded: ${result.data.length} attendees`);
+    try {
+      const result = await loadGuestListAction(eventId);
+      if (result.error) {
+        alert(result.error);
+      } else if (result.data) {
+        await saveGuestList(result.data);
+        offlineEnabledRef.current = true;
+        setOfflineEnabled(true);
+        alert(`Guest list downloaded: ${result.data.length} attendees`);
+      }
+    } catch {
+      // Thrown when the Server Action itself can't reach the network
+      alert(
+        "Network error: could not connect to the server. Check your connection and try again.",
+      );
+    } finally {
+      // Always clear the spinner, even on failure
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const disableOfflineMode = () => {
@@ -245,34 +271,36 @@ export default function Scanner({ eventId }: Props) {
           )}
 
           {/* Offline mode controls */}
-          {!offlineEnabled ? (
+          {/* Enable button: only shown when online — pointless to show it offline */}
+          {isOnline && !offlineEnabled && (
             <button
               onClick={downloadGuestList}
-              disabled={isLoading || !isOnline}
+              disabled={isLoading}
               className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
             >
               {isLoading ? "Downloading…" : "Enable Offline Mode"}
             </button>
-          ) : (
+          )}
+
+          {/* Controls shown after the guest list is downloaded */}
+          {offlineEnabled && (
             <div className="flex flex-col items-center gap-1.5">
-              {/* Refresh: re-download the guest list to pick up late RSVPs */}
-              <button
-                onClick={downloadGuestList}
-                disabled={isLoading || !isOnline}
-                className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
-                title={
-                  !isOnline
-                    ? "No internet connection"
-                    : "Re-download guest list to pick up late RSVPs"
-                }
-              >
-                {isLoading ? "Refreshing…" : "↻ Refresh guest list"}
-              </button>
+              {/* Refresh: re-download to pick up late RSVPs (only useful online) */}
+              {isOnline && (
+                <button
+                  onClick={downloadGuestList}
+                  disabled={isLoading}
+                  className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
+                  title="Re-download guest list to pick up late RSVPs"
+                >
+                  {isLoading ? "Refreshing…" : "↻ Refresh guest list"}
+                </button>
+              )}
               {/* Go back to live mode when internet is restored */}
               {isOnline && (
                 <button
                   onClick={disableOfflineMode}
-                  className="text-xs text-indigo-600 hover:text-gray-600 hover:underline"
+                  className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
                   title="Switch back to live server check-ins"
                 >
                   Use live mode
@@ -280,6 +308,7 @@ export default function Scanner({ eventId }: Props) {
               )}
             </div>
           )}
+
         </div>
       )}
     </div>

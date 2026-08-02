@@ -2,6 +2,7 @@ import { openDB, type IDBPDatabase } from "idb";
 
 export interface CachedTicket {
   ticket_id: string;
+  event_id: string;  // stored so we can scope presence checks to the current event
   check_in_token: string;
   full_name: string;
   is_checked_in: boolean;
@@ -114,4 +115,15 @@ export async function markSyncCompleted(ticketId: string) {
 export async function clearSyncQueue() {
   const db = await getDb();
   await db.clear("sync_queue");
+}
+
+// ─── Cached Ticket Presence ───────────────────────────────────────────────────
+
+// Returns true if there is at least one cached ticket for the given event.
+// Scoped to eventId so we don't incorrectly restore offline mode when the
+// organizer switches to a different event whose list hasn't been downloaded.
+export async function hasCachedTickets(eventId: string): Promise<boolean> {
+  const db = await getDb();
+  const all = await db.getAll("cached_tickets");
+  return all.some((t) => t.event_id === eventId);
 }

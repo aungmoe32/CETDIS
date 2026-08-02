@@ -72,6 +72,7 @@ export async function loadGuestListAction(eventId: string) {
   const guestList = await db
     .select({
       ticket_id: tickets.id,
+      event_id: tickets.eventId,
       check_in_token: profiles.checkInToken,
       full_name: profiles.fullName,
       is_checked_in: tickets.isCheckedIn,
@@ -79,6 +80,7 @@ export async function loadGuestListAction(eventId: string) {
     .from(tickets)
     .innerJoin(profiles, eq(tickets.userId, profiles.id))
     .where(eq(tickets.eventId, eventId));
+
 
   return { data: guestList };
 }
