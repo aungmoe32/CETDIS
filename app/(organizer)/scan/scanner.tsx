@@ -76,8 +76,14 @@ export default function Scanner({ eventId }: Props) {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      // Release the camera when the organizer navigates away.
+      // Use the ref directly here (not stopScanner) to avoid TDZ issues.
+      const s = scannerRef.current;
+      if (s) { s.stop().catch(() => {}); scannerRef.current = null; }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
@@ -95,6 +101,18 @@ export default function Scanner({ eventId }: Props) {
       setStatus("idle");
       setMessage("");
     }, 3000);
+  }, []);
+
+  // Shared teardown — stops the camera and resets to idle.
+  // Called by the Stop button, the unmount cleanup, and after each scan.
+  const stopScanner = useCallback(async () => {
+    activeRef.current = false;
+    const scanner = scannerRef.current;
+    if (scanner) {
+      try { await scanner.stop(); } catch { /* already stopped */ }
+      scannerRef.current = null;
+    }
+    setStatus("idle");
   }, []);
 
   const startScanner = useCallback(() => {
@@ -210,106 +228,116 @@ export default function Scanner({ eventId }: Props) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${statusColors[status]}`}
+      className={`min-h-screen flex flex-col transition-colors duration-500 ${statusColors[status]}`}
     >
-      {/* Status overlay */}
+      {/* ── Result flash ──────────────────────────────────────────────────────
+          Full-screen colour + icon + name for 3 s. Easy to read from a distance. */}
       {status !== "idle" && status !== "scanning" && (
-        <div className="flex flex-col items-center justify-center flex-1 px-4">
-          <p className="text-white text-4xl font-bold mb-2">
+        <div className="flex-1 flex flex-col items-center justify-center px-8 gap-3">
+          <span className="text-7xl font-bold text-white leading-none">
             {status === "success" ? "✓" : "✗"}
-          </p>
-          <p className="text-white text-2xl font-semibold">{message}</p>
+          </span>
+          <p className="text-white text-2xl font-semibold text-center">{message}</p>
           {status === "success" && (
-            <p className="text-white/80 text-sm mt-1">Check-in successful</p>
+            <p className="text-white/70 text-sm">Check-in successful</p>
+          )}
+          {status === "already_scanned" && (
+            <p className="text-white/70 text-sm">Already checked in</p>
           )}
         </div>
       )}
 
-      {/* Scanner UI */}
+      {/* ── Scanner state ─────────────────────────────────────────────────── */}
       {(status === "idle" || status === "scanning") && (
-        <div className="flex flex-col items-center justify-center flex-1 px-4 py-8 gap-4">
-          <div
-            id="qr-reader"
-            className="w-full max-w-xs rounded-xl overflow-hidden"
-          />
+        <>
+          {/* Camera area — takes all remaining vertical space */}
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-6">
+            {status === "scanning" && (
+              <p className="text-sm text-gray-400">Point camera at the student's QR code</p>
+            )}
 
-          {status === "idle" && (
-            <button
-              onClick={startScanner}
-              className="w-full max-w-xs rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white hover:bg-indigo-700"
-            >
-              Start Scanner
-            </button>
-          )}
+            {/* The html5-qrcode library mounts the video into this div */}
+            <div id="qr-reader" className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg" />
 
-          <div className="flex items-center gap-2 mt-2">
-            <span
-              className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-400"}`}
-            />
-            <span className="text-xs text-gray-500">
-              {isOnline ? "Online" : "Offline"}
-              {offlineEnabled ? " · Offline mode enabled" : ""}
-            </span>
+            {status === "idle" && (
+              <button
+                onClick={startScanner}
+                className="w-full max-w-sm rounded-2xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md"
+              >
+                Start Scanner
+              </button>
+            )}
+
+            {status === "scanning" && (
+              <button
+                onClick={stopScanner}
+                className="w-full max-w-sm rounded-2xl border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all"
+              >
+                Stop Scanner
+              </button>
+            )}
           </div>
 
-          {/* Manual sync button — visible when online and there are pending entries */}
-          {isOnline && pendingCount > 0 && (
-            <button
-              onClick={handleManualSync}
-              disabled={isSyncing}
-              className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
-            >
-              {isSyncing ? (
-                "Syncing…"
-              ) : (
-                <>
-                  <span>↑</span>
-                  <span>{pendingCount} pending — Sync now</span>
-                </>
-              )}
-            </button>
-          )}
+          {/* ── Bottom toolbar ─────────────────────────────────────────────
+              Sticky footer: connectivity pill + sync badge on one row,
+              offline action buttons on a second row (only when relevant). */}
+          <div className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 pb-safe-4 space-y-2"
+            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
 
-          {/* Offline mode controls */}
-          {/* Enable button: only shown when online — pointless to show it offline */}
-          {isOnline && !offlineEnabled && (
-            <button
-              onClick={downloadGuestList}
-              disabled={isLoading}
-              className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
-            >
-              {isLoading ? "Downloading…" : "Enable Offline Mode"}
-            </button>
-          )}
+            {/* Row 1: status + pending sync badge */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-400"}`}
+                />
+                <span className="text-xs text-gray-500">
+                  {isOnline ? "Online" : "Offline"}
+                  {offlineEnabled ? " · Offline mode" : ""}
+                </span>
+              </div>
 
-          {/* Controls shown after the guest list is downloaded */}
-          {offlineEnabled && (
-            <div className="flex flex-col items-center gap-1.5">
-              {/* Refresh: re-download to pick up late RSVPs (only useful online) */}
-              {isOnline && (
+              {isOnline && pendingCount > 0 && (
                 <button
-                  onClick={downloadGuestList}
-                  disabled={isLoading}
-                  className="text-xs text-indigo-600 hover:underline disabled:opacity-40"
-                  title="Re-download guest list to pick up late RSVPs"
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 disabled:opacity-50 transition-colors"
                 >
-                  {isLoading ? "Refreshing…" : "↻ Refresh guest list"}
-                </button>
-              )}
-              {/* Go back to live mode when internet is restored */}
-              {isOnline && (
-                <button
-                  onClick={disableOfflineMode}
-                  className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
-                  title="Switch back to live server check-ins"
-                >
-                  Use live mode
+                  {isSyncing ? "Syncing…" : `↑ ${pendingCount} unsynced`}
                 </button>
               )}
             </div>
-          )}
 
-        </div>
+            {/* Row 2: offline actions — only appear when relevant */}
+            {isOnline && !offlineEnabled && (
+              <button
+                onClick={downloadGuestList}
+                disabled={isLoading}
+                className="w-full rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-100 disabled:opacity-40 transition-colors"
+              >
+                {isLoading ? "Downloading guest list…" : "Enable Offline Mode"}
+              </button>
+            )}
+
+            {offlineEnabled && isOnline && (
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadGuestList}
+                  disabled={isLoading}
+                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors"
+                >
+                  {isLoading ? "Refreshing…" : "↻ Refresh list"}
+                </button>
+                <button
+                  onClick={disableOfflineMode}
+                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Use live mode
+                </button>
+              </div>
+            )}
+          </div>
+          {/* end toolbar */}
+        </>
       )}
     </div>
   );
