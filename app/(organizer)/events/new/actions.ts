@@ -10,10 +10,14 @@ interface ActionResult {
   error?: string;
 }
 
-export async function createEventAction(formData: FormData): Promise<ActionResult | void> {
+export async function createEventAction(
+  formData: FormData,
+): Promise<ActionResult | void> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
   const title = formData.get("title") as string;
@@ -23,6 +27,10 @@ export async function createEventAction(formData: FormData): Promise<ActionResul
 
   if (!title || !dateTime || !maxCapacity) {
     return { error: "Title, date/time, and capacity are required" };
+  }
+
+  if (isNaN(maxCapacity) || maxCapacity <= 0) {
+    return { error: "Invalid capacity" };
   }
 
   await db.insert(events).values({
