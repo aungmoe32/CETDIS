@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
+import OfflineContent from "./offline-content";
 
 export const metadata: Metadata = {
-  title: "Offline",
+  title: "You're offline — CETDIS",
 };
 
-export default function Page() {
-  return (
-    <>
-      <h1>You are offline</h1>
-      <h2>When offline, any page route will fallback to this page</h2>
-    </>
-  );
+export default function OfflinePage() {
+  return <OfflineContent />;
 }
