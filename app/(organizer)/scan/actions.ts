@@ -16,10 +16,17 @@ export async function checkInAction(
   token: string,
   eventId: string,
 ): Promise<CheckInResult> {
+  // Validate token format before touching the DB — Postgres will throw a
+  // type error if it receives a non-UUID string for a uuid column.
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(token)) return { status: "not_found" };
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { status: "error", message: "Not authenticated" };
+
 
   // Ownership check: the caller must be the organizer of this event.
   // This prevents any authenticated user from scanning tickets for events
