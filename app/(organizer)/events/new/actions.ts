@@ -24,6 +24,8 @@ export async function createEventAction(
   const dateTime = formData.get("date_time") as string;
   const location = formData.get("location") as string;
   const maxCapacity = parseInt(formData.get("max_capacity") as string, 10);
+  const priceRaw = formData.get("price") as string;
+  const price = priceRaw ? parseInt(priceRaw, 10) : 0;
 
   if (!title || !dateTime || !maxCapacity) {
     return { error: "Title, date/time, and capacity are required" };
@@ -33,11 +35,16 @@ export async function createEventAction(
     return { error: "Invalid capacity" };
   }
 
+  if (isNaN(price) || price < 0) {
+    return { error: "Invalid price" };
+  }
+
   await db.insert(events).values({
     title,
     dateTime: new Date(dateTime),
     location: location || null,
     maxCapacity,
+    price,
     organizerId: user.id,
   });
 

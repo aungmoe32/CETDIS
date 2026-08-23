@@ -37,6 +37,7 @@ export const events = pgTable("events", {
   dateTime: timestamp("date_time", { withTimezone: true }).notNull(),
   location: text("location"),
   maxCapacity: integer("max_capacity").notNull(),
+  price: integer("price").notNull().default(0),
   organizerId: uuid("organizer_id")
     .notNull()
     .references(() => profiles.id, { onDelete: "cascade" }),

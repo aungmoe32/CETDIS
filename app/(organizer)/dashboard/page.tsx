@@ -21,6 +21,7 @@ export default async function DashboardPage() {
       dateTime: events.dateTime,
       location: events.location,
       maxCapacity: events.maxCapacity,
+      price: events.price,
     })
     .from(events)
     .where(eq(events.organizerId, user.id))
@@ -60,12 +61,24 @@ export default async function DashboardPage() {
           const stats = statsMap[event.id];
           const total = stats?.total ?? 0;
           const checkedIn = stats?.checkedIn ?? 0;
+          const isFree = !event.price || event.price === 0;
           return (
             <li key={event.id} className="border border-gray-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-medium text-gray-900">{event.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium text-gray-900">{event.title}</p>
+                    <span
+                      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                        isFree
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                      }`}
+                    >
+                      {isFree ? "Free" : `${event.price.toLocaleString()} MMK`}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
                     {new Date(event.dateTime).toLocaleString()} · {event.location}
                   </p>
                 </div>
