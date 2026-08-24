@@ -16,7 +16,8 @@
     "**/*.js",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.jsx"
+    "**/*.jsx",
+    "**/*.json"
   ],
   "ignore": {
     "useGitignore": true,
