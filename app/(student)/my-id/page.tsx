@@ -5,6 +5,7 @@ import { db } from "@/utils/db";
 import { profiles } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import QrDisplay from "./qr-display";
+import NfcSection from "./nfc-section";
 
 export const metadata = { title: "My Digital ID" };
 
@@ -25,7 +26,7 @@ export default async function MyIdPage() {
   const scanUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/scan/${profile.checkInToken}`;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-8">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-8 gap-4">
       <div className="w-full max-w-xs bg-white border border-gray-200 rounded-2xl shadow-sm p-6 flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
           <span className="text-indigo-600 font-bold text-lg">
@@ -43,6 +44,11 @@ export default async function MyIdPage() {
           Show this QR code at the event entrance
         </p>
       </div>
+
+      <NfcSection
+        purchasedNfc={profile.purchasedNfc}
+        nfcIssued={profile.nfcIssued}
+      />
     </div>
   );
 }

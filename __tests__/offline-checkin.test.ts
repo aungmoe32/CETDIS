@@ -6,6 +6,7 @@ vi.mock("@/lib/idb");
 
 const mockTicket = {
   ticket_id: "ticket-123",
+  event_id: "event-123",
   check_in_token: "token-uuid-abc",
   full_name: "John Doe",
   is_checked_in: false,

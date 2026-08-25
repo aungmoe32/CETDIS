@@ -9,6 +9,10 @@ declare global {
 }
 interface NDEFReaderInstance {
   scan(options?: { signal?: AbortSignal }): Promise<void>;
+  write(
+    message: string | { records: Array<{ recordType: string; data: string }> },
+    options?: { signal?: AbortSignal },
+  ): Promise<void>;
   addEventListener(
     type: "reading",
     listener: (event: {
@@ -25,7 +29,11 @@ interface NDEFRecordInstance {
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { checkInAction, loadGuestListAction } from "./actions";
+import {
+  checkInAction,
+  loadGuestListAction,
+  markNfcIssuedAction,
+} from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
 import {
@@ -61,6 +69,12 @@ export default function Scanner({ eventId }: Props) {
   const [pendingCount, setPendingCount] = useState(0);
   const [scanMode, setScanMode] = useState<ScanMode>("qr");
   const [nfcAvailable, setNfcAvailable] = useState(false);
+  const [handoverData, setHandoverData] = useState<{
+    fullName: string;
+    token: string;
+  } | null>(null);
+  const [isWritingHandover, setIsWritingHandover] = useState(false);
+  const [handoverSuccess, setHandoverSuccess] = useState(false);
 
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const nfcAbortRef = useRef<AbortController | null>(null);
@@ -118,6 +132,12 @@ export default function Scanner({ eventId }: Props) {
     if (result.status === "success") {
       setStatus("success");
       setMessage(result.fullName);
+      if (result.needsNfcHandover) {
+        setHandoverData({
+          fullName: result.fullName,
+          token: result.token,
+        });
+      }
     } else if (result.status === "already_scanned") {
       setStatus("already_scanned");
       setMessage("Already checked in");
@@ -312,6 +332,36 @@ export default function Scanner({ eventId }: Props) {
     const remaining = await getPendingSyncs();
     setPendingCount(remaining.length);
     setIsSyncing(false);
+  };
+
+  // ── NFC Handover Flow (Fast Issue At Door) ─────────────────────────────────
+  const handleIssueHandoverTag = async () => {
+    if (!handoverData) return;
+    setIsWritingHandover(true);
+    try {
+      if (nfcAvailable && "NDEFReader" in window) {
+        const ndef = new window.NDEFReader();
+        await ndef.write(handoverData.token);
+      } else {
+        // Fallback simulation for devices without Web NFC
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      await markNfcIssuedAction(handoverData.token);
+      setHandoverSuccess(true);
+      setTimeout(() => {
+        setHandoverData(null);
+        setHandoverSuccess(false);
+      }, 1500);
+    } catch (err: unknown) {
+      alert(`NFC Write Failed: ${(err as Error).message || String(err)}`);
+    } finally {
+      setIsWritingHandover(false);
+    }
+  };
+
+  const handleDismissHandover = () => {
+    setHandoverData(null);
+    setHandoverSuccess(false);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -554,6 +604,99 @@ export default function Scanner({ eventId }: Props) {
             )}
           </div>
         </>
+      )}
+
+      {/* ── NFC Handover Fast Issuing Modal Overlay ─────────────────────── */}
+      {handoverData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800">
+                NFC Tag Handover
+              </span>
+              <button
+                onClick={handleDismissHandover}
+                className="text-gray-400 hover:text-gray-600 text-xs font-medium"
+              >
+                Skip / Later
+              </button>
+            </div>
+
+            {handoverSuccess ? (
+              <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+                  ✓
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">
+                  Tag Linked &amp; Handed Over!
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Physical NFC tag is now active for {handoverData.fullName}.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {handoverData.fullName}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Purchased a physical NFC ID Tag. Tap a blank tag now to program and issue it at the door.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="5" />
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                    </svg>
+                  </div>
+                  <div className="text-xs text-indigo-950">
+                    <p className="font-semibold">
+                      {isWritingHandover
+                        ? "Hold blank tag near device..."
+                        : "Ready to write"}
+                    </p>
+                    <p className="text-[11px] text-indigo-700">
+                      {nfcAvailable ? "Web NFC Enabled" : "Simulation Mode"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleDismissHandover}
+                    disabled={isWritingHandover}
+                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  >
+                    Skip for Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleIssueHandoverTag}
+                    disabled={isWritingHandover}
+                    className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5"
+                  >
+                    {isWritingHandover ? (
+                      <span>Writing Tag...</span>
+                    ) : (
+                      <span>Tap Tag to Issue</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

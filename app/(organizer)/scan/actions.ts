@@ -7,7 +7,13 @@ import { events, profiles, tickets } from "@/drizzle/schema";
 import { and, eq } from "drizzle-orm";
 
 export type CheckInResult =
-  | { status: "success"; fullName: string; ticketId: string; token: string }
+  | {
+      status: "success";
+      fullName: string;
+      ticketId: string;
+      token: string;
+      needsNfcHandover?: boolean;
+    }
   | { status: "not_found" }
   | { status: "already_scanned" }
   | { status: "error"; message: string };
@@ -44,7 +50,12 @@ export async function checkInAction(
 
   // Query 1: resolve token → user profile
   const [profile] = await db
-    .select({ id: profiles.id, fullName: profiles.fullName })
+    .select({
+      id: profiles.id,
+      fullName: profiles.fullName,
+      purchasedNfc: profiles.purchasedNfc,
+      nfcIssued: profiles.nfcIssued,
+    })
     .from(profiles)
     .where(eq(profiles.checkInToken, token))
     .limit(1);
@@ -67,7 +78,33 @@ export async function checkInAction(
     .set({ isCheckedIn: true, scannedAt: new Date() })
     .where(eq(tickets.id, ticket.id));
 
-  return { status: "success", fullName: profile.fullName, ticketId: ticket.id, token };
+  const needsNfcHandover = Boolean(profile.purchasedNfc && !profile.nfcIssued);
+
+  return {
+    status: "success",
+    fullName: profile.fullName,
+    ticketId: ticket.id,
+    token,
+    needsNfcHandover,
+  };
+}
+
+export async function markNfcIssuedAction(token: string) {
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(token)) return { error: "Invalid token format" };
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  await db
+    .update(profiles)
+    .set({ nfcIssued: true, purchasedNfc: true })
+    .where(eq(profiles.checkInToken, token));
+
+  return { success: true };
 }
 
 export async function loadGuestListAction(eventId: string) {

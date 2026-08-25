@@ -26,6 +26,8 @@ export const profiles = pgTable("profiles", {
   fullName: text("full_name").notNull(),
   role: roleEnum("role").notNull().default("student"),
   checkInToken: uuid("check_in_token").notNull().unique().defaultRandom(),
+  purchasedNfc: boolean("purchased_nfc").notNull().default(false),
+  nfcIssued: boolean("nfc_issued").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
