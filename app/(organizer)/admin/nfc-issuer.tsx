@@ -35,6 +35,19 @@ export default function NfcIssuer() {
   useEffect(() => {
     setNfcAvailable("NDEFReader" in window);
     loadPending();
+
+    return () => {
+      if (qrScannerRef.current) {
+        try {
+          if (qrScannerRef.current.isScanning) {
+            qrScannerRef.current.stop().catch(() => {});
+          }
+        } catch {
+          /* ignore */
+        }
+        qrScannerRef.current = null;
+      }
+    };
   }, []);
 
   const loadPending = async () => {
@@ -49,28 +62,54 @@ export default function NfcIssuer() {
   const startScanner = useCallback(() => {
     const el = document.getElementById("nfc-qr-reader");
     if (!el) return;
+
+    if (qrScannerRef.current) {
+      try {
+        if (qrScannerRef.current.isScanning) {
+          qrScannerRef.current.stop().catch(() => {});
+        }
+      } catch {
+        /* ignore */
+      }
+      qrScannerRef.current = null;
+    }
+
     const scanner = new Html5Qrcode("nfc-qr-reader");
     qrScannerRef.current = scanner;
     setIsScanning(true);
 
-    scanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText) => {
-        const token = decodedText.split("/").pop() ?? decodedText;
-        await scanner.stop();
-        qrScannerRef.current = null;
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          const token = decodedText.split("/").pop() ?? decodedText;
+          try {
+            if (scanner.isScanning) {
+              await scanner.stop();
+            }
+          } catch {
+            /* ignore stop error */
+          }
+          qrScannerRef.current = null;
+          setIsScanning(false);
+          await handleVerifyToken(token);
+        },
+        undefined,
+      )
+      .catch((err) => {
+        console.warn("NFC QR scanner failed to start:", err);
         setIsScanning(false);
-        await handleVerifyToken(token);
-      },
-      undefined,
-    );
+      });
   }, []);
 
   const stopScanner = useCallback(async () => {
-    if (qrScannerRef.current) {
+    const s = qrScannerRef.current;
+    if (s) {
       try {
-        await qrScannerRef.current.stop();
+        if (s.isScanning) {
+          await s.stop();
+        }
       } catch {
         /* already stopped */
       }

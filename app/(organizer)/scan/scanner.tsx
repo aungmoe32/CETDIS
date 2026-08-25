@@ -119,7 +119,16 @@ export default function Scanner({ eventId }: Props) {
       window.removeEventListener("offline", handleOffline);
       // Release camera + NFC when the organizer navigates away.
       const s = qrScannerRef.current;
-      if (s) { s.stop().catch(() => {}); qrScannerRef.current = null; }
+      if (s) {
+        try {
+          if (s.isScanning) {
+            s.stop().catch(() => {});
+          }
+        } catch {
+          /* ignore */
+        }
+        qrScannerRef.current = null;
+      }
       nfcAbortRef.current?.abort();
       nfcAbortRef.current = null;
       nfcScanningRef.current = false;
@@ -203,7 +212,13 @@ export default function Scanner({ eventId }: Props) {
     activeRef.current = false;
     const s = qrScannerRef.current;
     if (s) {
-      try { await s.stop(); } catch { /* already stopped */ }
+      try {
+        if (s.isScanning) {
+          await s.stop();
+        }
+      } catch {
+        /* already stopped */
+      }
       qrScannerRef.current = null;
     }
     setStatus("idle");
@@ -212,23 +227,47 @@ export default function Scanner({ eventId }: Props) {
   const startQRScanner = useCallback(() => {
     const el = document.getElementById("qr-reader");
     if (!el) return;
+
+    if (qrScannerRef.current) {
+      try {
+        if (qrScannerRef.current.isScanning) {
+          qrScannerRef.current.stop().catch(() => {});
+        }
+      } catch {
+        /* ignore */
+      }
+      qrScannerRef.current = null;
+    }
+
     const scanner = new Html5Qrcode("qr-reader");
     qrScannerRef.current = scanner;
     activeRef.current = true;
     setStatus("scanning");
 
-    scanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText) => {
-        if (!activeRef.current) return;
-        const token = decodedText.split("/").pop() ?? decodedText;
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          if (!activeRef.current) return;
+          const token = decodedText.split("/").pop() ?? decodedText;
+          activeRef.current = false;
+          try {
+            if (scanner.isScanning) {
+              await scanner.stop();
+            }
+          } catch {
+            /* ignore stop error */
+          }
+          await processToken(token);
+        },
+        undefined,
+      )
+      .catch((err) => {
+        console.warn("QR Scanner start failed:", err);
+        setStatus("idle");
         activeRef.current = false;
-        await scanner.stop();
-        await processToken(token);
-      },
-      undefined,
-    );
+      });
   }, [processToken]);
 
   // ── NFC scanner ───────────────────────────────────────────────────────────
