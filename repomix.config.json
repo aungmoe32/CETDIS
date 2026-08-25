@@ -1,4 +1,12 @@
 {
+  "input": {
+    "processors": [
+      {
+        "pattern": "**/*.{tsx,jsx}",
+        "command": "node remove-classnames.js --no-html {file}"
+      }
+    ]
+  },
   "output": {
     "filePath": "repomix-output.md",
     "style": "markdown",
@@ -10,7 +18,8 @@
     "compress": false,
     "topFilesLength": 5,
     "showLineNumbers": false,
-    "copyToClipboard": false
+    "copyToClipboard": false,
+    "includeFullDirectoryStructure": true
   },
   "include": [
     "**/*.js",

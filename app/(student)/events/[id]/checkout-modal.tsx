@@ -9,7 +9,35 @@ interface Props {
   price: number;
 }
 
-type PaymentMethod = "kpay" | "wave" | "cb" | "cash";
+type PaymentMethod = "kpay" | "wave";
+
+interface MerchantDetails {
+  name: string;
+  phone: string;
+  label: string;
+  subLabel: string;
+  color: string;
+  activeBg: string;
+}
+
+const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
+  kpay: {
+    name: "U Kyaw Swar (CETDIS KPay)",
+    phone: "09-250123456",
+    label: "KBZPay",
+    subLabel: "KPay Wallet",
+    color: "text-blue-700",
+    activeBg: "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20",
+  },
+  wave: {
+    name: "Daw Hnin Ei (CETDIS Wave)",
+    phone: "09-971234567",
+    label: "WavePay",
+    subLabel: "Wave Money",
+    color: "text-amber-600",
+    activeBg: "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20",
+  },
+};
 
 export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,6 +49,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const formattedPrice = `${price.toLocaleString()} MMK`;
+  const selectedMerchant = MERCHANTS[method];
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,9 +152,6 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                       {formattedPrice}
                     </span>
                   </div>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                    Demo Mode
-                  </span>
                 </div>
 
                 {/* Payment Methods */}
@@ -133,13 +159,13 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                   <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
                     Select Payment Method
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       onClick={() => setMethod("kpay")}
                       className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
                         method === "kpay"
-                          ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
+                          ? MERCHANTS.kpay.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
                       }`}
                     >
@@ -156,83 +182,47 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                       onClick={() => setMethod("wave")}
                       className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
                         method === "wave"
-                          ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
+                          ? MERCHANTS.wave.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
                       }`}
                     >
-                      <span className="font-bold text-sm text-yellow-600">
+                      <span className="font-bold text-sm text-amber-600">
                         WavePay
                       </span>
                       <span className="text-[11px] text-gray-500">
                         Wave Money
                       </span>
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setMethod("cb")}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
-                        method === "cb"
-                          ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                          : "border-gray-200 hover:border-gray-300 bg-white"
-                      }`}
-                    >
-                      <span className="font-bold text-sm text-red-600">
-                        CB Pay
-                      </span>
-                      <span className="text-[11px] text-gray-500">
-                        CB Bank App
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setMethod("cash")}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
-                        method === "cash"
-                          ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                          : "border-gray-200 hover:border-gray-300 bg-white"
-                      }`}
-                    >
-                      <span className="font-bold text-sm text-emerald-700">
-                        Pay at Door
-                      </span>
-                      <span className="text-[11px] text-gray-500">
-                        Cash on Arrival
-                      </span>
-                    </button>
                   </div>
                 </div>
 
-                {/* Dynamic Details based on Method */}
-                {method !== "cash" ? (
-                  <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 space-y-2">
-                    <div className="flex justify-between text-xs text-gray-600">
-                      <span>Merchant Phone:</span>
-                      <span className="font-mono font-medium text-gray-900">
-                        09-791234567
-                      </span>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-gray-500 mb-1">
-                        Demo Transaction ID (Pre-filled):
-                      </label>
-                      <input
-                        type="text"
-                        value={txnId}
-                        onChange={(e) => setTxnId(e.target.value)}
-                        required
-                        className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                    </div>
+                {/* Dynamic Merchant Details for Selected Method */}
+                <div className="rounded-xl border border-gray-200 p-3.5 bg-gray-50/70 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
+                    <span className="text-gray-500">Account Name:</span>
+                    <span className="font-medium text-gray-900">
+                      {selectedMerchant.name}
+                    </span>
                   </div>
-                ) : (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-800">
-                    ℹ️ You can pay <strong>{formattedPrice}</strong> in cash at
-                    the door during check-in. Your ticket will be issued
-                    immediately.
+                  <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
+                    <span className="text-gray-500">Merchant Phone:</span>
+                    <span className="font-mono font-bold text-gray-900 text-sm">
+                      {selectedMerchant.phone}
+                    </span>
                   </div>
-                )}
+                  <div>
+                    <label className="block text-[11px] text-gray-500 mb-1">
+                      Demo Transaction ID (Pre-filled):
+                    </label>
+                    <input
+                      type="text"
+                      value={txnId}
+                      onChange={(e) => setTxnId(e.target.value)}
+                      required
+                      className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
 
                 {/* Notice */}
                 <p className="text-[11px] text-gray-400 text-center">
