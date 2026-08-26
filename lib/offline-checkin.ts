@@ -6,7 +6,15 @@ import {
 } from "./idb";
 
 export type CheckInResult =
-  | { status: "success"; fullName: string }
+  | {
+      status: "success";
+      fullName: string;
+      ticketId?: string;
+      token?: string;
+      purchasedNfc?: boolean;
+      nfcIssued?: boolean;
+      needsNfcHandover?: boolean;
+    }
   | { status: "not_found" }
   | { status: "already_scanned" };
 
@@ -32,9 +40,20 @@ export async function offlineCheckIn(token: string): Promise<CheckInResult> {
   await markCheckedInLocally(ticket.ticket_id);
   await addToSyncQueue({
     ticket_id: ticket.ticket_id,
+    type: "checkin",
     scanned_at: scannedAt,
     sync_status: "pending",
   });
 
-  return { status: "success", fullName: ticket.full_name };
+  const needsNfcHandover = Boolean(ticket.purchased_nfc && !ticket.nfc_issued);
+
+  return {
+    status: "success",
+    fullName: ticket.full_name,
+    ticketId: ticket.ticket_id,
+    token,
+    purchasedNfc: ticket.purchased_nfc,
+    nfcIssued: ticket.nfc_issued,
+    needsNfcHandover,
+  };
 }

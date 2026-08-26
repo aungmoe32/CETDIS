@@ -11,6 +11,10 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
 vi.mock("@/utils/db", () => {
   const selectMock = vi.fn();
   const updateMock = vi.fn();
@@ -102,6 +106,49 @@ describe("NFC Universal ID Tag Workflow", () => {
         nfcIssued: true,
         purchasedNfc: true,
       });
+    });
+  });
+
+  describe("Student NFC lifecycle actions", () => {
+    it("purchaseNfcAction sets purchasedNfc to true and nfcIssued to false", async () => {
+      const { purchaseNfcAction } = await import("@/app/(student)/my-id/actions");
+      const setMock = vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([{}]),
+      });
+
+      vi.mocked(db.update).mockReturnValue({
+        set: setMock,
+      } as any);
+
+      const result = await purchaseNfcAction();
+      expect(result).toEqual({ success: true });
+      expect(setMock).toHaveBeenCalledWith({
+        purchasedNfc: true,
+        nfcIssued: false,
+      });
+    });
+
+    it("reportLostTagAction regenerates checkInToken and resets both purchasedNfc and nfcIssued to false", async () => {
+      const { reportLostTagAction } = await import("@/app/(student)/my-id/actions");
+      const setMock = vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([{}]),
+      });
+
+      vi.mocked(db.update).mockReturnValue({
+        set: setMock,
+      } as any);
+
+      const result = await reportLostTagAction();
+      expect(result).toEqual({ success: true });
+      expect(setMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          purchasedNfc: false,
+          nfcIssued: false,
+          checkInToken: expect.stringMatching(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+          ),
+        }),
+      );
     });
   });
 });

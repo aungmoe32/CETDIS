@@ -12,6 +12,8 @@ export type CheckInResult =
       fullName: string;
       ticketId: string;
       token: string;
+      purchasedNfc?: boolean;
+      nfcIssued?: boolean;
       needsNfcHandover?: boolean;
     }
   | { status: "not_found" }
@@ -85,6 +87,8 @@ export async function checkInAction(
     fullName: profile.fullName,
     ticketId: ticket.id,
     token,
+    purchasedNfc: profile.purchasedNfc,
+    nfcIssued: profile.nfcIssued,
     needsNfcHandover,
   };
 }
@@ -120,11 +124,12 @@ export async function loadGuestListAction(eventId: string) {
       check_in_token: profiles.checkInToken,
       full_name: profiles.fullName,
       is_checked_in: tickets.isCheckedIn,
+      purchased_nfc: profiles.purchasedNfc,
+      nfc_issued: profiles.nfcIssued,
     })
     .from(tickets)
     .innerJoin(profiles, eq(tickets.userId, profiles.id))
     .where(eq(tickets.eventId, eventId));
-
 
   return { data: guestList };
 }

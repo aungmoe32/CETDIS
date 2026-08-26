@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
-import { events, tickets } from "@/drizzle/schema";
+import { events, profiles, tickets } from "@/drizzle/schema";
 import { and, eq, inArray } from "drizzle-orm";
 
 interface SyncEntry {
   ticket_id: string;
+  type?: "checkin" | "issue_nfc";
+  token?: string;
   scanned_at: string;
 }
 
@@ -25,25 +27,51 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  // Bulk ownership check: find which of the submitted ticket_ids actually
-  // belong to an event owned by the caller. Any ticket not in this set is
-  // rejected — an organizer can only sync check-ins for their own events.
-  const incomingIds = entries.map((e) => e.ticket_id);
-  const ownedRows = await db
-    .select({ id: tickets.id })
-    .from(tickets)
-    .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(
-      and(
-        eq(events.organizerId, user.id),
-        inArray(tickets.id, incomingIds),
-      ),
-    );
-  const ownedIds = new Set(ownedRows.map((r) => r.id));
+  // Separate check-ins vs NFC issue events
+  const checkinEntries = entries.filter((e) => e.type !== "issue_nfc");
+  const nfcEntries = entries.filter((e) => e.type === "issue_nfc");
+
+  // Bulk ownership check for check-ins
+  const incomingCheckinIds = checkinEntries.map((e) => e.ticket_id);
+  let ownedIds = new Set<string>();
+
+  if (incomingCheckinIds.length > 0) {
+    const ownedRows = await db
+      .select({ id: tickets.id })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(
+        and(
+          eq(events.organizerId, user.id),
+          inArray(tickets.id, incomingCheckinIds),
+        ),
+      );
+    ownedIds = new Set(ownedRows.map((r) => r.id));
+  }
+
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   const results = await Promise.all(
     entries.map(async (entry) => {
-      // Reject entries the caller doesn't own before touching the DB.
+      // ── Process NFC Tag Issue sync ─────────────────────────────
+      if (entry.type === "issue_nfc") {
+        const token = entry.token || entry.ticket_id.replace(/^issue_/, "");
+        if (!token || !UUID_RE.test(token)) {
+          return { ticket_id: entry.ticket_id, success: false };
+        }
+        try {
+          await db
+            .update(profiles)
+            .set({ nfcIssued: true, purchasedNfc: true })
+            .where(eq(profiles.checkInToken, token));
+          return { ticket_id: entry.ticket_id, success: true };
+        } catch {
+          return { ticket_id: entry.ticket_id, success: false };
+        }
+      }
+
+      // ── Process Ticket Check-in sync ───────────────────────────
       if (!ownedIds.has(entry.ticket_id)) {
         return { ticket_id: entry.ticket_id, success: false };
       }

@@ -42,6 +42,8 @@ import {
   saveGuestList,
   getPendingSyncs,
   hasCachedTickets,
+  markNfcIssuedLocally,
+  addToSyncQueue,
 } from "@/lib/idb";
 import type { CheckInResult } from "./actions";
 
@@ -385,7 +387,25 @@ export default function Scanner({ eventId }: Props) {
         // Fallback simulation for devices without Web NFC
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      await markNfcIssuedAction(handoverData.token);
+
+      // Split-brain guard: update local IndexedDB immediately
+      await markNfcIssuedLocally(handoverData.token);
+
+      if (!isOnlineRef.current || offlineEnabledRef.current) {
+        // Enqueue offline sync for NFC tag issue
+        await addToSyncQueue({
+          ticket_id: `issue_${handoverData.token}`,
+          type: "issue_nfc",
+          token: handoverData.token,
+          scanned_at: new Date().toISOString(),
+          sync_status: "pending",
+        });
+        const remaining = await getPendingSyncs();
+        setPendingCount(remaining.length);
+      } else {
+        await markNfcIssuedAction(handoverData.token);
+      }
+
       setHandoverSuccess(true);
       setTimeout(() => {
         setHandoverData(null);

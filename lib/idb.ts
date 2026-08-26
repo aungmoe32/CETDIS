@@ -6,10 +6,14 @@ export interface CachedTicket {
   check_in_token: string;
   full_name: string;
   is_checked_in: boolean;
+  purchased_nfc?: boolean;
+  nfc_issued?: boolean;
 }
 
 export interface SyncQueueEntry {
   ticket_id: string;
+  type?: "checkin" | "issue_nfc";
+  token?: string;
   scanned_at: string; // ISO timestamp
   sync_status: "pending" | "completed";
 }
@@ -80,6 +84,20 @@ export async function markCheckedInLocally(ticketId: string) {
   const ticket = await store.get(ticketId);
   if (ticket) {
     ticket.is_checked_in = true;
+    await store.put(ticket);
+  }
+  await tx.done;
+}
+
+export async function markNfcIssuedLocally(token: string) {
+  const db = await getDb();
+  const tx = db.transaction("cached_tickets", "readwrite");
+  const store = tx.objectStore("cached_tickets");
+  const index = store.index("by_token");
+  const ticket = await index.get(token);
+  if (ticket) {
+    ticket.purchased_nfc = true;
+    ticket.nfc_issued = true;
     await store.put(ticket);
   }
   await tx.done;

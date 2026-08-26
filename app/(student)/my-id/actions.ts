@@ -7,6 +7,8 @@ import { db } from "@/utils/db";
 import { profiles } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
+import { randomUUID } from "crypto";
+
 export async function purchaseNfcAction() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -20,7 +22,33 @@ export async function purchaseNfcAction() {
 
   await db
     .update(profiles)
-    .set({ purchasedNfc: true })
+    .set({ purchasedNfc: true, nfcIssued: false })
+    .where(eq(profiles.id, user.id));
+
+  revalidatePath("/my-id");
+  return { success: true };
+}
+
+export async function reportLostTagAction() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Not authenticated" };
+  }
+
+  const newToken = randomUUID();
+
+  await db
+    .update(profiles)
+    .set({
+      checkInToken: newToken,
+      purchasedNfc: false,
+      nfcIssued: false,
+    })
     .where(eq(profiles.id, user.id));
 
   revalidatePath("/my-id");
