@@ -3,13 +3,14 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
-import { events, profiles, tickets } from "@/drizzle/schema";
+import { events, nfcIssuances, profiles, tickets } from "@/drizzle/schema";
 import { and, eq, inArray } from "drizzle-orm";
 
 interface SyncEntry {
   ticket_id: string;
   type?: "checkin" | "issue_nfc";
   token?: string;
+  event_id?: string;
   scanned_at: string;
 }
 
@@ -29,7 +30,6 @@ export async function POST(request: NextRequest) {
 
   // Separate check-ins vs NFC issue events
   const checkinEntries = entries.filter((e) => e.type !== "issue_nfc");
-  const nfcEntries = entries.filter((e) => e.type === "issue_nfc");
 
   // Bulk ownership check for check-ins
   const incomingCheckinIds = checkinEntries.map((e) => e.ticket_id);
@@ -61,10 +61,27 @@ export async function POST(request: NextRequest) {
           return { ticket_id: entry.ticket_id, success: false };
         }
         try {
-          await db
-            .update(profiles)
-            .set({ nfcIssued: true, purchasedNfc: true })
-            .where(eq(profiles.checkInToken, token));
+          const [profile] = await db
+            .select({ id: profiles.id })
+            .from(profiles)
+            .where(eq(profiles.checkInToken, token))
+            .limit(1);
+
+          if (!profile) return { ticket_id: entry.ticket_id, success: false };
+
+          await db.transaction(async (tx) => {
+            await tx
+              .update(profiles)
+              .set({ nfcIssued: true, purchasedNfc: true })
+              .where(eq(profiles.id, profile.id));
+
+            await tx.insert(nfcIssuances).values({
+              userId: profile.id,
+              issuedBy: user.id,
+              eventId: entry.event_id || null,
+              issuedAt: new Date(entry.scanned_at),
+            });
+          });
           return { ticket_id: entry.ticket_id, success: true };
         } catch {
           return { ticket_id: entry.ticket_id, success: false };

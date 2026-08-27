@@ -18,10 +18,20 @@ vi.mock("next/cache", () => ({
 vi.mock("@/utils/db", () => {
   const selectMock = vi.fn();
   const updateMock = vi.fn();
+  const insertMock = vi.fn();
+  const transactionMock = vi.fn(async (cb: any) => {
+    return await cb({
+      update: updateMock,
+      insert: insertMock,
+      select: selectMock,
+    });
+  });
   return {
     db: {
       select: selectMock,
       update: updateMock,
+      insert: insertMock,
+      transaction: transactionMock,
     },
   };
 });
@@ -90,22 +100,64 @@ describe("NFC Universal ID Tag Workflow", () => {
       expect(result).toEqual({ error: "Invalid token format" });
     });
 
-    it("updates profile with nfcIssued: true on valid UUID", async () => {
+    it("updates profile with nfcIssued: true and logs to nfc_issuances on valid UUID", async () => {
       const validUuid = "11111111-2222-3333-4444-555555555555";
+      const mockProfile = {
+        id: "student-123",
+        purchasedNfc: true,
+        nfcIssued: false,
+      };
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([mockProfile]),
+          }),
+        }),
+      } as any);
+
       const setMock = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([{}]),
       });
-
       vi.mocked(db.update).mockReturnValue({
         set: setMock,
       } as any);
 
-      const result = await markNfcIssuedAction(validUuid);
+      const valuesMock = vi.fn().mockResolvedValue([{}]);
+      vi.mocked(db.insert).mockReturnValue({
+        values: valuesMock,
+      } as any);
+
+      const result = await markNfcIssuedAction(validUuid, "event-789");
       expect(result).toEqual({ success: true });
-      expect(setMock).toHaveBeenCalledWith({
-        nfcIssued: true,
+      expect(db.transaction).toHaveBeenCalled();
+      expect(valuesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "student-123",
+          issuedBy: "organizer-user-123",
+          eventId: "event-789",
+        }),
+      );
+    });
+
+    it("rejects duplicate issuance if tag was already issued", async () => {
+      const validUuid = "11111111-2222-3333-4444-555555555555";
+      const mockProfile = {
+        id: "student-123",
         purchasedNfc: true,
-      });
+        nfcIssued: true, // already issued
+      };
+
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([mockProfile]),
+          }),
+        }),
+      } as any);
+
+      const result = await markNfcIssuedAction(validUuid);
+      expect(result).toEqual({ error: "NFC tag already issued" });
     });
   });
 

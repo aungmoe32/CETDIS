@@ -14,6 +14,7 @@ export interface SyncQueueEntry {
   ticket_id: string;
   type?: "checkin" | "issue_nfc";
   token?: string;
+  event_id?: string;
   scanned_at: string; // ISO timestamp
   sync_status: "pending" | "completed";
 }

@@ -1,5 +1,5 @@
 import { db } from "@/utils/db";
-import { events, tickets } from "@/drizzle/schema";
+import { events, nfcIssuances, tickets } from "@/drizzle/schema";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { count, eq, sql } from "drizzle-orm";
@@ -40,6 +40,13 @@ export default async function DashboardPage() {
     ticketCounts.map((t) => [t.eventId, t]),
   );
 
+  const [nfcStats] = await db
+    .select({ totalIssued: count() })
+    .from(nfcIssuances)
+    .where(eq(nfcIssuances.issuedBy, user.id));
+
+  const totalNfcIssued = nfcStats?.totalIssued ?? 0;
+
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -50,6 +57,44 @@ export default async function DashboardPage() {
         >
           + Create Event
         </Link>
+      </div>
+
+      {/* NFC Supply Chain / Inventory Tracking Card */}
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="5" />
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                NFC Tags Issued
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
+                Supply Chain
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Need more blank tags? Contact the Developer for a refill roll.
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <span className="text-2xl font-bold text-gray-900 font-mono">
+            {totalNfcIssued}
+          </span>
+          <span className="block text-[11px] text-gray-400">tags handed out</span>
+        </div>
       </div>
 
       {myEvents.length === 0 && (

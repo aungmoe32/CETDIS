@@ -397,13 +397,14 @@ export default function Scanner({ eventId }: Props) {
           ticket_id: `issue_${handoverData.token}`,
           type: "issue_nfc",
           token: handoverData.token,
+          event_id: eventId,
           scanned_at: new Date().toISOString(),
           sync_status: "pending",
         });
         const remaining = await getPendingSyncs();
         setPendingCount(remaining.length);
       } else {
-        await markNfcIssuedAction(handoverData.token);
+        await markNfcIssuedAction(handoverData.token, eventId);
       }
 
       setHandoverSuccess(true);

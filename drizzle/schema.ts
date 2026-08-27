@@ -64,11 +64,33 @@ export const tickets = pgTable(
   (t) => [unique().on(t.userId, t.eventId)],
 );
 
+/**
+ * nfc_issuances — immutable ledger tracking which organizer handed out a
+ * physical NFC tag to which student, and at which event.
+ */
+export const nfcIssuances = pgTable("nfc_issuances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  issuedBy: uuid("issued_by")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id").references(() => events.id, {
+    onDelete: "set null",
+  }),
+  issuedAt: timestamp("issued_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ─── Relations ───────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
   organizedEvents: many(events),
   tickets: many(tickets),
+  receivedNfcIssuances: many(nfcIssuances, { relationName: "student_issuances" }),
+  givenNfcIssuances: many(nfcIssuances, { relationName: "organizer_issuances" }),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -77,6 +99,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     references: [profiles.id],
   }),
   tickets: many(tickets),
+  nfcIssuances: many(nfcIssuances),
 }));
 
 export const ticketsRelations = relations(tickets, ({ one }) => ({
@@ -86,6 +109,23 @@ export const ticketsRelations = relations(tickets, ({ one }) => ({
   }),
   event: one(events, {
     fields: [tickets.eventId],
+    references: [events.id],
+  }),
+}));
+
+export const nfcIssuancesRelations = relations(nfcIssuances, ({ one }) => ({
+  student: one(profiles, {
+    fields: [nfcIssuances.userId],
+    references: [profiles.id],
+    relationName: "student_issuances",
+  }),
+  organizer: one(profiles, {
+    fields: [nfcIssuances.issuedBy],
+    references: [profiles.id],
+    relationName: "organizer_issuances",
+  }),
+  event: one(events, {
+    fields: [nfcIssuances.eventId],
     references: [events.id],
   }),
 }));

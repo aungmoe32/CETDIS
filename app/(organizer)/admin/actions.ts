@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
-import { profiles } from "@/drizzle/schema";
+import { nfcIssuances, profiles } from "@/drizzle/schema";
 import { and, eq, ilike } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -87,7 +87,7 @@ export async function verifyProfileForNfc(token: string) {
   return { success: true, profile };
 }
 
-export async function markNfcIssuedAction(token: string) {
+export async function markNfcIssuedAction(token: string, eventId?: string) {
   const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!UUID_RE.test(token)) {
@@ -99,10 +99,31 @@ export async function markNfcIssuedAction(token: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  await db
-    .update(profiles)
-    .set({ nfcIssued: true, purchasedNfc: true })
-    .where(eq(profiles.checkInToken, token));
+  const [profile] = await db
+    .select({
+      id: profiles.id,
+      purchasedNfc: profiles.purchasedNfc,
+      nfcIssued: profiles.nfcIssued,
+    })
+    .from(profiles)
+    .where(eq(profiles.checkInToken, token))
+    .limit(1);
+
+  if (!profile) return { error: "Student profile not found" };
+  if (profile.nfcIssued) return { error: "NFC tag already issued" };
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(profiles)
+      .set({ nfcIssued: true, purchasedNfc: true })
+      .where(eq(profiles.id, profile.id));
+
+    await tx.insert(nfcIssuances).values({
+      userId: profile.id,
+      issuedBy: user.id,
+      eventId: eventId || null,
+    });
+  });
 
   return { success: true };
 }
