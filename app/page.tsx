@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
  * Unauthenticated  → /login
  * Student          → /my-id
  * Organizer        → /dashboard
+ * Developer        → /developer/dashboard
  */
 export default async function RootPage() {
   const cookieStore = await cookies();
@@ -29,5 +30,6 @@ export default async function RootPage() {
 
   if (!profile) redirect("/login");
 
-  redirect(profile?.role === "organizer" ? "/dashboard" : "/my-id");
+  if (profile.role === "developer") redirect("/developer/dashboard");
+  redirect(profile.role === "organizer" ? "/dashboard" : "/my-id");
 }

@@ -61,6 +61,7 @@ export async function verifyOtp(formData: FormData) {
     .where(eq(profiles.id, data.user.id))
     .limit(1);
 
+  if (profile?.role === "developer") redirect("/developer/dashboard");
   redirect(profile?.role === "organizer" ? "/dashboard" : "/my-id");
 }
 

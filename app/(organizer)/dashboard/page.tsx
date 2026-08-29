@@ -1,8 +1,8 @@
 import { db } from "@/utils/db";
-import { events, nfcIssuances, tickets } from "@/drizzle/schema";
+import { events, nfcAllocations, nfcIssuances, tickets } from "@/drizzle/schema";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { count, eq, sql } from "drizzle-orm";
+import { count, eq, sql, sum } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -47,6 +47,15 @@ export default async function DashboardPage() {
 
   const totalNfcIssued = nfcStats?.totalIssued ?? 0;
 
+  const [allocationStats] = await db
+    .select({ totalAllocated: sum(nfcAllocations.amount).mapWith(Number) })
+    .from(nfcAllocations)
+    .where(eq(nfcAllocations.organizerId, user.id));
+
+  const totalAllocated = allocationStats?.totalAllocated ?? 0;
+  const blankTagsRemaining = totalAllocated - totalNfcIssued;
+  const hasAllocationData = totalAllocated > 0;
+
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -58,6 +67,46 @@ export default async function DashboardPage() {
           + Create Event
         </Link>
       </div>
+
+      {/* Blank Tag Stock Warning Banner */}
+      {hasAllocationData && (
+        <div
+          className={`mb-4 rounded-2xl border px-4 py-3 flex items-center gap-3 ${
+            blankTagsRemaining <= 0
+              ? "bg-red-50/60 border-red-200/70"
+              : blankTagsRemaining <= 20
+                ? "bg-amber-50/60 border-amber-200/70"
+                : "bg-emerald-50/60 border-emerald-200/70"
+          }`}
+        >
+          <span className="text-lg">
+            {blankTagsRemaining <= 0 ? "🚨" : blankTagsRemaining <= 20 ? "⚠️" : "📦"}
+          </span>
+          <div className="flex-1">
+            {blankTagsRemaining <= 20 ? (
+              <>
+                <p className={`text-xs font-bold ${
+                  blankTagsRemaining <= 0 ? "text-red-800" : "text-amber-800"
+                }`}>
+                  {blankTagsRemaining <= 0
+                    ? "No Blank Tags Remaining!"
+                    : `Low Tag Inventory! You have ${blankTagsRemaining} blank tag${blankTagsRemaining !== 1 ? "s" : ""} left.`}
+                </p>
+                <p className={`text-[11px] mt-0.5 ${
+                  blankTagsRemaining <= 0 ? "text-red-600" : "text-amber-700"
+                }`}>
+                  Please contact the platform administrator for a refill roll.
+                </p>
+              </>
+            ) : (
+              <p className="text-xs font-semibold text-emerald-800">
+                Blank NFC Tags Remaining:{" "}
+                <span className="font-mono font-bold">{blankTagsRemaining}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* NFC Supply Chain / Inventory Tracking Card */}
       <div className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">

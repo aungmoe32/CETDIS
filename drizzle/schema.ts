@@ -12,7 +12,7 @@ import { relations } from "drizzle-orm";
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export const roleEnum = pgEnum("role", ["student", "organizer"]);
+export const roleEnum = pgEnum("role", ["student", "organizer", "developer"]);
 
 // ─── Tables ──────────────────────────────────────────────────────────────────
 
@@ -84,6 +84,22 @@ export const nfcIssuances = pgTable("nfc_issuances", {
     .defaultNow(),
 });
 
+/**
+ * nfc_allocations — tracks blank physical NFC tag rolls handed out by the
+ * platform developer to organizers.
+ */
+export const nfcAllocations = pgTable("nfc_allocations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizerId: uuid("organizer_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  allocatedAt: timestamp("allocated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  notes: text("notes"),
+});
+
 // ─── Relations ───────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
@@ -91,6 +107,7 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   tickets: many(tickets),
   receivedNfcIssuances: many(nfcIssuances, { relationName: "student_issuances" }),
   givenNfcIssuances: many(nfcIssuances, { relationName: "organizer_issuances" }),
+  nfcAllocations: many(nfcAllocations),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -127,5 +144,12 @@ export const nfcIssuancesRelations = relations(nfcIssuances, ({ one }) => ({
   event: one(events, {
     fields: [nfcIssuances.eventId],
     references: [events.id],
+  }),
+}));
+
+export const nfcAllocationsRelations = relations(nfcAllocations, ({ one }) => ({
+  organizer: one(profiles, {
+    fields: [nfcAllocations.organizerId],
+    references: [profiles.id],
   }),
 }));

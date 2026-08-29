@@ -16,7 +16,7 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 1. **Offline-First Reliability**: Events often happen in campus basements or outdoor spaces with poor connectivity. The scanner downloads an event's guest list into browser IndexedDB, processes check-ins locally with instant sub-10ms response times, and flushes synced check-ins to the cloud when connectivity resumes.
 2. **Universal Identity Model**: Check-in tokens belong to the student profile (`profiles.checkInToken`), not individual event tickets. One QR code or physical NFC wristband works across all events the student registers for.
 3. **Decoupled Security & Token Revocation**: If a student loses their physical NFC tag, they can report it lost to immediately rotate their `checkInToken` UUID. This instantly destroys the lost tag's access while keeping their account and event registrations intact.
-4. **Platform Supply Chain Ledger (Model 3)**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks which organizer handed out blank tags to which student, providing exact inventory tracking and refill forecasting.
+4. **Platform Supply Chain Ledger**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks every physical tag handover. A separate mutable ledger (`nfc_allocations`) tracks blank tag rolls shipped by the platform developer to each organizer, enabling inventory forecasting and low-stock alerting.
 
 ---
 
@@ -45,12 +45,13 @@ erDiagram
     PROFILES ||--o{ NFC_ISSUANCES : receives
     PROFILES ||--o{ NFC_ISSUANCES : issues
     EVENTS ||--o{ NFC_ISSUANCES : context
+    PROFILES ||--o{ NFC_ALLOCATIONS : receives
 
     PROFILES {
         uuid id PK "Mirrors auth.users.id"
         text email "Unique"
         text full_name
-        role_enum role "'student' | 'organizer'"
+        role_enum role "'student' | 'organizer' | 'developer'"
         uuid check_in_token "Unique student UUID"
         boolean purchased_nfc "Has student paid for tag"
         boolean nfc_issued "Has physical tag been linked"
@@ -83,12 +84,21 @@ erDiagram
         uuid event_id FK "Optional Event Context"
         timestamp issued_at
     }
+
+    NFC_ALLOCATIONS {
+        uuid id PK
+        uuid organizer_id FK "The Organizer"
+        integer amount "Number of blank tags shipped"
+        text notes "Optional batch notes"
+        timestamp allocated_at
+    }
 ```
 
 ### Table Definitions
 
 1. **`profiles`**:
    - `id`: Primary key matching `auth.users.id`.
+   - `role`: `'student' | 'organizer' | 'developer'`. Developer is a platform admin role.
    - `checkInToken`: Randomly generated UUID string representing the student's universal identity token.
    - `purchasedNfc`: Tracks if the student completed checkout for a physical NFC pass.
    - `nfcIssued`: Tracks if an organizer has programmed and handed over a physical NFC tag.
@@ -100,6 +110,11 @@ erDiagram
    - Tracks `is_checked_in` and `scanned_at`.
 4. **`nfc_issuances`**:
    - Strictly insert-only audit ledger recording every physical tag programming and handover.
+5. **`nfc_allocations`**:
+   - Mutable ledger recording every batch of blank NFC tag rolls shipped from the platform developer to a specific organizer.
+   - `amount`: The count of blank tags in the shipment.
+   - `notes`: Optional free-text batch descriptor (e.g. "Mailed Starter Kit", "Handed at event").
+   - Stock remaining for an organizer = `SUM(nfc_allocations.amount) - COUNT(nfc_issuances)`.
 
 ---
 
@@ -108,47 +123,68 @@ erDiagram
 ```
 cetdis/
 ├── app/
-│   ├── (auth)/                     # Auth Route Group
-│   │   ├── login/                  # Passwordless OTP login
-│   │   └── verify/                 # OTP verification page
-│   ├── (student)/                  # Student Route Group
-│   │   ├── events/                 # Event discovery & RSVP
-│   │   ├── tickets/                # My registered event tickets
-│   │   └── my-id/                  # Universal Digital ID & NFC Tag Pass
-│   │       ├── page.tsx            # Digital QR card + NFC section
-│   │       ├── nfc-section.tsx     # 3-State lifecycle & Lost Tag flow
-│   │       ├── nfc-checkout-modal.tsx # Payment checkout modal (KBZPay/WavePay)
-│   │       └── actions.ts          # purchaseNfcAction & reportLostTagAction
-│   ├── (organizer)/                # Organizer Route Group
-│   │   ├── dashboard/              # Metrics, my events, & NFC inventory card
-│   │   ├── events/new/             # Create event
-│   │   ├── scan/                   # Door check-in scanner (QR + NFC)
+│   ├── (auth)/                         # Auth Route Group
+│   │   ├── login/                      # Passwordless OTP login
+│   │   └── verify/                     # OTP verification page
+│   ├── (student)/                      # Student Route Group
+│   │   ├── events/                     # Event discovery & RSVP
+│   │   ├── tickets/                    # My registered event tickets
+│   │   └── my-id/                      # Universal Digital ID & NFC Tag Pass
+│   │       ├── page.tsx                # Digital QR card + NFC section
+│   │       ├── nfc-section.tsx         # 3-State lifecycle & Lost Tag flow
+│   │       ├── nfc-checkout-modal.tsx  # Payment checkout modal (KBZPay/WavePay)
+│   │       └── actions.ts              # purchaseNfcAction & reportLostTagAction
+│   ├── (organizer)/                    # Organizer Route Group
+│   │   ├── dashboard/                  # Metrics, events, NFC inventory card & low-stock banner
+│   │   ├── events/new/                 # Create event
+│   │   ├── scan/                       # Door check-in scanner (QR + NFC)
 │   │   │   ├── page.tsx
-│   │   │   ├── scanner.tsx         # Unified camera/NFC scanning + offline queue
-│   │   │   └── actions.ts          # checkInAction, loadGuestListAction, markNfcIssuedAction
-│   │   └── admin/                  # Student lookup & NFC Tag Programming
+│   │   │   ├── scanner.tsx             # Unified camera/NFC scanning + offline queue
+│   │   │   └── actions.ts              # checkInAction, loadGuestListAction, markNfcIssuedAction
+│   │   └── admin/                      # Student lookup & NFC Tag Programming
 │   │       ├── page.tsx
-│   │       ├── nfc-issuer.tsx      # Admin NFC tag writer
-│   │       └── actions.ts          # verifyProfileForNfc, markNfcIssuedAction
+│   │       ├── nfc-issuer.tsx          # Admin NFC tag writer
+│   │       └── actions.ts              # verifyProfileForNfc, markNfcIssuedAction
+│   ├── (developer)/                    # Developer (Platform Admin) Route Group
+│   │   ├── layout.tsx                  # Dark platform admin layout + role guard (developer only)
+│   │   └── developer/
+│   │       └── dashboard/              # → URL: /developer/dashboard
+│   │           ├── page.tsx            # Platform stats + organizer inventory table
+│   │           ├── actions.ts          # allocateTagsAction (role-gated)
+│   │           └── allocation-modal.tsx # Client modal to ship a tag roll to an organizer
 │   ├── api/
 │   │   └── checkin/
 │   │       └── sync/
-│   │           └── route.ts        # Bulk offline sync handler (checkins + nfc issuances)
-│   └── proxy.ts                    # Root Auth & Role-based Access Proxy (Next.js 16)
+│   │           └── route.ts            # Bulk offline sync handler (checkins + nfc issuances)
+│   └── proxy.ts                        # Root Auth & Role-based Access Proxy (Next.js 16)
 ├── drizzle/
-│   └── schema.ts                   # Drizzle ORM PostgreSQL schema
+│   └── schema.ts                       # Drizzle ORM PostgreSQL schema
 ├── lib/
-│   ├── idb.ts                      # IndexedDB wrapper (attendees cache & sync queue)
-│   ├── offline-checkin.ts          # Optimistic local check-in & handover verification
-│   └── sync.ts                     # Queue flusher & background reconciliation
+│   ├── idb.ts                          # IndexedDB wrapper (attendees cache & sync queue)
+│   ├── offline-checkin.ts              # Optimistic local check-in & handover verification
+│   └── sync.ts                         # Queue flusher & background reconciliation
 └── utils/
-    ├── db.ts                       # Drizzle DB connection instance
-    └── supabase/                   # Supabase client helpers (client, server, middleware)
+    ├── db.ts                           # Drizzle DB connection instance
+    └── supabase/                       # Supabase client helpers (client, server, middleware)
 ```
 
 ---
 
-## 5. Core Workflows & User Lifecycles
+## 5. Roles & Access Control
+
+| Role        | Home Route             | Access                                         |
+| :---------- | :--------------------- | :--------------------------------------------- |
+| `student`   | `/my-id`               | `/events`, `/tickets`, `/my-id`                |
+| `organizer` | `/dashboard`           | `/dashboard`, `/events/new`, `/scan`, `/admin` |
+| `developer` | `/developer/dashboard` | `/developer/*` only                            |
+
+- `proxy.ts` enforces role boundaries; any wrong-role access redirects to that role's home.
+- `(developer)/layout.tsx` performs a server-side role check and redirects non-developers to `/login`.
+- `allocateTagsAction` additionally verifies `role === 'developer'` before writing to `nfc_allocations`.
+
+---
+
+## 6. Core Workflows & User Lifecycles
 
 ### A. Student Pass & Decoupled NFC Lifecycle
 
@@ -198,7 +234,30 @@ When an attendee arrives at an event:
 
 ---
 
-### C. Offline Synchronization Engine
+### C. Developer NFC Inventory Management
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer (/developer/dashboard)
+    participant DB as Postgres (nfc_allocations)
+    participant Org as Organizer (/dashboard)
+
+    Dev->>DB: allocateTagsAction(organizerId, amount, notes)
+    DB-->>Dev: Insert nfc_allocations row
+    Note over Org: Stock banner = SUM(allocations) - COUNT(issuances)
+    Org->>DB: Query nfc_allocations + nfc_issuances
+    DB-->>Org: blankTagsRemaining
+    Note over Org: Green if healthy, Amber if ≤20, Red if ≤0
+```
+
+- Platform developer logs into `/developer/dashboard` to view all organizers' stock levels.
+- Clicking **+ Allocate Tags** on any organizer row opens a modal to record a new shipment.
+- `allocateTagsAction` is double-gated: Supabase session check + DB role verification.
+- The organizer's `/dashboard` shows a dynamic stock banner only once they have received at least one allocation.
+
+---
+
+### D. Offline Synchronization Engine
 
 ```mermaid
 sequenceDiagram
@@ -231,11 +290,11 @@ sequenceDiagram
 
 ---
 
-## 6. Security, RLS & Access Control Rules
+## 7. Security, RLS & Access Control Rules
 
 1. **Next.js 16 `proxy.ts`**:
    - Auth enforcement: Unauthenticated users are redirected to `/login`.
-   - Role boundaries: Students accessing organizer routes are redirected to `/events`; organizers are routed to `/dashboard`.
+   - Role boundaries: Students accessing organizer routes are redirected to `/events`; organizers are routed to `/dashboard`; developers to `/developer/dashboard`.
 2. **Database Row Level Security (RLS)**:
    - RLS is enabled on all tables in public schema.
    - Ownership predicates use `TO authenticated` with `USING (auth.uid() = user_id)` (never bypassing via `SECURITY DEFINER`).
@@ -243,10 +302,12 @@ sequenceDiagram
    - `markNfcIssuedAction` runs inside `db.transaction()` and verifies `nfcIssued === false` before writing to prevent duplicate ledger entries.
 4. **Token Isolation**:
    - Physical NFC tags contain **only** the raw UUID string (`checkInToken`). No sensitive personal details, names, or emails are stored on the physical tag.
+5. **Developer Action Guard**:
+   - `allocateTagsAction` performs both a Supabase session check and a DB-level role assertion before inserting into `nfc_allocations`. Never trusted from the client alone.
 
 ---
 
-## 7. Development & Verification Guide
+## 8. Development & Verification Guide
 
 ### Prerequisites
 
