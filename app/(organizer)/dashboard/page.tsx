@@ -79,9 +79,62 @@ export default async function DashboardPage() {
                 : "bg-emerald-50/60 border-emerald-200/70"
           }`}
         >
-          <span className="text-lg">
-            {blankTagsRemaining <= 0 ? "🚨" : blankTagsRemaining <= 20 ? "⚠️" : "📦"}
-          </span>
+          <div
+            className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
+              blankTagsRemaining <= 0
+                ? "bg-red-100 text-red-600"
+                : blankTagsRemaining <= 20
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-emerald-100 text-emerald-600"
+            }`}
+          >
+            {blankTagsRemaining <= 0 ? (
+              // Alert octagon / critical stop
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z"
+                />
+              </svg>
+            ) : blankTagsRemaining <= 20 ? (
+              // Warning triangle
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                />
+              </svg>
+            ) : (
+              // Package / box
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20 7l-8-4-8 4m16 0v10l-8 4m0-14L4 17m8 4V11"
+                />
+              </svg>
+            )}
+          </div>
           <div className="flex-1">
             {blankTagsRemaining <= 20 ? (
               <>
