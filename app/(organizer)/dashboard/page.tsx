@@ -68,24 +68,20 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Blank Tag Stock Warning Banner */}
-      {hasAllocationData && (
+      {/* Conditional Low NFC Inventory Alert Banner */}
+      {hasAllocationData && blankTagsRemaining <= 20 && (
         <div
-          className={`mb-4 rounded-2xl border px-4 py-3 flex items-center gap-3 ${
+          className={`mb-5 rounded-2xl border px-4 py-3.5 flex items-start sm:items-center gap-3 ${
             blankTagsRemaining <= 0
-              ? "bg-red-50/60 border-red-200/70"
-              : blankTagsRemaining <= 20
-                ? "bg-amber-50/60 border-amber-200/70"
-                : "bg-emerald-50/60 border-emerald-200/70"
+              ? "bg-red-50 border-red-200"
+              : "bg-amber-50 border-amber-200"
           }`}
         >
           <div
-            className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
+            className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5 sm:mt-0 ${
               blankTagsRemaining <= 0
                 ? "bg-red-100 text-red-600"
-                : blankTagsRemaining <= 20
-                  ? "bg-amber-100 text-amber-600"
-                  : "bg-emerald-100 text-emerald-600"
+                : "bg-amber-100 text-amber-600"
             }`}
           >
             {blankTagsRemaining <= 0 ? (
@@ -103,7 +99,7 @@ export default async function DashboardPage() {
                   d="M12 9v4m0 4h.01M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z"
                 />
               </svg>
-            ) : blankTagsRemaining <= 20 ? (
+            ) : (
               // Warning triangle
               <svg
                 className="w-4 h-4"
@@ -118,45 +114,25 @@ export default async function DashboardPage() {
                   d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
                 />
               </svg>
-            ) : (
-              // Package / box
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M20 7l-8-4-8 4m16 0v10l-8 4m0-14L4 17m8 4V11"
-                />
-              </svg>
             )}
           </div>
-          <div className="flex-1">
-            {blankTagsRemaining <= 20 ? (
-              <>
-                <p className={`text-xs font-bold ${
-                  blankTagsRemaining <= 0 ? "text-red-800" : "text-amber-800"
-                }`}>
-                  {blankTagsRemaining <= 0
-                    ? "No Blank Tags Remaining!"
-                    : `Low Tag Inventory! You have ${blankTagsRemaining} blank tag${blankTagsRemaining !== 1 ? "s" : ""} left.`}
-                </p>
-                <p className={`text-[11px] mt-0.5 ${
-                  blankTagsRemaining <= 0 ? "text-red-600" : "text-amber-700"
-                }`}>
-                  Please contact the platform administrator for a refill roll.
-                </p>
-              </>
-            ) : (
-              <p className="text-xs font-semibold text-emerald-800">
-                Blank NFC Tags Remaining:{" "}
-                <span className="font-mono font-bold">{blankTagsRemaining}</span>
-              </p>
-            )}
+          <div className="flex-1 min-w-0">
+            <p
+              className={`text-xs font-bold ${
+                blankTagsRemaining <= 0 ? "text-red-800" : "text-amber-900"
+              }`}
+            >
+              {blankTagsRemaining <= 0
+                ? "No Blank NFC Tags Remaining"
+                : `Low NFC Inventory (${blankTagsRemaining} remaining)`}
+            </p>
+            <p
+              className={`text-xs mt-0.5 ${
+                blankTagsRemaining <= 0 ? "text-red-700" : "text-amber-800"
+              }`}
+            >
+              Contact platform admin for refill.
+            </p>
           </div>
         </div>
       )}

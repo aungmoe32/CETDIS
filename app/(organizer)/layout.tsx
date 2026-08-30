@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/(auth)/login/actions";
 
+import GlobalStatusBar from "./global-status-bar";
+
 export default async function OrganizerLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -25,13 +27,8 @@ export default async function OrganizerLayout({ children }: { children: ReactNod
   if (profile.role === "student") redirect("/my-id");
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <span className="font-semibold text-gray-900 text-sm">CETDIS · Organizer</span>
-        <form action={signOut}>
-          <button className="text-xs text-gray-400 hover:text-gray-600">Sign out</button>
-        </form>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <GlobalStatusBar />
       <div className="flex flex-1">
         <nav className="w-44 border-r border-gray-100 p-4 space-y-1 hidden sm:block">
           <Link href="/dashboard" className="block px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-indigo-600">
