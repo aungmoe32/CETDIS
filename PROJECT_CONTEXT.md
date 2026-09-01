@@ -17,7 +17,8 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 2. **Universal Identity Model**: Check-in tokens belong to the student profile (`profiles.checkInToken`), not individual event tickets. One QR code or physical NFC wristband works across all events the student registers for.
 3. **Decoupled Security & Token Revocation**: If a student loses their physical NFC tag, they can report it lost to immediately rotate their `checkInToken` UUID. This instantly destroys the lost tag's access while keeping their account and event registrations intact.
 4. **Walk-Up Sales & Cash Reconciliation**: Handles both registered students who forgot to RSVP (Scenario A) and anonymous/guest walk-ups (Scenario B) with ghost profile generation and instant phone NFC tag programming. Automatically audits cash-at-door totals against ticket counts.
-5. **Platform Supply Chain Ledger**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks every physical tag handover. A separate mutable ledger (`nfc_allocations`) tracks blank tag rolls shipped by the platform developer to each organizer, enabling inventory forecasting and low-stock alerting.
+5. **Live Entrance vs. Schedule Separation**: The organizer dashboard is strictly focused on Today's live entrance operations with live capacity bars and check-in crowd rate progress. All upcoming and past events are managed in a dedicated `/events/all` view with real-time search, status tabs, and CSV guest list exports.
+6. **Platform Supply Chain Ledger**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks every physical tag handover. A separate mutable ledger (`nfc_allocations`) tracks blank tag rolls shipped by the platform developer to each organizer, enabling inventory forecasting and low-stock alerting.
 
 ---
 
@@ -32,7 +33,7 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 | **Offline Storage**      | **IndexedDB (`idb`)**                       | Client-side database caching event attendees, check-in statuses, NFC issuance states, and sync queues.                                   |
 | **PWA & Service Worker** | **Serwist**                                 | Service worker caching static assets, shell HTML, and background synchronization events.                                                 |
 | **Hardware / Scanning**  | **`html5-qrcode` & Web NFC (`NDEFReader`)** | Camera QR scanning with cleanup safeguards + native Web NFC reading/writing with simulation fallbacks for iOS/desktop.                   |
-| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (25+ tests).                                                           |
+| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (29 tests across 6 test suites).                                       |
 
 ---
 
@@ -129,7 +130,7 @@ cetdis/
 │   │   ├── login/                      # Passwordless OTP login
 │   │   └── verify/                     # OTP verification page
 │   ├── (student)/                      # Student Route Group
-│   │   ├── events/                     # Event discovery & RSVP
+│   │   ├── events/                     # Student event discovery & RSVP
 │   │   ├── tickets/                    # My registered event tickets
 │   │   └── my-id/                      # Universal Digital ID & NFC Tag Pass
 │   │       ├── page.tsx                # Digital QR card + NFC section
@@ -137,16 +138,28 @@ cetdis/
 │   │       ├── nfc-checkout-modal.tsx  # Payment checkout modal (KBZPay/WavePay)
 │   │       └── actions.ts              # purchaseNfcAction & reportLostTagAction
 │   ├── (organizer)/                    # Organizer Route Group
-│   │   ├── layout.tsx                  # Global status bar wrapper
+│   │   ├── layout.tsx                  # Organizer layout with DesktopSidebarNav & MobileBottomNav
 │   │   ├── global-status-bar.tsx       # Live online/offline + pending sync badge & trigger
-│   │   ├── dashboard/                  # Dashboard Hub
-│   │   │   ├── page.tsx                # Event list, cash reconciliation, NFC inventory card & alert
+│   │   ├── nav-links.tsx               # Responsive sidebar and mobile bottom navigation tabs
+│   │   ├── dashboard/                  # Dashboard Hub (Today's Live Operations)
+│   │   │   ├── page.tsx                # Today's metrics, Action Center, and NFC inventory alert
 │   │   │   ├── action-center.tsx       # Touch targets: Scanner, Walk-Up Sale modal, Live Search & NFC tap
-│   │   │   └── actions.ts              # searchStudents, manualCheckIn, manualIssueNfc, issueGuestWalkUp
-│   │   ├── events/new/                 # Create event
+│   │   │   ├── today-events.tsx        # Visual capacity bars, check-in crowd rate, and CSV export
+│   │   │   └── actions.ts              # searchStudents, manualCheckIn, manualIssueNfc, issueGuestWalkUp, exportCSV
+│   │   ├── events/                     # Event Management
+│   │   │   ├── all/                    # Dedicated All Events view (/events/all)
+│   │   │   │   ├── page.tsx            # Server page loading organizer's event list
+│   │   │   │   └── events-list.tsx     # Filterable list: search, status tabs (All/Today/Upcoming/Past), price & sort
+│   │   │   ├── new/                    # Create event (/events/new)
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── actions.ts
+│   │   │   └── [id]/edit/              # Edit event details (/events/[id]/edit)
+│   │   │       ├── page.tsx
+│   │   │       ├── edit-form.tsx
+│   │   │       └── actions.ts
 │   │   ├── scan/                       # Door check-in scanner (QR + NFC)
 │   │   │   ├── page.tsx
-│   │   │   ├── scanner.tsx             # Unified camera/NFC scanning, Scenario A walkup + offline queue
+│   │   │   ├── scanner.tsx             # Modernized camera/NFC scanning, Scenario A walkup + floating toolbar
 │   │   │   └── actions.ts              # checkInAction, sellWalkUpTicketToStudentAction, loadGuestListAction
 │   │   └── admin/                      # Student lookup & NFC Tag Programming
 │   │       ├── page.tsx
@@ -182,11 +195,11 @@ cetdis/
 
 ## 5. Roles & Access Control
 
-| Role        | Home Route             | Access                                         |
-| :---------- | :--------------------- | :--------------------------------------------- |
-| `student`   | `/my-id`               | `/events`, `/tickets`, `/my-id`                |
-| `organizer` | `/dashboard`           | `/dashboard`, `/events/new`, `/scan`, `/admin` |
-| `developer` | `/developer/dashboard` | `/developer/*` only                            |
+| Role        | Home Route             | Access                                                              |
+| :---------- | :--------------------- | :------------------------------------------------------------------ |
+| `student`   | `/my-id`               | `/events`, `/tickets`, `/my-id`                                     |
+| `organizer` | `/dashboard`           | `/dashboard`, `/events/all`, `/events/new`, `/events/[id]/edit`, `/scan`, `/admin` |
+| `developer` | `/developer/dashboard` | `/developer/*` only                                                 |
 
 - `proxy.ts` enforces role boundaries; any wrong-role access redirects to that role's home.
 - `(developer)/layout.tsx` performs a server-side role check and redirects non-developers to `/login`.
@@ -223,7 +236,7 @@ stateDiagram-v2
 
 ---
 
-### B. Organizer Door Check-In & Fast Walk-Up Handover
+### B. Organizer Door Check-In & Modernized Scanner UX
 
 When an attendee arrives at an event:
 
@@ -241,6 +254,9 @@ When an attendee arrives at an event:
    - Organizer taps a blank tag to write the student's `checkInToken` UUID.
    - Local DB updates immediately (`markNfcIssuedLocally`) to avoid duplicate prompts during offline scans.
    - Transactional ledger entry logged to `nfc_issuances`.
+5. **Floating Bottom Toolbar**:
+   - Real-time status chips: `Offline Cached` (with guest list refresh & switch to live buttons) vs `Live Mode`.
+   - Animated unsynced queue counter pill with 1-tap manual sync flush (`↑ X Unsynced`).
 
 ---
 
@@ -272,7 +288,22 @@ Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
 
 ---
 
-### D. Developer NFC Inventory Management
+### D. Today's Live Dashboard vs All Events Management
+
+1. **Dashboard (`/dashboard`)**:
+   - Contains only high-velocity entrance tools: Massive **Open Scanner** touch target, **Walk-Up Sales**, **Manual Attendee Lookup** with phone NFC tap programming, and **Today's Events & Live Metrics**.
+   - Displays real-time dual progress bars for each active event:
+     - **Capacity Limit Bar**: `[Total Registered] / [Max Capacity]`
+     - **Check-In Crowd Bar**: `[Checked In] / [Total Registered]` with live waiting counts.
+2. **All Events Page (`/events/all`)**:
+   - Filterable schedule view featuring instant search by title/location.
+   - Status tabs with live counts (`All`, `Today`, `Upcoming`, `Past`).
+   - Pricing filters (`Free Only`, `Paid Only`) and custom sort options.
+   - 1-Tap **Export CSV** generating comprehensive attendee spreadsheets.
+
+---
+
+### E. Developer NFC Inventory Management
 
 ```mermaid
 sequenceDiagram
@@ -295,7 +326,7 @@ sequenceDiagram
 
 ---
 
-### E. Offline Synchronization Engine
+### F. Offline Synchronization Engine
 
 ```mermaid
 sequenceDiagram
@@ -367,7 +398,7 @@ DATABASE_URL="postgresql://postgres.<tenant>:<password>@<pooler-host>:6543/postg
 # Start local development server
 pnpm dev
 
-# Run Vitest automated test suite (25 tests)
+# Run Vitest automated test suite (29 tests across 6 suites)
 pnpm test
 
 # Run TypeScript type safety verification

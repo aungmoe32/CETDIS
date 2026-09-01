@@ -86,7 +86,9 @@ export default function NfcCheckoutModal({
             <h2 className="text-lg font-semibold text-gray-900">
               Universal NFC ID Tag Order
             </h2>
-            <p className="text-xs text-gray-500">Physical Campus Wristband / Card</p>
+            <p className="text-xs text-gray-500">
+              Physical Campus Wristband / Card
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -118,7 +120,8 @@ export default function NfcCheckoutModal({
               Order Confirmed!
             </h3>
             <p className="text-sm text-gray-500">
-              Your universal NFC tag is reserved. Show your QR code at the next event to claim your physical tag.
+              Your universal NFC tag is reserved. Show your QR code at the next
+              event to claim your physical tag.
             </p>
           </div>
         ) : (
@@ -154,7 +157,9 @@ export default function NfcCheckoutModal({
                       : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
-                  <span className="font-bold text-sm text-blue-700">KBZPay</span>
+                  <span className="font-bold text-sm text-blue-700">
+                    KBZPay
+                  </span>
                   <span className="text-[11px] text-gray-500">KPay Wallet</span>
                 </button>
 
@@ -167,7 +172,9 @@ export default function NfcCheckoutModal({
                       : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
-                  <span className="font-bold text-sm text-amber-600">WavePay</span>
+                  <span className="font-bold text-sm text-amber-600">
+                    WavePay
+                  </span>
                   <span className="text-[11px] text-gray-500">Wave Money</span>
                 </button>
               </div>
@@ -183,7 +190,7 @@ export default function NfcCheckoutModal({
               </div>
               <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
                 <span className="text-gray-500">Merchant Phone:</span>
-                <span className="font-mono font-bold text-gray-900 text-sm">
+                <span className=" font-bold text-gray-900 text-sm">
                   {selectedMerchant.phone}
                 </span>
               </div>
@@ -196,7 +203,7 @@ export default function NfcCheckoutModal({
                   value={txnId}
                   onChange={(e) => setTxnId(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs  focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>

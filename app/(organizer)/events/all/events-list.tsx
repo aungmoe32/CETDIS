@@ -102,7 +102,9 @@ export default function EventsListClient({ initialEvents }: Props) {
         if (searchQuery.trim().length > 0) {
           const q = searchQuery.toLowerCase().trim();
           const matchTitle = event.title.toLowerCase().includes(q);
-          const matchLocation = (event.location || "").toLowerCase().includes(q);
+          const matchLocation = (event.location || "")
+            .toLowerCase()
+            .includes(q);
           if (!matchTitle && !matchLocation) return false;
         }
 
@@ -114,10 +116,18 @@ export default function EventsListClient({ initialEvents }: Props) {
 
         if (sortOption === "date_asc") return timeA - timeB;
         if (sortOption === "date_desc") return timeB - timeA;
-        if (sortOption === "registered_desc") return b.totalRegistered - a.totalRegistered;
+        if (sortOption === "registered_desc")
+          return b.totalRegistered - a.totalRegistered;
         return 0;
       });
-  }, [initialEvents, searchQuery, statusFilter, priceFilter, sortOption, todayDateString]);
+  }, [
+    initialEvents,
+    searchQuery,
+    statusFilter,
+    priceFilter,
+    sortOption,
+    todayDateString,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -134,7 +144,11 @@ export default function EventsListClient({ initialEvents }: Props) {
               strokeWidth={2}
             >
               <circle cx="11" cy="11" r="8" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35"
+              />
             </svg>
           </div>
           <input
@@ -156,7 +170,11 @@ export default function EventsListClient({ initialEvents }: Props) {
                 viewBox="0 0 24 24"
                 strokeWidth={2}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -187,8 +205,10 @@ export default function EventsListClient({ initialEvents }: Props) {
                 >
                   <span>{tab.label}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                      isActive ? "bg-white/20 text-white" : "bg-white text-gray-700"
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full  ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-white text-gray-700"
                     }`}
                   >
                     {tab.count}
@@ -225,7 +245,9 @@ export default function EventsListClient({ initialEvents }: Props) {
 
       {/* ── Event Results Count ────────────────────────────────────────── */}
       <div className="flex items-center justify-between text-xs text-gray-500 px-1">
-        <span>Showing {filteredEvents.length} of {initialEvents.length} events</span>
+        <span>
+          Showing {filteredEvents.length} of {initialEvents.length} events
+        </span>
         {(searchQuery || statusFilter !== "all" || priceFilter !== "all") && (
           <button
             onClick={() => {
@@ -252,10 +274,16 @@ export default function EventsListClient({ initialEvents }: Props) {
               strokeWidth={2}
             >
               <circle cx="11" cy="11" r="8" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35"
+              />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-gray-800">No matching events found</p>
+          <p className="text-sm font-semibold text-gray-800">
+            No matching events found
+          </p>
           <p className="text-xs text-gray-400">
             Try adjusting your search keywords or filter selections
           </p>
@@ -274,7 +302,10 @@ export default function EventsListClient({ initialEvents }: Props) {
                 ? Math.round((event.totalRegistered / event.maxCapacity) * 100)
                 : 0,
             );
-            const spotsLeft = Math.max(0, event.maxCapacity - event.totalRegistered);
+            const spotsLeft = Math.max(
+              0,
+              event.maxCapacity - event.totalRegistered,
+            );
 
             const checkInPct =
               event.totalRegistered > 0
@@ -313,7 +344,9 @@ export default function EventsListClient({ initialEvents }: Props) {
                             : "bg-indigo-50 text-indigo-700 border border-indigo-200"
                         }`}
                       >
-                        {isFree ? "Free" : `${event.price.toLocaleString()} MMK`}
+                        {isFree
+                          ? "Free"
+                          : `${event.price.toLocaleString()} MMK`}
                       </span>
                     </div>
 
@@ -362,8 +395,9 @@ export default function EventsListClient({ initialEvents }: Props) {
                   <div className="rounded-xl bg-gray-50 p-2.5 border border-gray-100 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">Capacity</span>
-                      <span className="font-bold text-gray-900 font-mono">
-                        {event.totalRegistered} / {event.maxCapacity} ({capacityPct}%)
+                      <span className="font-bold text-gray-900 ">
+                        {event.totalRegistered} / {event.maxCapacity} (
+                        {capacityPct}%)
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -373,15 +407,18 @@ export default function EventsListClient({ initialEvents }: Props) {
                       />
                     </div>
                     <p className="text-[11px] text-gray-400">
-                      {spotsLeft > 0 ? `${spotsLeft} spots available` : "Full capacity reached"}
+                      {spotsLeft > 0
+                        ? `${spotsLeft} spots available`
+                        : "Full capacity reached"}
                     </p>
                   </div>
 
                   <div className="rounded-xl bg-gray-50 p-2.5 border border-gray-100 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">Admitted</span>
-                      <span className="font-bold text-emerald-700 font-mono">
-                        {event.checkedIn} / {event.totalRegistered} ({checkInPct}%)
+                      <span className="font-bold text-emerald-700 ">
+                        {event.checkedIn} / {event.totalRegistered} (
+                        {checkInPct}%)
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -400,10 +437,14 @@ export default function EventsListClient({ initialEvents }: Props) {
                 {event.walkUpCount > 0 && (
                   <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 px-3 py-1.5 flex items-center justify-between text-xs">
                     <span className="text-emerald-900 font-medium">
-                      {event.walkUpCount} walk-up sale{event.walkUpCount > 1 ? "s" : ""}
+                      {event.walkUpCount} walk-up sale
+                      {event.walkUpCount > 1 ? "s" : ""}
                     </span>
-                    <span className="font-bold text-emerald-950 font-mono">
-                      {(event.walkUpCount * (event.price ?? 0)).toLocaleString()} MMK in cash box
+                    <span className="font-bold text-emerald-950 ">
+                      {(
+                        event.walkUpCount * (event.price ?? 0)
+                      ).toLocaleString()}{" "}
+                      MMK in cash box
                     </span>
                   </div>
                 )}
@@ -426,7 +467,11 @@ export default function EventsListClient({ initialEvents }: Props) {
                           strokeWidth={2}
                         >
                           <circle cx="12" cy="12" r="9" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 3v4"
+                          />
                         </svg>
                         <span>Exporting...</span>
                       </>

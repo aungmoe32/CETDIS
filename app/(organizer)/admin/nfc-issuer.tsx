@@ -222,7 +222,8 @@ export default function NfcIssuer() {
             <div className="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">
               <p className="text-sm">No pending NFC tag orders right now.</p>
               <p className="text-xs mt-1">
-                When students order physical tags from /my-id, they will appear here.
+                When students order physical tags from /my-id, they will appear
+                here.
               </p>
             </div>
           ) : (
@@ -261,12 +262,16 @@ export default function NfcIssuer() {
       {activeTab === "scan" && !selectedStudent && (
         <div className="space-y-4">
           <div className="rounded-2xl bg-gray-50 border border-gray-200 p-6 flex flex-col items-center justify-center gap-4 text-center">
-            <div id="nfc-qr-reader" className="w-full max-w-sm rounded-xl overflow-hidden" />
+            <div
+              id="nfc-qr-reader"
+              className="w-full max-w-sm rounded-xl overflow-hidden"
+            />
 
             {!isScanning ? (
               <>
                 <p className="text-xs text-gray-500 max-w-xs">
-                  Scan the QR code on the student&apos;s phone screen to verify and link their physical NFC tag.
+                  Scan the QR code on the student&apos;s phone screen to verify
+                  and link their physical NFC tag.
                 </p>
                 <button
                   onClick={startScanner}
@@ -328,7 +333,9 @@ export default function NfcIssuer() {
                   : "bg-amber-50 text-amber-700 border border-amber-200/50"
               }`}
             >
-              {selectedStudent.nfcIssued ? "✓ Tag Already Linked" : "Pending Tag Write"}
+              {selectedStudent.nfcIssued
+                ? "✓ Tag Already Linked"
+                : "Pending Tag Write"}
             </span>
           </div>
 
@@ -353,8 +360,9 @@ export default function NfcIssuer() {
                 NFC Tag Successfully Programmed!
               </h4>
               <p className="text-xs text-emerald-700 max-w-sm mx-auto">
-                The universal token has been written to the physical tag. Hand it to{" "}
-                <strong>{selectedStudent.fullName}</strong>. They can now tap into any future event.
+                The universal token has been written to the physical tag. Hand
+                it to <strong>{selectedStudent.fullName}</strong>. They can now
+                tap into any future event.
               </p>
               <div className="pt-2">
                 <button
@@ -378,15 +386,22 @@ export default function NfcIssuer() {
                   >
                     <circle cx="12" cy="12" r="9" />
                     <circle cx="12" cy="12" r="5" />
-                    <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="1.5"
+                      fill="currentColor"
+                      strokeWidth={0}
+                    />
                   </svg>
                 </div>
                 <p className="text-xs font-medium text-indigo-900">
-                  {statusMessage || "Hold a blank NFC tag/wristband near the device"}
+                  {statusMessage ||
+                    "Hold a blank NFC tag/wristband near the device"}
                 </p>
                 <p className="text-[11px] text-indigo-700/80">
                   Writing token:{" "}
-                  <code className="font-mono bg-white/80 px-1 py-0.5 rounded text-[10px]">
+                  <code className=" bg-white/80 px-1 py-0.5 rounded text-[10px]">
                     {selectedStudent.checkInToken.slice(0, 8)}...
                   </code>
                 </p>
@@ -422,7 +437,9 @@ export default function NfcIssuer() {
                   </>
                 ) : (
                   <span>
-                    {selectedStudent.nfcIssued ? "Re-Write NFC Tag" : "Write & Link Blank NFC Tag"}
+                    {selectedStudent.nfcIssued
+                      ? "Re-Write NFC Tag"
+                      : "Write & Link Blank NFC Tag"}
                   </span>
                 )}
               </button>

@@ -35,7 +35,9 @@ export default function TodayEvents({ events }: Props) {
     return isToday || isNext24h || isRecentlyStarted;
   };
 
-  const activeEvents = events.filter((e) => isEventActive(new Date(e.dateTime)));
+  const activeEvents = events.filter((e) =>
+    isEventActive(new Date(e.dateTime)),
+  );
 
   const handleExportCsv = async (eventId: string) => {
     setExportingId(eventId);
@@ -66,15 +68,16 @@ export default function TodayEvents({ events }: Props) {
       {/* ── Today & Active Events (Live Metrics) ───────────────────────── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">
+          <h3 className="text-lg font-bold  text-gray-900">
             Today&apos;s Events &amp; Live Metrics
+            {/* today's events & Live etrics */}
           </h3>
-          {activeEvents.length > 0 && (
+          {/* {activeEvents.length > 0 && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
               Live
             </span>
-          )}
+          )} */}
         </div>
         <Link
           href="/events/all"
@@ -88,7 +91,11 @@ export default function TodayEvents({ events }: Props) {
             viewBox="0 0 24 24"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </Link>
       </div>
@@ -110,7 +117,9 @@ export default function TodayEvents({ events }: Props) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">No events scheduled for today</p>
+            <p className="text-sm font-semibold text-gray-800">
+              No events scheduled for today
+            </p>
             <p className="text-xs text-gray-400 mt-0.5">
               Your dashboard is dedicated to active entrance operations.
             </p>
@@ -127,7 +136,11 @@ export default function TodayEvents({ events }: Props) {
               viewBox="0 0 24 24"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </Link>
         </div>
@@ -145,14 +158,20 @@ export default function TodayEvents({ events }: Props) {
                 ? Math.round((event.totalRegistered / event.maxCapacity) * 100)
                 : 0,
             );
-            const spotsLeft = Math.max(0, event.maxCapacity - event.totalRegistered);
+            const spotsLeft = Math.max(
+              0,
+              event.maxCapacity - event.totalRegistered,
+            );
 
             // Check-in crowd calculations
             const checkInPct =
               event.totalRegistered > 0
                 ? Math.round((event.checkedIn / event.totalRegistered) * 100)
                 : 0;
-            const waitingCount = Math.max(0, event.totalRegistered - event.checkedIn);
+            const waitingCount = Math.max(
+              0,
+              event.totalRegistered - event.checkedIn,
+            );
 
             return (
               <div
@@ -173,7 +192,9 @@ export default function TodayEvents({ events }: Props) {
                             : "bg-indigo-50 text-indigo-700 border border-indigo-200"
                         }`}
                       >
-                        {isFree ? "Free" : `${event.price.toLocaleString()} MMK`}
+                        {isFree
+                          ? "Free"
+                          : `${event.price.toLocaleString()} MMK`}
                       </span>
                       {isToday && (
                         <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded">
@@ -219,9 +240,12 @@ export default function TodayEvents({ events }: Props) {
                   {/* Metric 1: Capacity Limit Bar */}
                   <div className="rounded-xl bg-gray-50 p-3 border border-gray-100 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-gray-600">Capacity</span>
-                      <span className="font-bold text-gray-900 font-mono">
-                        {event.totalRegistered} / {event.maxCapacity} ({capacityPct}%)
+                      <span className="font-semibold text-gray-600">
+                        Capacity
+                      </span>
+                      <span className="font-bold text-gray-900 ">
+                        {event.totalRegistered} / {event.maxCapacity} (
+                        {capacityPct}%)
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -237,16 +261,21 @@ export default function TodayEvents({ events }: Props) {
                       />
                     </div>
                     <p className="text-[11px] text-gray-500">
-                      {spotsLeft > 0 ? `${spotsLeft} spots available` : "Full capacity reached"}
+                      {spotsLeft > 0
+                        ? `${spotsLeft} spots available`
+                        : "Full capacity reached"}
                     </p>
                   </div>
 
                   {/* Metric 2: Live Check-In Rate Bar */}
                   <div className="rounded-xl bg-gray-50 p-3 border border-gray-100 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-gray-600">Admitted at Door</span>
-                      <span className="font-bold text-emerald-700 font-mono">
-                        {event.checkedIn} / {event.totalRegistered} ({checkInPct}%)
+                      <span className="font-semibold text-gray-600">
+                        Admitted at Door
+                      </span>
+                      <span className="font-bold text-emerald-700 ">
+                        {event.checkedIn} / {event.totalRegistered} (
+                        {checkInPct}%)
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -281,11 +310,15 @@ export default function TodayEvents({ events }: Props) {
                         />
                       </svg>
                       <span>
-                        {event.walkUpCount} Walk-Up Sale{event.walkUpCount > 1 ? "s" : ""}
+                        {event.walkUpCount} Walk-Up Sale
+                        {event.walkUpCount > 1 ? "s" : ""}
                       </span>
                     </div>
-                    <span className="font-bold text-emerald-950 font-mono">
-                      {(event.walkUpCount * (event.price ?? 0)).toLocaleString()} MMK cash box
+                    <span className="font-bold text-emerald-950 ">
+                      {(
+                        event.walkUpCount * (event.price ?? 0)
+                      ).toLocaleString()}{" "}
+                      MMK cash box
                     </span>
                   </div>
                 )}
@@ -308,7 +341,11 @@ export default function TodayEvents({ events }: Props) {
                           strokeWidth={2}
                         >
                           <circle cx="12" cy="12" r="9" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 3v4"
+                          />
                         </svg>
                         <span>Exporting...</span>
                       </>

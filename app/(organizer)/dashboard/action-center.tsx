@@ -37,7 +37,9 @@ export default function ActionCenter({ events }: Props) {
   const [isWalkUpModalOpen, setIsWalkUpModalOpen] = useState(false);
   const [walkUpEventId, setWalkUpEventId] = useState("");
   const [walkUpGuestName, setWalkUpGuestName] = useState("");
-  const [walkUpStep, setWalkUpStep] = useState<"details" | "tap" | "success">("details");
+  const [walkUpStep, setWalkUpStep] = useState<"details" | "tap" | "success">(
+    "details",
+  );
   const [isProcessingWalkUp, setIsProcessingWalkUp] = useState(false);
   const [walkUpError, setWalkUpError] = useState<string | null>(null);
   const [walkUpResultData, setWalkUpResultData] = useState<{
@@ -125,7 +127,12 @@ export default function ActionCenter({ events }: Props) {
     try {
       const res = await manualCheckInAction(ticketId);
       if (res.error) {
-        setActionStatus({ id: ticketId, type: "checkin", loading: false, error: res.error });
+        setActionStatus({
+          id: ticketId,
+          type: "checkin",
+          loading: false,
+          error: res.error,
+        });
       } else {
         // Update local search results state immediately
         setSearchResults((prev) =>
@@ -141,7 +148,12 @@ export default function ActionCenter({ events }: Props) {
         setActionStatus(null);
       }
     } catch {
-      setActionStatus({ id: ticketId, type: "checkin", loading: false, error: "Check-in failed" });
+      setActionStatus({
+        id: ticketId,
+        type: "checkin",
+        loading: false,
+        error: "Check-in failed",
+      });
     }
   };
 
@@ -313,9 +325,9 @@ export default function ActionCenter({ events }: Props) {
                 <span className="text-base font-bold tracking-tight">
                   Open Scanner
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.2 rounded-full">
+                {/* <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.2 rounded-full">
                   Door
-                </span>
+                </span> */}
               </div>
               <p className="text-xs text-indigo-100 mt-0.5 truncate">
                 {targetEvents.length === 1
@@ -333,7 +345,11 @@ export default function ActionCenter({ events }: Props) {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
         </button>
@@ -364,9 +380,9 @@ export default function ActionCenter({ events }: Props) {
                 <span className="text-base font-bold tracking-tight text-gray-900">
                   Walk-Up Sale
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                {/* <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded-full">
                   Cash + NFC
-                </span>
+                </span> */}
               </div>
               <p className="text-xs text-gray-500 mt-0.5 truncate">
                 Sell ticket & issue pass at door
@@ -382,7 +398,11 @@ export default function ActionCenter({ events }: Props) {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
         </button>
@@ -412,7 +432,11 @@ export default function ActionCenter({ events }: Props) {
               strokeWidth={2}
             >
               <circle cx="11" cy="11" r="8" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35"
+              />
             </svg>
           </div>
 
@@ -442,7 +466,11 @@ export default function ActionCenter({ events }: Props) {
                 viewBox="0 0 24 24"
                 strokeWidth={2}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -461,7 +489,11 @@ export default function ActionCenter({ events }: Props) {
                   strokeWidth={2}
                 >
                   <circle cx="12" cy="12" r="9" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 3v4"
+                  />
                 </svg>
                 <span>Searching attendees...</span>
               </div>
@@ -473,7 +505,8 @@ export default function ActionCenter({ events }: Props) {
               <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                 {searchResults.map((student) => {
                   const hasNfc = student.purchasedNfc && student.nfcIssued;
-                  const needsHandover = student.purchasedNfc && !student.nfcIssued;
+                  const needsHandover =
+                    student.purchasedNfc && !student.nfcIssued;
 
                   return (
                     <div
@@ -500,7 +533,9 @@ export default function ActionCenter({ events }: Props) {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 truncate">{student.email}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {student.email}
+                          </p>
                         </div>
 
                         {needsHandover && (
@@ -517,7 +552,13 @@ export default function ActionCenter({ events }: Props) {
                             >
                               <circle cx="12" cy="12" r="9" />
                               <circle cx="12" cy="12" r="5" />
-                              <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                              <circle
+                                cx="12"
+                                cy="12"
+                                r="1.5"
+                                fill="currentColor"
+                                strokeWidth={0}
+                              />
                             </svg>
                             <span>Issue NFC (Tap)</span>
                           </button>
@@ -533,7 +574,8 @@ export default function ActionCenter({ events }: Props) {
                         ) : (
                           student.tickets.map((t) => {
                             const isThisTicketLoading =
-                              actionStatus?.id === t.ticketId && actionStatus.loading;
+                              actionStatus?.id === t.ticketId &&
+                              actionStatus.loading;
 
                             return (
                               <div
@@ -545,7 +587,9 @@ export default function ActionCenter({ events }: Props) {
                                     {t.eventTitle}
                                   </p>
                                   <p className="text-[10px] text-gray-400">
-                                    {new Date(t.eventDateTime).toLocaleDateString()}
+                                    {new Date(
+                                      t.eventDateTime,
+                                    ).toLocaleDateString()}
                                   </p>
                                 </div>
 
@@ -569,11 +613,15 @@ export default function ActionCenter({ events }: Props) {
                                     </span>
                                   ) : (
                                     <button
-                                      onClick={() => handleManualCheckIn(t.ticketId)}
+                                      onClick={() =>
+                                        handleManualCheckIn(t.ticketId)
+                                      }
                                       disabled={isThisTicketLoading}
                                       className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition shadow-xs"
                                     >
-                                      {isThisTicketLoading ? "Checking in..." : "Check In"}
+                                      {isThisTicketLoading
+                                        ? "Checking in..."
+                                        : "Check In"}
                                     </button>
                                   )}
                                 </div>
@@ -583,9 +631,12 @@ export default function ActionCenter({ events }: Props) {
                         )}
                       </div>
 
-                      {actionStatus?.id === student.id && actionStatus.error && (
-                        <p className="text-[11px] text-red-600 mt-1.5">{actionStatus.error}</p>
-                      )}
+                      {actionStatus?.id === student.id &&
+                        actionStatus.error && (
+                          <p className="text-[11px] text-red-600 mt-1.5">
+                            {actionStatus.error}
+                          </p>
+                        )}
                     </div>
                   );
                 })}
@@ -601,7 +652,9 @@ export default function ActionCenter({ events }: Props) {
           <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Select Event to Scan</h3>
+                <h3 className="text-base font-bold text-gray-900">
+                  Select Event to Scan
+                </h3>
                 <p className="text-xs text-gray-500">
                   Choose which event entrance to operate
                 </p>
@@ -617,7 +670,11 @@ export default function ActionCenter({ events }: Props) {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -651,7 +708,8 @@ export default function ActionCenter({ events }: Props) {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}{" "}
-                        · {e.location || "Online"} · {e.totalRegistered} registered
+                        · {e.location || "Online"} · {e.totalRegistered}{" "}
+                        registered
                       </p>
                     </div>
 
@@ -701,21 +759,33 @@ export default function ActionCenter({ events }: Props) {
                     viewBox="0 0 24 24"
                     strokeWidth={2.5}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
-                <h4 className="text-base font-bold text-gray-900">Tag Programmed & Linked!</h4>
+                <h4 className="text-base font-bold text-gray-900">
+                  Tag Programmed & Linked!
+                </h4>
                 <p className="text-xs text-gray-500">
-                  {nfcModalStudent.fullName}&apos;s physical pass is now ready for tap-in.
+                  {nfcModalStudent.fullName}&apos;s physical pass is now ready
+                  for tap-in.
                 </p>
               </div>
             ) : (
               <>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">Issue Physical NFC Tag</h4>
+                    <h4 className="text-base font-bold text-gray-900">
+                      Issue Physical NFC Tag
+                    </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Programming tag for <span className="font-semibold text-gray-800">{nfcModalStudent.fullName}</span>
+                      Programming tag for{" "}
+                      <span className="font-semibold text-gray-800">
+                        {nfcModalStudent.fullName}
+                      </span>
                     </p>
                   </div>
                   <button
@@ -730,7 +800,11 @@ export default function ActionCenter({ events }: Props) {
                       viewBox="0 0 24 24"
                       strokeWidth={2}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -746,15 +820,25 @@ export default function ActionCenter({ events }: Props) {
                     >
                       <circle cx="12" cy="12" r="9" />
                       <circle cx="12" cy="12" r="5" />
-                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="1.5"
+                        fill="currentColor"
+                        strokeWidth={0}
+                      />
                     </svg>
                   </div>
                   <div className="text-xs text-indigo-950 min-w-0">
                     <p className="font-bold text-sm">
-                      {isWritingNfc ? "Hold blank tag to phone..." : "Ready to Tap"}
+                      {isWritingNfc
+                        ? "Hold blank tag to phone..."
+                        : "Ready to Tap"}
                     </p>
                     <p className="text-[11px] text-indigo-700 mt-0.5">
-                      {nfcAvailable ? "Web NFC Enabled" : "Simulation Mode (Desktop/iOS)"}
+                      {nfcAvailable
+                        ? "Web NFC Enabled"
+                        : "Simulation Mode (Desktop/iOS)"}
                     </p>
                   </div>
                 </div>
@@ -790,7 +874,11 @@ export default function ActionCenter({ events }: Props) {
                           strokeWidth={2}
                         >
                           <circle cx="12" cy="12" r="9" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 3v4"
+                          />
                         </svg>
                         <span>Writing Tag...</span>
                       </>
@@ -819,7 +907,11 @@ export default function ActionCenter({ events }: Props) {
                     viewBox="0 0 24 24"
                     strokeWidth={2.5}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
                 <h4 className="text-base font-bold text-gray-900">
@@ -838,7 +930,9 @@ export default function ActionCenter({ events }: Props) {
               <>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">Program Guest NFC Pass</h4>
+                    <h4 className="text-base font-bold text-gray-900">
+                      Program Guest NFC Pass
+                    </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Linking tag for{" "}
                       <span className="font-semibold text-gray-800">
@@ -858,7 +952,11 @@ export default function ActionCenter({ events }: Props) {
                       viewBox="0 0 24 24"
                       strokeWidth={2}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -874,7 +972,13 @@ export default function ActionCenter({ events }: Props) {
                     >
                       <circle cx="12" cy="12" r="9" />
                       <circle cx="12" cy="12" r="5" />
-                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="1.5"
+                        fill="currentColor"
+                        strokeWidth={0}
+                      />
                     </svg>
                   </div>
                   <div className="text-xs text-emerald-950 min-w-0">
@@ -884,7 +988,9 @@ export default function ActionCenter({ events }: Props) {
                         : "Ready to Tap Physical Tag"}
                     </p>
                     <p className="text-[11px] text-emerald-700 mt-0.5">
-                      {nfcAvailable ? "Web NFC Enabled" : "Simulation Mode (Desktop/iOS)"}
+                      {nfcAvailable
+                        ? "Web NFC Enabled"
+                        : "Simulation Mode (Desktop/iOS)"}
                     </p>
                   </div>
                 </div>
@@ -920,7 +1026,11 @@ export default function ActionCenter({ events }: Props) {
                           strokeWidth={2}
                         >
                           <circle cx="12" cy="12" r="9" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 3v4"
+                          />
                         </svg>
                         <span>Writing Tag...</span>
                       </>
@@ -935,7 +1045,9 @@ export default function ActionCenter({ events }: Props) {
               <form onSubmit={handleGenerateWalkUpTicket} className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">Walk-Up Ticket Sale</h4>
+                    <h4 className="text-base font-bold text-gray-900">
+                      Walk-Up Ticket Sale
+                    </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Issue guest pass & program physical tag at door
                     </p>
@@ -952,7 +1064,11 @@ export default function ActionCenter({ events }: Props) {
                       viewBox="0 0 24 24"
                       strokeWidth={2}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -970,7 +1086,8 @@ export default function ActionCenter({ events }: Props) {
                   >
                     {events.map((e) => (
                       <option key={e.id} value={e.id}>
-                        {e.title} ({e.price ? `${e.price.toLocaleString()} MMK` : "Free"})
+                        {e.title} (
+                        {e.price ? `${e.price.toLocaleString()} MMK` : "Free"})
                       </option>
                     ))}
                   </select>
@@ -979,7 +1096,10 @@ export default function ActionCenter({ events }: Props) {
                 {/* Guest Name (Optional) */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
-                    Attendee Name <span className="font-normal text-gray-400 normal-case">(Optional)</span>
+                    Attendee Name{" "}
+                    <span className="font-normal text-gray-400 normal-case">
+                      (Optional)
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -992,15 +1112,21 @@ export default function ActionCenter({ events }: Props) {
 
                 {/* Price to Collect Banner */}
                 {(() => {
-                  const selectedEvent = events.find((e) => e.id === walkUpEventId);
+                  const selectedEvent = events.find(
+                    (e) => e.id === walkUpEventId,
+                  );
                   const price = selectedEvent?.price ?? 0;
                   return (
                     <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-emerald-900">Cash to Collect</p>
-                        <p className="text-[11px] text-emerald-700">Cash box reconciliation</p>
+                        <p className="text-xs font-semibold text-emerald-900">
+                          Cash to Collect
+                        </p>
+                        <p className="text-[11px] text-emerald-700">
+                          Cash box reconciliation
+                        </p>
                       </div>
-                      <span className="text-base font-bold text-emerald-950 font-mono">
+                      <span className="text-base font-bold text-emerald-950 ">
                         {price > 0 ? `${price.toLocaleString()} MMK` : "Free"}
                       </span>
                     </div>

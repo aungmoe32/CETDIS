@@ -98,12 +98,9 @@ export default async function DeveloperDashboardPage() {
             valueColor: "text-amber-700",
           },
         ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-2xl border ${stat.bg} p-4`}
-          >
+          <div key={stat.label} className={`rounded-2xl border ${stat.bg} p-4`}>
             <p className="text-xs text-gray-500 mb-1.5">{stat.label}</p>
-            <p className={`text-3xl font-bold font-mono ${stat.valueColor}`}>
+            <p className={`text-3xl font-bold  ${stat.valueColor}`}>
               {stat.value}
             </p>
           </div>
@@ -165,18 +162,18 @@ export default async function DeveloperDashboardPage() {
                       <p className="text-xs text-gray-400">{org.email}</p>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="font-mono font-semibold text-gray-700">
+                      <span className=" font-semibold text-gray-700">
                         {totalAllocated}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="font-mono font-semibold text-emerald-600">
+                      <span className=" font-semibold text-emerald-600">
                         {totalIssued}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`inline-flex items-center gap-1.5 font-mono font-bold ${
+                        className={`inline-flex items-center gap-1.5  font-bold ${
                           isOver
                             ? "text-red-600"
                             : isLow

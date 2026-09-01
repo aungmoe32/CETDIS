@@ -33,10 +33,12 @@ export default async function ScanPage({ searchParams }: Props) {
   if (!event) notFound();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="px-4 py-3 border-b border-gray-100 bg-white">
-        <p className="text-xs text-gray-500">Scanning for</p>
-        <p className="font-semibold text-gray-900 text-sm">{event.title}</p>
+    <div className="flex flex-col h-[calc(100dvh-3.5rem-4rem)] sm:h-[calc(100dvh-3.5rem)] overflow-hidden">
+      <div className="px-4 py-2.5 sm:py-3 border-b border-gray-200 bg-white shrink-0 flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-medium text-gray-500">Scanning for Event</p>
+          <p className="font-semibold text-gray-900 text-sm truncate">{event.title}</p>
+        </div>
       </div>
       <Scanner eventId={event.id} />
     </div>

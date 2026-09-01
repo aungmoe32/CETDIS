@@ -65,8 +65,8 @@ export default function Scanner({ eventId }: Props) {
 
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const nfcAbortRef = useRef<AbortController | null>(null);
-  const activeRef = useRef(false);       // guards QR double-processing
-  const nfcScanningRef = useRef(false);  // so handleResult returns to "scanning" for NFC
+  const activeRef = useRef(false); // guards QR double-processing
+  const nfcScanningRef = useRef(false); // so handleResult returns to "scanning" for NFC
   const isOnlineRef = useRef(true);
   const offlineEnabledRef = useRef(false);
 
@@ -120,7 +120,7 @@ export default function Scanner({ eventId }: Props) {
       nfcAbortRef.current = null;
       nfcScanningRef.current = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Result handler ────────────────────────────────────────────────────────
@@ -299,7 +299,8 @@ export default function Scanner({ eventId }: Props) {
         "reading",
         async ({ message }) => {
           for (const record of message.records) {
-            if (record.recordType !== "url" && record.recordType !== "text") continue;
+            if (record.recordType !== "url" && record.recordType !== "text")
+              continue;
             const text = new TextDecoder(record.encoding ?? "utf-8").decode(
               record.data,
             );
@@ -463,7 +464,7 @@ export default function Scanner({ eventId }: Props) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-500 ${statusColors[status]}`}
+      className={`flex-1 flex flex-col min-h-0 justify-between transition-colors duration-500 ${statusColors[status]}`}
     >
       {/* ── Scenario A: Recognized Student with No Ticket (Walk-Up Prompt) ─── */}
       {status === "no_ticket" && noTicketData && (
@@ -493,13 +494,18 @@ export default function Scanner({ eventId }: Props) {
                 {noTicketData.fullName}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                No ticket registered for <span className="font-semibold text-gray-700">{noTicketData.eventTitle}</span>
+                No ticket registered for{" "}
+                <span className="font-semibold text-gray-700">
+                  {noTicketData.eventTitle}
+                </span>
               </p>
             </div>
 
             <div className="rounded-2xl bg-amber-50 border border-amber-200/80 p-3.5 text-center">
-              <p className="text-xs text-amber-900 font-medium">Door Ticket Price</p>
-              <p className="text-2xl font-bold text-amber-950 font-mono mt-0.5">
+              <p className="text-xs text-amber-900 font-medium">
+                Door Ticket Price
+              </p>
+              <p className="text-2xl font-bold text-amber-950 mt-0.5">
                 {noTicketData.eventPrice > 0
                   ? `${noTicketData.eventPrice.toLocaleString()} MMK`
                   : "Free Entry"}
@@ -561,12 +567,12 @@ export default function Scanner({ eventId }: Props) {
         <>
           {/* Mode tabs — only shown on devices that support NFC */}
           {nfcAvailable && status === "idle" && (
-            <div className="flex gap-1 mx-auto mt-6 rounded-xl bg-gray-100 p-1">
+            <div className="flex gap-1 mx-auto mt-3 sm:mt-4 rounded-xl bg-gray-100 p-1 shrink-0">
               <button
                 onClick={() => switchMode("qr")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
                   scanMode === "qr"
-                    ? "bg-white text-gray-900 shadow-sm"
+                    ? "bg-white text-gray-900 shadow-xs"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -590,9 +596,9 @@ export default function Scanner({ eventId }: Props) {
               </button>
               <button
                 onClick={() => switchMode("nfc")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
                   scanMode === "nfc"
-                    ? "bg-white text-gray-900 shadow-sm"
+                    ? "bg-white text-gray-900 shadow-xs"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -606,7 +612,13 @@ export default function Scanner({ eventId }: Props) {
                 >
                   <circle cx="12" cy="12" r="9" />
                   <circle cx="12" cy="12" r="5" />
-                  <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="1.5"
+                    fill="currentColor"
+                    strokeWidth={0}
+                  />
                 </svg>
                 NFC
               </button>
@@ -614,30 +626,29 @@ export default function Scanner({ eventId }: Props) {
           )}
 
           {/* Main content area */}
-          <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-6">
-
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 py-4 sm:py-6 gap-4 overflow-y-auto">
             {/* ── QR mode ───────────────────────────────────────────── */}
             {scanMode === "qr" && (
               <>
                 {status === "scanning" && (
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-400 shrink-0">
                     Point camera at the student&apos;s QR code
                   </p>
                 )}
                 {/* html5-qrcode mounts video into this div */}
                 <div
                   id="qr-reader"
-                  className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg"
+                  className="w-full max-w-xs sm:max-w-sm rounded-2xl overflow-hidden shadow-md shrink-0"
                 />
               </>
             )}
 
             {/* ── NFC idle visual ────────────────────────────────────── */}
             {scanMode === "nfc" && status === "idle" && (
-              <div className="flex flex-col items-center gap-5">
-                <div className="h-32 w-32 rounded-full border-4 border-indigo-100 flex items-center justify-center">
-                  <div className="h-20 w-20 rounded-full border-4 border-indigo-200 flex items-center justify-center">
-                    <div className="h-10 w-10 rounded-full bg-indigo-400 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-indigo-100 flex items-center justify-center">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 border-indigo-200 flex items-center justify-center">
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-400 flex items-center justify-center">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -648,27 +659,33 @@ export default function Scanner({ eventId }: Props) {
                       >
                         <circle cx="12" cy="12" r="9" />
                         <circle cx="12" cy="12" r="5" />
-                        <circle cx="12" cy="12" r="1.5" fill="white" strokeWidth={0} />
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="1.5"
+                          fill="white"
+                          strokeWidth={0}
+                        />
                       </svg>
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 text-center max-w-xs leading-relaxed">
-                  Tap <strong>Start Scanner</strong>, then have the student
-                  hold their NFC tag near the top of your device.
+                <p className="text-xs sm:text-sm text-gray-500 text-center max-w-xs leading-relaxed">
+                  Tap <strong>Start Scanner</strong>, then have the student hold
+                  their NFC tag near the top of your device.
                 </p>
               </div>
             )}
 
             {/* ── NFC active visual (pulsing rings) ─────────────────── */}
             {scanMode === "nfc" && status === "scanning" && (
-              <div className="flex flex-col items-center gap-5">
-                <div className="relative h-36 w-36 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative h-28 w-28 sm:h-36 sm:w-36 flex items-center justify-center">
                   <div className="absolute inset-0 rounded-full bg-indigo-100 animate-ping opacity-40" />
-                  <div className="absolute inset-5 rounded-full bg-indigo-200 animate-ping opacity-50 [animation-delay:200ms]" />
-                  <div className="relative h-20 w-20 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg">
+                  <div className="absolute inset-4 sm:inset-5 rounded-full bg-indigo-200 animate-ping opacity-50 [animation-delay:200ms]" />
+                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg">
                     <svg
-                      className="h-8 w-8 text-white"
+                      className="h-7 w-7 sm:h-8 sm:w-8 text-white"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth={2}
@@ -677,11 +694,17 @@ export default function Scanner({ eventId }: Props) {
                     >
                       <circle cx="12" cy="12" r="9" />
                       <circle cx="12" cy="12" r="5" />
-                      <circle cx="12" cy="12" r="1.5" fill="white" strokeWidth={0} />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="1.5"
+                        fill="white"
+                        strokeWidth={0}
+                      />
                     </svg>
                   </div>
                 </div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Ready — hold NFC tag near device
                 </p>
               </div>
@@ -691,7 +714,7 @@ export default function Scanner({ eventId }: Props) {
             {status === "idle" && (
               <button
                 onClick={startScanner}
-                className="w-full max-w-sm rounded-2xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md"
+                className="w-full max-w-xs sm:max-w-sm rounded-2xl bg-indigo-600 px-6 py-3.5 sm:py-4 text-base font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md shrink-0"
               >
                 Start Scanner
               </button>
@@ -700,7 +723,7 @@ export default function Scanner({ eventId }: Props) {
             {status === "scanning" && (
               <button
                 onClick={stopScanner}
-                className="w-full max-w-sm rounded-2xl border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all"
+                className="w-full max-w-xs sm:max-w-sm rounded-2xl border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all shrink-0"
               >
                 Stop Scanner
               </button>
@@ -709,59 +732,189 @@ export default function Scanner({ eventId }: Props) {
 
           {/* ── Bottom toolbar ────────────────────────────────────────────── */}
           <div
-            className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 space-y-2"
-            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            className="shrink-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 pt-3.5 space-y-2.5 transition-colors shadow-xs"
+            style={{
+              paddingBottom: "max(0.875rem, env(safe-area-inset-bottom))",
+            }}
           >
-            {/* Row 1: status + sync badge */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-400"}`}
-                />
-                <span className="text-xs text-gray-500">
-                  {isOnline ? "Online" : "Offline"}
-                  {offlineEnabled ? " · Offline mode" : ""}
-                </span>
+            <div className="max-w-md mx-auto space-y-2.5">
+              {/* Row 1: status chips + sync badge */}
+              <div className="flex items-center justify-between gap-2">
+                {/* Left: Cache Mode Pill */}
+                <div>
+                  {offlineEnabled ? (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-indigo-50 text-indigo-700 border-indigo-200">
+                      <svg
+                        className="w-3 h-3 text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                        />
+                      </svg>
+                      <span className="font-semibold text-[11px]">
+                        Offline Cached
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200/80">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                      <span className="font-medium text-[11px]">Live Mode</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Pending Sync Button */}
+                {pendingCount > 0 && (
+                  <button
+                    onClick={handleManualSync}
+                    disabled={!isOnline || isSyncing}
+                    title={
+                      isOnline
+                        ? "Click to sync pending check-ins now"
+                        : "Stored locally. Will sync automatically when back online."
+                    }
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+                      isOnline
+                        ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 active:scale-95 cursor-pointer shadow-2xs"
+                        : "bg-gray-100 text-gray-600 border-gray-200 cursor-default"
+                    }`}
+                  >
+                    <svg
+                      className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-amber-700" : "text-amber-600"}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    <span>
+                      {isSyncing ? "Syncing…" : `${pendingCount} Unsynced`}
+                    </span>
+                  </button>
+                )}
               </div>
-              {isOnline && pendingCount > 0 && (
-                <button
-                  onClick={handleManualSync}
-                  disabled={isSyncing}
-                  className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 disabled:opacity-50 transition-colors"
-                >
-                  {isSyncing ? "Syncing…" : `↑ ${pendingCount} unsynced`}
-                </button>
-              )}
-            </div>
 
-            {/* Row 2: offline actions */}
-            {isOnline && !offlineEnabled && (
-              <button
-                onClick={downloadGuestList}
-                disabled={isLoading}
-                className="w-full rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-100 disabled:opacity-40 transition-colors"
-              >
-                {isLoading ? "Downloading guest list…" : "Enable Offline Mode"}
-              </button>
-            )}
-
-            {offlineEnabled && isOnline && (
-              <div className="flex gap-2">
+              {/* Row 2: Offline Actions */}
+              {isOnline && !offlineEnabled && (
                 <button
                   onClick={downloadGuestList}
                   disabled={isLoading}
-                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors"
+                  className="w-full rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 active:scale-[0.99] px-4 py-2.5 text-xs sm:text-sm font-semibold text-indigo-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-2"
                 >
-                  {isLoading ? "Refreshing…" : "↻ Refresh list"}
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="w-4 h-4 animate-spin text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      <span>Downloading guest list…</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4 text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                      <span>Download Guest List for Offline Mode</span>
+                    </>
+                  )}
                 </button>
-                <button
-                  onClick={disableOfflineMode}
-                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  Use live mode
-                </button>
-              </div>
-            )}
+              )}
+
+              {offlineEnabled && isOnline && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={downloadGuestList}
+                    disabled={isLoading}
+                    className="flex-1 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-[0.98] px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-1.5"
+                  >
+                    <svg
+                      className={`w-3.5 h-3.5 text-gray-500 ${isLoading ? "animate-spin text-indigo-600" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    <span>{isLoading ? "Refreshing…" : "Refresh List"}</span>
+                  </button>
+                  <button
+                    onClick={disableOfflineMode}
+                    className="flex-1 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 active:scale-[0.98] px-3 py-2 text-xs font-semibold text-indigo-700 transition shadow-2xs flex items-center justify-center gap-1.5"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5 text-indigo-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    <span>Switch to Live</span>
+                  </button>
+                </div>
+              )}
+
+              {!isOnline && (
+                <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 px-3 py-2 text-center text-xs font-medium text-amber-800 flex items-center justify-center gap-1.5">
+                  <svg
+                    className="w-3.5 h-3.5 text-amber-600 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>
+                    Operating offline. Scans are queued and will sync when back online.
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
@@ -801,7 +954,8 @@ export default function Scanner({ eventId }: Props) {
                     {handoverData.fullName}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Purchased a physical NFC ID Tag. Tap a blank tag now to program and issue it at the door.
+                    Purchased a physical NFC ID Tag. Tap a blank tag now to
+                    program and issue it at the door.
                   </p>
                 </div>
 
@@ -816,7 +970,13 @@ export default function Scanner({ eventId }: Props) {
                     >
                       <circle cx="12" cy="12" r="9" />
                       <circle cx="12" cy="12" r="5" />
-                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="1.5"
+                        fill="currentColor"
+                        strokeWidth={0}
+                      />
                     </svg>
                   </div>
                   <div className="text-xs text-indigo-950">

@@ -197,9 +197,9 @@ export default async function DashboardPage() {
               <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
                 NFC Tags Issued
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
+              {/* <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
                 Supply Chain
-              </span>
+              </span> */}
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
               Need more blank tags? Contact the Developer for a refill roll.
@@ -207,7 +207,7 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="text-right">
-          <span className="text-2xl font-bold text-gray-900 font-mono">
+          <span className="text-2xl font-bold text-gray-900 ">
             {totalNfcIssued}
           </span>
           <span className="block text-[11px] text-gray-400">

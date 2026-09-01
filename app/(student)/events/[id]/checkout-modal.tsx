@@ -206,7 +206,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                   </div>
                   <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
                     <span className="text-gray-500">Merchant Phone:</span>
-                    <span className="font-mono font-bold text-gray-900 text-sm">
+                    <span className=" font-bold text-gray-900 text-sm">
                       {selectedMerchant.phone}
                     </span>
                   </div>
@@ -219,7 +219,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                       value={txnId}
                       onChange={(e) => setTxnId(e.target.value)}
                       required
-                      className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs  focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
