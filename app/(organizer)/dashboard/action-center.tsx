@@ -9,6 +9,7 @@ import {
   manualIssueNfcAction,
   type StudentSearchResult,
 } from "./actions";
+import { markNfcIssuedLocally } from "@/lib/idb";
 
 interface EventSummary {
   id: string;
@@ -28,6 +29,19 @@ export default function ActionCenter({ events }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
   const [isSearching, startSearchTransition] = useTransition();
+  const [nfcAvailable, setNfcAvailable] = useState(false);
+
+  // NFC Tap Programming Modal State
+  const [nfcModalStudent, setNfcModalStudent] = useState<{
+    id: string;
+    fullName: string;
+    email: string;
+    token: string;
+  } | null>(null);
+  const [isWritingNfc, setIsWritingNfc] = useState(false);
+  const [nfcWriteSuccess, setNfcWriteSuccess] = useState(false);
+  const [nfcWriteError, setNfcWriteError] = useState<string | null>(null);
+
   const [actionStatus, setActionStatus] = useState<{
     id: string;
     type: "checkin" | "issue";
@@ -36,6 +50,11 @@ export default function ActionCenter({ events }: Props) {
   } | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Detect Web NFC support on mount
+  useEffect(() => {
+    setNfcAvailable("NDEFReader" in window);
+  }, []);
 
   // Filter events happening today or active upcoming
   const todayEvents = events.filter((e) => {
@@ -110,25 +129,62 @@ export default function ActionCenter({ events }: Props) {
     }
   };
 
-  const handleManualIssueTag = async (studentId: string, token: string) => {
-    setActionStatus({ id: studentId, type: "issue", loading: true });
+  // ── Open NFC Tap Modal for a Student ──────────────────────────────────────
+  const handleOpenNfcTapModal = (student: StudentSearchResult) => {
+    setNfcModalStudent({
+      id: student.id,
+      fullName: student.fullName,
+      email: student.email,
+      token: student.checkInToken,
+    });
+    setNfcWriteSuccess(false);
+    setNfcWriteError(null);
+  };
+
+  // ── Perform Physical NFC Tag Write & Handover ──────────────────────────────
+  const handleExecuteNfcWrite = async () => {
+    if (!nfcModalStudent) return;
+    setIsWritingNfc(true);
+    setNfcWriteError(null);
+
     try {
-      const res = await manualIssueNfcAction(token);
-      if (res.error) {
-        setActionStatus({ id: studentId, type: "issue", loading: false, error: res.error });
+      if (nfcAvailable && "NDEFReader" in window) {
+        const ndef = new window.NDEFReader();
+        await ndef.write(nfcModalStudent.token);
       } else {
-        // Update student local status
-        setSearchResults((prev) =>
-          prev.map((student) =>
-            student.id === studentId
-              ? { ...student, nfcIssued: true, purchasedNfc: true }
-              : student,
-          ),
-        );
-        setActionStatus(null);
+        // Fallback simulation for desktop / iOS browser testing
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } catch {
-      setActionStatus({ id: studentId, type: "issue", loading: false, error: "Issue failed" });
+
+      // Update local IndexedDB cache immediately
+      await markNfcIssuedLocally(nfcModalStudent.token);
+
+      // Execute Server Action transaction
+      const res = await manualIssueNfcAction(nfcModalStudent.token);
+      if (res.error) {
+        setNfcWriteError(res.error);
+        setIsWritingNfc(false);
+        return;
+      }
+
+      // Update student row in local search results state
+      setSearchResults((prev) =>
+        prev.map((student) =>
+          student.id === nfcModalStudent.id
+            ? { ...student, nfcIssued: true, purchasedNfc: true }
+            : student,
+        ),
+      );
+
+      setNfcWriteSuccess(true);
+      setTimeout(() => {
+        setNfcModalStudent(null);
+        setNfcWriteSuccess(false);
+        setIsWritingNfc(false);
+      }, 1500);
+    } catch (err: unknown) {
+      setNfcWriteError((err as Error).message || String(err));
+      setIsWritingNfc(false);
     }
   };
 
@@ -310,13 +366,21 @@ export default function ActionCenter({ events }: Props) {
 
                         {needsHandover && (
                           <button
-                            onClick={() => handleManualIssueTag(student.id, student.checkInToken)}
-                            disabled={actionStatus?.id === student.id && actionStatus.loading}
-                            className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition"
+                            onClick={() => handleOpenNfcTapModal(student)}
+                            className="flex-shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 active:scale-95 transition flex items-center gap-1.5 shadow-xs"
                           >
-                            {actionStatus?.id === student.id && actionStatus.loading
-                              ? "Issuing..."
-                              : "Issue NFC"}
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                            >
+                              <circle cx="12" cy="12" r="9" />
+                              <circle cx="12" cy="12" r="5" />
+                              <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                            </svg>
+                            <span>Issue NFC (Tap)</span>
                           </button>
                         )}
                       </div>
@@ -480,6 +544,124 @@ export default function ActionCenter({ events }: Props) {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. NFC Tap Programming Modal (Phone Handover Flow) ─────────── */}
+      {nfcModalStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
+            {nfcWriteSuccess ? (
+              <div className="text-center py-4 space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h4 className="text-base font-bold text-gray-900">Tag Programmed & Linked!</h4>
+                <p className="text-xs text-gray-500">
+                  {nfcModalStudent.fullName}&apos;s physical pass is now ready for tap-in.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900">Issue Physical NFC Tag</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Programming tag for <span className="font-semibold text-gray-800">{nfcModalStudent.fullName}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setNfcModalStudent(null)}
+                    disabled={isWritingNfc}
+                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg
+                      className={`h-6 w-6 ${isWritingNfc ? "animate-pulse" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="5" />
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                    </svg>
+                  </div>
+                  <div className="text-xs text-indigo-950 min-w-0">
+                    <p className="font-bold text-sm">
+                      {isWritingNfc ? "Hold blank tag to phone..." : "Ready to Tap"}
+                    </p>
+                    <p className="text-[11px] text-indigo-700 mt-0.5">
+                      {nfcAvailable ? "Web NFC Enabled" : "Simulation Mode (Desktop/iOS)"}
+                    </p>
+                  </div>
+                </div>
+
+                {nfcWriteError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    {nfcWriteError}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setNfcModalStudent(null)}
+                    disabled={isWritingNfc}
+                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteNfcWrite}
+                    disabled={isWritingNfc}
+                    className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    {isWritingNfc ? (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5 animate-spin"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <circle cx="12" cy="12" r="9" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                        </svg>
+                        <span>Writing Tag...</span>
+                      </>
+                    ) : (
+                      <span>Tap Tag to Issue</span>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

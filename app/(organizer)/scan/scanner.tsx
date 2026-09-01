@@ -1,32 +1,5 @@
 "use client";
 
-// ── Web NFC type declarations ──────────────────────────────────────────────
-// NDEFReader is available in Chrome for Android 89+; absent on iOS and desktop.
-declare global {
-  interface Window {
-    NDEFReader: new () => NDEFReaderInstance;
-  }
-}
-interface NDEFReaderInstance {
-  scan(options?: { signal?: AbortSignal }): Promise<void>;
-  write(
-    message: string | { records: Array<{ recordType: string; data: string }> },
-    options?: { signal?: AbortSignal },
-  ): Promise<void>;
-  addEventListener(
-    type: "reading",
-    listener: (event: {
-      message: { records: NDEFRecordInstance[] };
-    }) => void,
-    options?: AddEventListenerOptions & { signal?: AbortSignal },
-  ): void;
-}
-interface NDEFRecordInstance {
-  recordType: string;
-  encoding?: string;
-  data: DataView;
-}
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import {
