@@ -84,14 +84,16 @@ export function DesktopSidebarNav() {
 
   return (
     <nav className="w-56 border-r border-gray-200 bg-white p-4 space-y-1.5 hidden sm:block min-h-[calc(100vh-3.5rem)]">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pb-2 pt-1">
+      {/* <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pb-2 pt-1">
         Navigation
-      </p>
+      </p> */}
 
       {NAV_ITEMS.map((item) => {
         const isActive =
           pathname === item.href ||
-          (item.href === "/events/all" && pathname.startsWith("/events/") && pathname !== "/events/new");
+          (item.href === "/events/all" &&
+            pathname.startsWith("/events/") &&
+            pathname !== "/events/new");
 
         return (
           <Link
@@ -105,7 +107,9 @@ export function DesktopSidebarNav() {
           >
             <div
               className={`p-1.5 rounded-lg ${
-                isActive ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"
+                isActive
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-100 text-gray-500"
               }`}
             >
               {item.icon}
@@ -131,14 +135,18 @@ export function MobileBottomNav() {
       {NAV_ITEMS.map((item) => {
         const isActive =
           pathname === item.href ||
-          (item.href === "/events/all" && pathname.startsWith("/events/") && pathname !== "/events/new");
+          (item.href === "/events/all" &&
+            pathname.startsWith("/events/") &&
+            pathname !== "/events/new");
 
         return (
           <Link
             key={item.href}
             href={item.href}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
-              isActive ? "text-indigo-600 font-bold" : "text-gray-500 hover:text-gray-800"
+              isActive
+                ? "text-indigo-600 font-bold"
+                : "text-gray-500 hover:text-gray-800"
             }`}
           >
             <div

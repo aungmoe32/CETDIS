@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:reset-nfc": "node --env-file=.env.local scripts/reset-nfc.mjs"
+    "db:reset-nfc": "node --env-file=.env.local scripts/reset-nfc.mjs",
+    "db:reset-tickets": "node --env-file=.env.local scripts/reset-tickets.mjs"
   },
   "dependencies": {
     "@serwist/turbopack": "^9.5.12",

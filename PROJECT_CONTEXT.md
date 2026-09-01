@@ -408,6 +408,12 @@ pnpm exec tsc --noEmit
 pnpm db:reset-nfc --email student@campus.edu
 pnpm db:reset-nfc --all
 
+# Reset check-in status or remove tickets for a student or all users (Devtool)
+pnpm db:reset-tickets student@campus.edu           # Uncheck single user
+pnpm db:reset-tickets --all                       # Uncheck all tickets
+pnpm db:reset-tickets student@campus.edu --delete # Delete tickets of single user
+pnpm db:reset-tickets --all --delete              # Delete all tickets
+
 # Generate Drizzle migration files
 pnpm drizzle-kit generate
 
