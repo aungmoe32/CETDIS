@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
 import { nfcIssuances, profiles } from "@/drizzle/schema";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, eq, ilike, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export async function searchStudentsAction(formData: FormData) {
@@ -22,7 +22,15 @@ export async function searchStudentsAction(formData: FormData) {
       checkInToken: profiles.checkInToken,
     })
     .from(profiles)
-    .where(ilike(profiles.fullName, `%${query}%`))
+    .where(
+      and(
+        eq(profiles.role, "student"),
+        or(
+          ilike(profiles.fullName, `%${query}%`),
+          ilike(profiles.email, `%${query}%`),
+        ),
+      ),
+    )
     .limit(20);
 
   return { data: results };

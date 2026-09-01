@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { count, eq, sql, sum } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ActionCenter from "./action-center";
 
 export const metadata = { title: "Dashboard" };
 
@@ -56,18 +57,16 @@ export default async function DashboardPage() {
   const blankTagsRemaining = totalAllocated - totalNfcIssued;
   const hasAllocationData = totalAllocated > 0;
 
+  const eventsForActionCenter = myEvents.map((e) => ({
+    id: e.id,
+    title: e.title,
+    dateTime: e.dateTime,
+    location: e.location,
+    totalRegistered: statsMap[e.id]?.total ?? 0,
+  }));
+
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Your Events</h1>
-        <Link
-          href="/events/new"
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
-        >
-          + Create Event
-        </Link>
-      </div>
-
       {/* Conditional Low NFC Inventory Alert Banner */}
       {hasAllocationData && blankTagsRemaining <= 20 && (
         <div
@@ -136,6 +135,19 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── The Action Center (Primary Focus Area) ─────────────────────────── */}
+      <ActionCenter events={eventsForActionCenter} />
+
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-gray-900">Your Events</h2>
+        <Link
+          href="/events/new"
+          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs"
+        >
+          + Create Event
+        </Link>
+      </div>
 
       {/* NFC Supply Chain / Inventory Tracking Card */}
       <div className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">
