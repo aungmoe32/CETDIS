@@ -277,3 +277,99 @@ export async function issueGuestWalkUpAction({
   };
 }
 
+export async function exportEventGuestListCsvAction(eventId: string): Promise<{
+  success?: boolean;
+  error?: string;
+  csv?: string;
+  filename?: string;
+}> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const [event] = await db
+    .select({
+      id: events.id,
+      organizerId: events.organizerId,
+      title: events.title,
+    })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!event) return { error: "Event not found" };
+  if (event.organizerId !== user.id) {
+    return { error: "Forbidden: You do not own this event" };
+  }
+
+  const guestList = await db
+    .select({
+      fullName: profiles.fullName,
+      email: profiles.email,
+      isCheckedIn: tickets.isCheckedIn,
+      scannedAt: tickets.scannedAt,
+      purchaseMethod: tickets.purchaseMethod,
+      purchasedNfc: profiles.purchasedNfc,
+      nfcIssued: profiles.nfcIssued,
+    })
+    .from(tickets)
+    .innerJoin(profiles, eq(tickets.userId, profiles.id))
+    .where(eq(tickets.eventId, eventId))
+    .orderBy(profiles.fullName);
+
+  const sanitize = (val: string | null | undefined) => {
+    if (!val) return '""';
+    return `"${val.replace(/"/g, '""')}"`;
+  };
+
+  const headers = [
+    '"Full Name"',
+    '"Email"',
+    '"Check-In Status"',
+    '"Scanned At"',
+    '"Purchase Method"',
+    '"NFC Pass Status"',
+  ];
+
+  const rows = guestList.map((g) => {
+    const checkInStatus = g.isCheckedIn ? "Checked In" : "Registered";
+    const scannedAtStr = g.scannedAt
+      ? new Date(g.scannedAt).toISOString()
+      : "N/A";
+    const purchaseMethodStr =
+      g.purchaseMethod === "cash_at_door" ? "Cash at Door" : "Online";
+    const nfcStatus =
+      g.purchasedNfc && g.nfcIssued
+        ? "NFC Active"
+        : g.purchasedNfc
+          ? "Awaiting Tag"
+          : "QR Only";
+
+    return [
+      sanitize(g.fullName),
+      sanitize(g.email),
+      sanitize(checkInStatus),
+      sanitize(scannedAtStr),
+      sanitize(purchaseMethodStr),
+      sanitize(nfcStatus),
+    ].join(",");
+  });
+
+  const csv = [headers.join(","), ...rows].join("\n");
+  const sanitizedTitle = event.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  const filename = `guestlist-${sanitizedTitle}-${new Date().toISOString().split("T")[0]}.csv`;
+
+  return {
+    success: true,
+    csv,
+    filename,
+  };
+}
+
+

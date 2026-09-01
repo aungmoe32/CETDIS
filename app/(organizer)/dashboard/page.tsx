@@ -1,18 +1,26 @@
 import { db } from "@/utils/db";
-import { events, nfcAllocations, nfcIssuances, tickets } from "@/drizzle/schema";
+import {
+  events,
+  nfcAllocations,
+  nfcIssuances,
+  tickets,
+} from "@/drizzle/schema";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { count, eq, sql, sum } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ActionCenter from "./action-center";
+import TodayEvents, { type DashboardEventItem } from "./today-events";
 
 export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const myEvents = await db
@@ -32,15 +40,19 @@ export default async function DashboardPage() {
     .select({
       eventId: tickets.eventId,
       total: count(),
-      checkedIn: sql<number>`count(*) filter (where ${tickets.isCheckedIn})`.mapWith(Number),
-      walkUpCount: sql<number>`count(*) filter (where ${tickets.purchaseMethod} = 'cash_at_door')`.mapWith(Number),
+      checkedIn:
+        sql<number>`count(*) filter (where ${tickets.isCheckedIn})`.mapWith(
+          Number,
+        ),
+      walkUpCount:
+        sql<number>`count(*) filter (where ${tickets.purchaseMethod} = 'cash_at_door')`.mapWith(
+          Number,
+        ),
     })
     .from(tickets)
     .groupBy(tickets.eventId);
 
-  const statsMap = Object.fromEntries(
-    ticketCounts.map((t) => [t.eventId, t]),
-  );
+  const statsMap = Object.fromEntries(ticketCounts.map((t) => [t.eventId, t]));
 
   const [nfcStats] = await db
     .select({ totalIssued: count() })
@@ -67,12 +79,24 @@ export default async function DashboardPage() {
     price: e.price ?? 0,
   }));
 
+  const eventsForTodayList: DashboardEventItem[] = myEvents.map((e) => ({
+    id: e.id,
+    title: e.title,
+    dateTime: e.dateTime,
+    location: e.location,
+    maxCapacity: e.maxCapacity,
+    price: e.price ?? 0,
+    totalRegistered: statsMap[e.id]?.total ?? 0,
+    checkedIn: statsMap[e.id]?.checkedIn ?? 0,
+    walkUpCount: statsMap[e.id]?.walkUpCount ?? 0,
+  }));
+
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto">
+    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
       {/* Conditional Low NFC Inventory Alert Banner */}
       {hasAllocationData && blankTagsRemaining <= 20 && (
         <div
-          className={`mb-5 rounded-2xl border px-4 py-3.5 flex items-start sm:items-center gap-3 ${
+          className={`rounded-2xl border px-4 py-3.5 flex items-start sm:items-center gap-3 ${
             blankTagsRemaining <= 0
               ? "bg-red-50 border-red-200"
               : "bg-amber-50 border-amber-200"
@@ -138,21 +162,16 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ── The Action Center (Primary Focus Area) ─────────────────────────── */}
+      {/* ── Section 2: The Action Center (Primary Focus Area) ─────────────── */}
       <ActionCenter events={eventsForActionCenter} />
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900">Your Events</h2>
-        <Link
-          href="/events/new"
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs"
-        >
-          + Create Event
-        </Link>
+      {/* ── Section 3: Today's Events & Live Metrics ──────────────────────── */}
+      <div className="border-t border-gray-100 pt-5">
+        <TodayEvents events={eventsForTodayList} />
       </div>
 
-      {/* NFC Supply Chain / Inventory Tracking Card */}
-      <div className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">
+      {/* Section 4 Preview: NFC Supply Chain Ledger Summary */}
+      <div className="rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
             <svg
@@ -164,7 +183,13 @@ export default async function DashboardPage() {
             >
               <circle cx="12" cy="12" r="9" />
               <circle cx="12" cy="12" r="5" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+              <circle
+                cx="12"
+                cy="12"
+                r="1.5"
+                fill="currentColor"
+                strokeWidth={0}
+              />
             </svg>
           </div>
           <div>
@@ -185,80 +210,11 @@ export default async function DashboardPage() {
           <span className="text-2xl font-bold text-gray-900 font-mono">
             {totalNfcIssued}
           </span>
-          <span className="block text-[11px] text-gray-400">tags handed out</span>
+          <span className="block text-[11px] text-gray-400">
+            tags handed out
+          </span>
         </div>
       </div>
-
-      {myEvents.length === 0 && (
-        <p className="text-sm text-gray-400">No events yet. Create one to get started.</p>
-      )}
-
-      <ul className="space-y-3">
-        {myEvents.map((event) => {
-          const stats = statsMap[event.id];
-          const total = stats?.total ?? 0;
-          const checkedIn = stats?.checkedIn ?? 0;
-          const isFree = !event.price || event.price === 0;
-          return (
-            <li key={event.id} className="border border-gray-200 rounded-xl p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-gray-900">{event.title}</p>
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                        isFree
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                      }`}
-                    >
-                      {isFree ? "Free" : `${event.price.toLocaleString()} MMK`}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(event.dateTime).toLocaleString()} · {event.location}
-                  </p>
-                </div>
-                <Link
-                  href={`/scan?event=${event.id}`}
-                  className="shrink-0 rounded-lg border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
-                >
-                  Scan
-                </Link>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500 flex-wrap">
-                <div className="flex gap-4">
-                  <span>{total} registered</span>
-                  <span>{checkedIn} checked in</span>
-                  <span>{event.maxCapacity - total} spots left</span>
-                </div>
-
-                {(stats?.walkUpCount ?? 0) > 0 && (
-                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                    <svg
-                      className="w-3.5 h-3.5 text-emerald-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <span>
-                      {stats.walkUpCount} walk-up{stats.walkUpCount > 1 ? "s" : ""} (
-                      {((stats.walkUpCount) * (event.price ?? 0)).toLocaleString()} MMK cash box)
-                    </span>
-                  </div>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }
