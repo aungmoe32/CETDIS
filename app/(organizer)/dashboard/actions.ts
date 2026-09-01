@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
 import { events, nfcIssuances, profiles, tickets } from "@/drizzle/schema";
 import { and, eq, ilike, or, inArray } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface StudentSearchResult {
   id: string;
@@ -193,3 +194,86 @@ export async function manualIssueNfcAction(
   revalidatePath("/dashboard");
   return { success: true };
 }
+
+export async function issueGuestWalkUpAction({
+  eventId,
+  guestName,
+}: {
+  eventId: string;
+  guestName?: string;
+}): Promise<{
+  success?: boolean;
+  error?: string;
+  token?: string;
+  ghostId?: string;
+  fullName?: string;
+  eventTitle?: string;
+  eventPrice?: number;
+}> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const [event] = await db
+    .select({
+      organizerId: events.organizerId,
+      title: events.title,
+      price: events.price,
+    })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!event) return { error: "Event not found" };
+  if (event.organizerId !== user.id) {
+    return { error: "Forbidden: You do not own this event" };
+  }
+
+  const ghostId = randomUUID();
+  const token = randomUUID();
+  const guestEmail = `guest-${token.slice(0, 8)}@walkup.local`;
+  const fullName = guestName?.trim() || "Guest Attendee";
+
+  await db.transaction(async (tx) => {
+    // 1. Create Ghost Profile
+    await tx.insert(profiles).values({
+      id: ghostId,
+      email: guestEmail,
+      fullName,
+      role: "student",
+      checkInToken: token,
+      purchasedNfc: true,
+      nfcIssued: true,
+    });
+
+    // 2. Create and check-in Ticket
+    await tx.insert(tickets).values({
+      userId: ghostId,
+      eventId,
+      isCheckedIn: true,
+      scannedAt: new Date(),
+      purchaseMethod: "cash_at_door",
+    });
+
+    // 3. Record in NFC Supply Chain ledger
+    await tx.insert(nfcIssuances).values({
+      userId: ghostId,
+      issuedBy: user.id,
+      eventId,
+    });
+  });
+
+  revalidatePath("/dashboard");
+  return {
+    success: true,
+    token,
+    ghostId,
+    fullName,
+    eventTitle: event.title,
+    eventPrice: event.price,
+  };
+}
+

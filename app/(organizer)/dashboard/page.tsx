@@ -33,6 +33,7 @@ export default async function DashboardPage() {
       eventId: tickets.eventId,
       total: count(),
       checkedIn: sql<number>`count(*) filter (where ${tickets.isCheckedIn})`.mapWith(Number),
+      walkUpCount: sql<number>`count(*) filter (where ${tickets.purchaseMethod} = 'cash_at_door')`.mapWith(Number),
     })
     .from(tickets)
     .groupBy(tickets.eventId);
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
     dateTime: e.dateTime,
     location: e.location,
     totalRegistered: statsMap[e.id]?.total ?? 0,
+    price: e.price ?? 0,
   }));
 
   return (
@@ -224,10 +226,34 @@ export default async function DashboardPage() {
                   Scan
                 </Link>
               </div>
-              <div className="mt-3 flex gap-4 text-xs text-gray-500">
-                <span>{total} registered</span>
-                <span>{checkedIn} checked in</span>
-                <span>{event.maxCapacity - total} spots left</span>
+              <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500 flex-wrap">
+                <div className="flex gap-4">
+                  <span>{total} registered</span>
+                  <span>{checkedIn} checked in</span>
+                  <span>{event.maxCapacity - total} spots left</span>
+                </div>
+
+                {(stats?.walkUpCount ?? 0) > 0 && (
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                    <svg
+                      className="w-3.5 h-3.5 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <span>
+                      {stats.walkUpCount} walk-up{stats.walkUpCount > 1 ? "s" : ""} (
+                      {((stats.walkUpCount) * (event.price ?? 0)).toLocaleString()} MMK cash box)
+                    </span>
+                  </div>
+                )}
               </div>
             </li>
           );

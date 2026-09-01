@@ -16,6 +16,16 @@ export type CheckInResult =
       nfcIssued?: boolean;
       needsNfcHandover?: boolean;
     }
+  | {
+      status: "no_ticket";
+      profileId: string;
+      fullName: string;
+      eventPrice: number;
+      eventTitle: string;
+      token: string;
+      purchasedNfc?: boolean;
+      nfcIssued?: boolean;
+    }
   | { status: "not_found" }
   | { status: "already_scanned" }
   | { status: "error"; message: string };
@@ -32,15 +42,18 @@ export async function checkInAction(
 
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { status: "error", message: "Not authenticated" };
 
-
   // Ownership check: the caller must be the organizer of this event.
-  // This prevents any authenticated user from scanning tickets for events
-  // they don't own.
   const [event] = await db
-    .select({ organizerId: events.organizerId })
+    .select({
+      organizerId: events.organizerId,
+      price: events.price,
+      title: events.title,
+    })
     .from(events)
     .where(eq(events.id, eventId))
     .limit(1);
@@ -71,10 +84,23 @@ export async function checkInAction(
     .where(and(eq(tickets.userId, profile.id), eq(tickets.eventId, eventId)))
     .limit(1);
 
-  if (!ticket) return { status: "not_found" };
+  if (!ticket) {
+    // Recognized student, but no RSVP/ticket for this specific event
+    return {
+      status: "no_ticket",
+      profileId: profile.id,
+      fullName: profile.fullName,
+      eventPrice: event.price,
+      eventTitle: event.title,
+      token,
+      purchasedNfc: profile.purchasedNfc,
+      nfcIssued: profile.nfcIssued,
+    };
+  }
+
   if (ticket.isCheckedIn) return { status: "already_scanned" };
 
-  // Condition C: mark as checked in
+  // Mark as checked in
   await db
     .update(tickets)
     .set({ isCheckedIn: true, scannedAt: new Date() })
@@ -86,6 +112,93 @@ export async function checkInAction(
     status: "success",
     fullName: profile.fullName,
     ticketId: ticket.id,
+    token,
+    purchasedNfc: profile.purchasedNfc,
+    nfcIssued: profile.nfcIssued,
+    needsNfcHandover,
+  };
+}
+
+export async function sellWalkUpTicketToStudentAction({
+  profileId,
+  eventId,
+  token,
+}: {
+  profileId: string;
+  eventId: string;
+  token: string;
+}): Promise<CheckInResult> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { status: "error", message: "Not authenticated" };
+
+  const [event] = await db
+    .select({ organizerId: events.organizerId })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!event) return { status: "not_found" };
+  if (event.organizerId !== user.id) {
+    return { status: "error", message: "Forbidden" };
+  }
+
+  const [profile] = await db
+    .select({
+      id: profiles.id,
+      fullName: profiles.fullName,
+      purchasedNfc: profiles.purchasedNfc,
+      nfcIssued: profiles.nfcIssued,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, profileId))
+    .limit(1);
+
+  if (!profile) return { status: "not_found" };
+
+  // Check if a ticket was already created
+  const [existingTicket] = await db
+    .select()
+    .from(tickets)
+    .where(and(eq(tickets.userId, profile.id), eq(tickets.eventId, eventId)))
+    .limit(1);
+
+  let ticketId: string;
+
+  if (existingTicket) {
+    if (existingTicket.isCheckedIn) return { status: "already_scanned" };
+    await db
+      .update(tickets)
+      .set({
+        isCheckedIn: true,
+        scannedAt: new Date(),
+        purchaseMethod: "cash_at_door",
+      })
+      .where(eq(tickets.id, existingTicket.id));
+    ticketId = existingTicket.id;
+  } else {
+    const [newTicket] = await db
+      .insert(tickets)
+      .values({
+        userId: profile.id,
+        eventId,
+        isCheckedIn: true,
+        scannedAt: new Date(),
+        purchaseMethod: "cash_at_door",
+      })
+      .returning({ id: tickets.id });
+    ticketId = newTicket.id;
+  }
+
+  const needsNfcHandover = Boolean(profile.purchasedNfc && !profile.nfcIssued);
+
+  return {
+    status: "success",
+    fullName: profile.fullName,
+    ticketId,
     token,
     purchasedNfc: profile.purchasedNfc,
     nfcIssued: profile.nfcIssued,

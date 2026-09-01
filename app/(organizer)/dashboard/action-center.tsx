@@ -7,6 +7,7 @@ import {
   searchStudentsForDashboardAction,
   manualCheckInAction,
   manualIssueNfcAction,
+  issueGuestWalkUpAction,
   type StudentSearchResult,
 } from "./actions";
 import { markNfcIssuedLocally } from "@/lib/idb";
@@ -17,6 +18,7 @@ interface EventSummary {
   dateTime: Date;
   location: string | null;
   totalRegistered: number;
+  price?: number;
 }
 
 interface Props {
@@ -30,6 +32,20 @@ export default function ActionCenter({ events }: Props) {
   const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
   const [isSearching, startSearchTransition] = useTransition();
   const [nfcAvailable, setNfcAvailable] = useState(false);
+
+  // Walk-Up Sales Modal State (Scenario B)
+  const [isWalkUpModalOpen, setIsWalkUpModalOpen] = useState(false);
+  const [walkUpEventId, setWalkUpEventId] = useState("");
+  const [walkUpGuestName, setWalkUpGuestName] = useState("");
+  const [walkUpStep, setWalkUpStep] = useState<"details" | "tap" | "success">("details");
+  const [isProcessingWalkUp, setIsProcessingWalkUp] = useState(false);
+  const [walkUpError, setWalkUpError] = useState<string | null>(null);
+  const [walkUpResultData, setWalkUpResultData] = useState<{
+    token: string;
+    fullName: string;
+    eventTitle: string;
+    eventPrice: number;
+  } | null>(null);
 
   // NFC Tap Programming Modal State
   const [nfcModalStudent, setNfcModalStudent] = useState<{
@@ -188,18 +204,97 @@ export default function ActionCenter({ events }: Props) {
     }
   };
 
+  // ── Open Walk-Up Sale Modal ──────────────────────────────────────────────
+  const handleOpenWalkUpModal = () => {
+    const defaultEventId = targetEvents[0]?.id || events[0]?.id || "";
+    setWalkUpEventId(defaultEventId);
+    setWalkUpGuestName("");
+    setWalkUpStep("details");
+    setWalkUpError(null);
+    setWalkUpResultData(null);
+    setIsWalkUpModalOpen(true);
+  };
+
+  // ── Generate Guest Ticket & Proceed to NFC Tap ───────────────────────────
+  const handleGenerateWalkUpTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!walkUpEventId) {
+      setWalkUpError("Please select an event");
+      return;
+    }
+    setIsProcessingWalkUp(true);
+    setWalkUpError(null);
+
+    try {
+      const res = await issueGuestWalkUpAction({
+        eventId: walkUpEventId,
+        guestName: walkUpGuestName,
+      });
+
+      if (res.error || !res.token) {
+        setWalkUpError(res.error || "Failed to create guest ticket");
+        setIsProcessingWalkUp(false);
+        return;
+      }
+
+      setWalkUpResultData({
+        token: res.token,
+        fullName: res.fullName || "Guest Attendee",
+        eventTitle: res.eventTitle || "Event",
+        eventPrice: res.eventPrice || 0,
+      });
+      setWalkUpStep("tap");
+      setIsProcessingWalkUp(false);
+    } catch (err: unknown) {
+      setWalkUpError((err as Error).message || String(err));
+      setIsProcessingWalkUp(false);
+    }
+  };
+
+  // ── Write Blank Tag for Walk-Up Guest ────────────────────────────────────
+  const handleExecuteWalkUpNfcWrite = async () => {
+    if (!walkUpResultData) return;
+    setIsProcessingWalkUp(true);
+    setWalkUpError(null);
+
+    try {
+      if (nfcAvailable && "NDEFReader" in window) {
+        const ndef = new window.NDEFReader();
+        await ndef.write(walkUpResultData.token);
+      } else {
+        // Fallback simulation for desktop / iOS browser testing
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // Update local IndexedDB cache immediately
+      await markNfcIssuedLocally(walkUpResultData.token);
+
+      setWalkUpStep("success");
+      setIsProcessingWalkUp(false);
+      setTimeout(() => {
+        setIsWalkUpModalOpen(false);
+        setWalkUpStep("details");
+        setWalkUpResultData(null);
+      }, 1800);
+    } catch (err: unknown) {
+      setWalkUpError((err as Error).message || String(err));
+      setIsProcessingWalkUp(false);
+    }
+  };
+
   return (
     <section className="mb-8 space-y-4">
-      {/* ── 1. Primary Action: Massive Scanner Touch Target ──────────────── */}
-      <div>
+      {/* ── 1. Primary Action Targets: Scanner + Walk-Up Sales ────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Button A: Open Scanner */}
         <button
           onClick={handleOpenScanner}
-          className="w-full group relative flex items-center justify-between gap-4 rounded-2xl bg-indigo-600 px-5 py-4 text-white shadow-md hover:bg-indigo-700 active:scale-[0.99] transition"
+          className="group relative flex items-center justify-between gap-3 rounded-2xl bg-indigo-600 px-5 py-4 text-white shadow-md hover:bg-indigo-700 active:scale-[0.99] transition text-left"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
               <svg
-                className="w-6 h-6 text-white"
+                className="w-5 h-5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -213,31 +308,75 @@ export default function ActionCenter({ events }: Props) {
                 <rect x="7" y="7" width="10" height="10" rx="1.5" />
               </svg>
             </div>
-            <div className="text-left min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-bold tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-bold tracking-tight">
                   Open Scanner
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
-                  QR & NFC
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.2 rounded-full">
+                  Door
                 </span>
               </div>
               <p className="text-xs text-indigo-100 mt-0.5 truncate">
                 {targetEvents.length === 1
-                  ? `Scan for ${targetEvents[0].title}`
-                  : targetEvents.length > 1
-                    ? `${targetEvents.length} events active · Tap to choose`
-                    : events.length > 0
-                      ? "Select event to begin scanning"
-                      : "Create an event first"}
+                  ? `${targetEvents[0].title}`
+                  : `${targetEvents.length} events active`}
               </p>
             </div>
           </div>
 
-          <div className="hidden xs:flex items-center gap-1.5 text-xs font-semibold bg-white/10 px-3 py-2 rounded-xl border border-white/10 group-hover:bg-white/20 transition flex-shrink-0">
-            <span>Launch</span>
+          <div className="text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition flex-shrink-0">
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
+
+        {/* Button B: Walk-Up Sales */}
+        <button
+          onClick={handleOpenWalkUpModal}
+          className="group relative flex items-center justify-between gap-3 rounded-2xl bg-white border border-gray-200 px-5 py-4 text-gray-900 shadow-xs hover:border-emerald-300 hover:bg-emerald-50/40 active:scale-[0.99] transition text-left"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-bold tracking-tight text-gray-900">
+                  Walk-Up Sale
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                  Cash + NFC
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">
+                Sell ticket & issue pass at door
+              </p>
+            </div>
+          </div>
+
+          <div className="text-gray-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition flex-shrink-0">
+            <svg
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -661,6 +800,241 @@ export default function ActionCenter({ events }: Props) {
                   </button>
                 </div>
               </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. Walk-Up Sales Modal (Scenario B: Guest / No Account) ───── */}
+      {isWalkUpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
+            {walkUpStep === "success" ? (
+              <div className="text-center py-5 space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h4 className="text-base font-bold text-gray-900">
+                  Guest Ticket & NFC Pass Issued!
+                </h4>
+                <p className="text-xs text-gray-500">
+                  {walkUpResultData?.fullName} has been checked in to{" "}
+                  <span className="font-semibold text-gray-700">
+                    {walkUpResultData?.eventTitle}
+                  </span>
+                  .
+                </p>
+              </div>
+            ) : walkUpStep === "tap" && walkUpResultData ? (
+              /* Step 2: NFC Tap Flow */
+              <>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900">Program Guest NFC Pass</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Linking tag for{" "}
+                      <span className="font-semibold text-gray-800">
+                        {walkUpResultData.fullName}
+                      </span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsWalkUpModalOpen(false)}
+                    disabled={isProcessingWalkUp}
+                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg
+                      className={`h-6 w-6 ${isProcessingWalkUp ? "animate-pulse" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="5" />
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                    </svg>
+                  </div>
+                  <div className="text-xs text-emerald-950 min-w-0">
+                    <p className="font-bold text-sm">
+                      {isProcessingWalkUp
+                        ? "Hold blank tag to phone..."
+                        : "Ready to Tap Physical Tag"}
+                    </p>
+                    <p className="text-[11px] text-emerald-700 mt-0.5">
+                      {nfcAvailable ? "Web NFC Enabled" : "Simulation Mode (Desktop/iOS)"}
+                    </p>
+                  </div>
+                </div>
+
+                {walkUpError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    {walkUpError}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsWalkUpModalOpen(false)}
+                    disabled={isProcessingWalkUp}
+                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteWalkUpNfcWrite}
+                    disabled={isProcessingWalkUp}
+                    className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    {isProcessingWalkUp ? (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5 animate-spin"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <circle cx="12" cy="12" r="9" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4" />
+                        </svg>
+                        <span>Writing Tag...</span>
+                      </>
+                    ) : (
+                      <span>Tap Tag to Issue</span>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Step 1: Walk-Up Details */
+              <form onSubmit={handleGenerateWalkUpTicket} className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900">Walk-Up Ticket Sale</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Issue guest pass & program physical tag at door
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsWalkUpModalOpen(false)}
+                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Event Selector */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                    Target Event
+                  </label>
+                  <select
+                    value={walkUpEventId}
+                    onChange={(e) => setWalkUpEventId(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                  >
+                    {events.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.title} ({e.price ? `${e.price.toLocaleString()} MMK` : "Free"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Guest Name (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                    Attendee Name <span className="font-normal text-gray-400 normal-case">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={walkUpGuestName}
+                    onChange={(e) => setWalkUpGuestName(e.target.value)}
+                    placeholder="Leave blank for Anonymous"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                  />
+                </div>
+
+                {/* Price to Collect Banner */}
+                {(() => {
+                  const selectedEvent = events.find((e) => e.id === walkUpEventId);
+                  const price = selectedEvent?.price ?? 0;
+                  return (
+                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-emerald-900">Cash to Collect</p>
+                        <p className="text-[11px] text-emerald-700">Cash box reconciliation</p>
+                      </div>
+                      <span className="text-base font-bold text-emerald-950 font-mono">
+                        {price > 0 ? `${price.toLocaleString()} MMK` : "Free"}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {walkUpError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    {walkUpError}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsWalkUpModalOpen(false)}
+                    disabled={isProcessingWalkUp}
+                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isProcessingWalkUp}
+                    className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    {isProcessingWalkUp ? (
+                      <span>Generating Ticket...</span>
+                    ) : (
+                      <span>Collect Cash & Issue Tag</span>
+                    )}
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         </div>

@@ -1,7 +1,7 @@
 # CETDIS — Full Project Context & Architecture Guide
 
 > **Campus Event Check-In System (CETDIS)**  
-> A Next.js 16 Progressive Web Application built for high-throughput campus event ticketing, door check-in, offline synchronization, and physical Universal NFC pass management.
+> A Next.js 16 Progressive Web Application built for high-throughput campus event ticketing, door check-in, offline synchronization, physical Universal NFC pass management, and at-the-door Walk-Up sales with cash reconciliation.
 
 ---
 
@@ -9,14 +9,15 @@
 
 ### Core Mission
 
-CETDIS bridges digital campus identities with physical event entry. Students can RSVP to campus events, view their digital student pass, or tap in at the door using physical NFC wristbands/cards. Organizers can validate attendees using camera QR scanners or NFC hardware even in dead zones with zero internet connectivity.
+CETDIS bridges digital campus identities with physical event entry. Students can RSVP to campus events, view their digital student pass, or tap in at the door using physical NFC wristbands/cards. Organizers can validate attendees using camera QR scanners or NFC hardware even in dead zones with zero internet connectivity, as well as sell tickets at the door in under 15 seconds.
 
 ### Key Architectural Pillars
 
 1. **Offline-First Reliability**: Events often happen in campus basements or outdoor spaces with poor connectivity. The scanner downloads an event's guest list into browser IndexedDB, processes check-ins locally with instant sub-10ms response times, and flushes synced check-ins to the cloud when connectivity resumes.
 2. **Universal Identity Model**: Check-in tokens belong to the student profile (`profiles.checkInToken`), not individual event tickets. One QR code or physical NFC wristband works across all events the student registers for.
 3. **Decoupled Security & Token Revocation**: If a student loses their physical NFC tag, they can report it lost to immediately rotate their `checkInToken` UUID. This instantly destroys the lost tag's access while keeping their account and event registrations intact.
-4. **Platform Supply Chain Ledger**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks every physical tag handover. A separate mutable ledger (`nfc_allocations`) tracks blank tag rolls shipped by the platform developer to each organizer, enabling inventory forecasting and low-stock alerting.
+4. **Walk-Up Sales & Cash Reconciliation**: Handles both registered students who forgot to RSVP (Scenario A) and anonymous/guest walk-ups (Scenario B) with ghost profile generation and instant phone NFC tag programming. Automatically audits cash-at-door totals against ticket counts.
+5. **Platform Supply Chain Ledger**: Platform collects NFC hardware revenue centrally. An immutable audit trail (`nfc_issuances`) tracks every physical tag handover. A separate mutable ledger (`nfc_allocations`) tracks blank tag rolls shipped by the platform developer to each organizer, enabling inventory forecasting and low-stock alerting.
 
 ---
 
@@ -25,13 +26,13 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 | Layer                    | Technology                                  | Rationale                                                                                                                                |
 | :----------------------- | :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
 | **Framework**            | **Next.js 16 (App Router)**                 | Modern React Server Components, Server Actions in colocated `actions.ts`, and root `proxy.ts` (replacing deprecated `middleware.ts`).    |
-| **Styling**              | **Tailwind CSS v4**                         | Clean, minimalist white aesthetic with zero heavy external UI component libraries.                                                       |
+| **Styling & Font**       | **Tailwind CSS v4 + Inter Font**            | Clean, minimalist white aesthetic with zero heavy external UI component libraries. Inter typography via `next/font/google`.             |
 | **Authentication**       | **Supabase Auth**                           | Passwordless Email OTP (`supabase.auth.signInWithOtp`).                                                                                  |
 | **Database & ORM**       | **PostgreSQL + Drizzle ORM**                | Type-safe schema definitions and SQL queries via `drizzle-orm`. Direct Supabase client is reserved strictly for auth session management. |
 | **Offline Storage**      | **IndexedDB (`idb`)**                       | Client-side database caching event attendees, check-in statuses, NFC issuance states, and sync queues.                                   |
 | **PWA & Service Worker** | **Serwist**                                 | Service worker caching static assets, shell HTML, and background synchronization events.                                                 |
 | **Hardware / Scanning**  | **`html5-qrcode` & Web NFC (`NDEFReader`)** | Camera QR scanning with cleanup safeguards + native Web NFC reading/writing with simulation fallbacks for iOS/desktop.                   |
-| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers.                                                                       |
+| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (25+ tests).                                                           |
 
 ---
 
@@ -75,6 +76,7 @@ erDiagram
         uuid event_id FK "Unique (user_id, event_id)"
         boolean is_checked_in
         timestamp scanned_at
+        text purchase_method "'online' | 'cash_at_door'"
     }
 
     NFC_ISSUANCES {
@@ -107,7 +109,7 @@ erDiagram
 3. **`tickets`**:
    - Bridge table between student profile and event.
    - Unique composite constraint on `(user_id, event_id)`.
-   - Tracks `is_checked_in` and `scanned_at`.
+   - Tracks `is_checked_in`, `scanned_at`, and `purchase_method` (`'online'` vs `'cash_at_door'`).
 4. **`nfc_issuances`**:
    - Strictly insert-only audit ledger recording every physical tag programming and handover.
 5. **`nfc_allocations`**:
@@ -135,18 +137,23 @@ cetdis/
 │   │       ├── nfc-checkout-modal.tsx  # Payment checkout modal (KBZPay/WavePay)
 │   │       └── actions.ts              # purchaseNfcAction & reportLostTagAction
 │   ├── (organizer)/                    # Organizer Route Group
-│   │   ├── dashboard/                  # Metrics, events, NFC inventory card & low-stock banner
+│   │   ├── layout.tsx                  # Global status bar wrapper
+│   │   ├── global-status-bar.tsx       # Live online/offline + pending sync badge & trigger
+│   │   ├── dashboard/                  # Dashboard Hub
+│   │   │   ├── page.tsx                # Event list, cash reconciliation, NFC inventory card & alert
+│   │   │   ├── action-center.tsx       # Touch targets: Scanner, Walk-Up Sale modal, Live Search & NFC tap
+│   │   │   └── actions.ts              # searchStudents, manualCheckIn, manualIssueNfc, issueGuestWalkUp
 │   │   ├── events/new/                 # Create event
 │   │   ├── scan/                       # Door check-in scanner (QR + NFC)
 │   │   │   ├── page.tsx
-│   │   │   ├── scanner.tsx             # Unified camera/NFC scanning + offline queue
-│   │   │   └── actions.ts              # checkInAction, loadGuestListAction, markNfcIssuedAction
+│   │   │   ├── scanner.tsx             # Unified camera/NFC scanning, Scenario A walkup + offline queue
+│   │   │   └── actions.ts              # checkInAction, sellWalkUpTicketToStudentAction, loadGuestListAction
 │   │   └── admin/                      # Student lookup & NFC Tag Programming
 │   │       ├── page.tsx
 │   │       ├── nfc-issuer.tsx          # Admin NFC tag writer
 │   │       └── actions.ts              # verifyProfileForNfc, markNfcIssuedAction
 │   ├── (developer)/                    # Developer (Platform Admin) Route Group
-│   │   ├── layout.tsx                  # Dark platform admin layout + role guard (developer only)
+│   │   ├── layout.tsx                  # Clean white platform admin layout + role guard (developer only)
 │   │   └── developer/
 │   │       └── dashboard/              # → URL: /developer/dashboard
 │   │           ├── page.tsx            # Platform stats + organizer inventory table
@@ -162,7 +169,10 @@ cetdis/
 ├── lib/
 │   ├── idb.ts                          # IndexedDB wrapper (attendees cache & sync queue)
 │   ├── offline-checkin.ts              # Optimistic local check-in & handover verification
-│   └── sync.ts                         # Queue flusher & background reconciliation
+│   ├── sync.ts                         # Queue flusher & background reconciliation
+│   └── web-nfc.d.ts                    # Global Web NFC TypeScript definitions
+├── scripts/
+│   └── reset-nfc.mjs                   # Developer CLI tool to undo/reset NFC data
 └── utils/
     ├── db.ts                           # Drizzle DB connection instance
     └── supabase/                       # Supabase client helpers (client, server, middleware)
@@ -222,7 +232,7 @@ When an attendee arrives at an event:
    - **Online**: Calls `checkInAction(token, eventId)`.
    - **Offline**: Queries IndexedDB via `offlineCheckIn(token)`.
 3. **Validation**:
-   - If attendee not registered → returns `not_found`.
+   - If attendee not registered → returns `no_ticket` (triggers Scenario A Walk-Up prompt) or `not_found`.
    - If attendee already checked in → returns `already_scanned`.
    - If attendee registered and valid → marks `is_checked_in = true`, records timestamp.
 4. **Fast NFC Handover Modal**:
@@ -234,7 +244,35 @@ When an attendee arrives at an event:
 
 ---
 
-### C. Developer NFC Inventory Management
+### C. Walk-Up Sales & Cash Reconciliation (At-The-Door)
+
+Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
+
+#### Scenario A: Existing Student (Forgot to RSVP)
+1. Student scans QR or taps wristband at the door.
+2. Scanner identifies the student profile but detects no ticket for the event.
+3. Scanner immediately displays an amber prompt: **"User Recognized: [Full Name]. No Ticket for this Event."**
+4. Organizer collects cash and taps **"Sell Ticket At Door & Admit"**.
+5. Server action inserts `tickets` row with `purchaseMethod = 'cash_at_door'`, sets `isCheckedIn = true`, and flashes the green success screen.
+
+#### Scenario B: The Guest (No App, No Account)
+1. Organizer taps **"Walk-Up Sale"** in the Dashboard Action Center.
+2. Selects event and enters optional name (or leaves blank for Anonymous).
+3. Organizer collects cash and taps **"Collect Cash & Program NFC Tag"**.
+4. Server action executes in an atomic transaction:
+   - Inserts **Ghost Profile** (`guest-<token>@walkup.local`, `checkInToken`).
+   - Inserts **Ticket** (`purchaseMethod = 'cash_at_door'`, `isCheckedIn = true`).
+   - Inserts **NFC Issuance** record.
+5. Modal prompts: _"Hold blank NFC tag to phone..."_ and writes the UUID to the physical tag via Web NFC.
+6. Guest receives the physical tag and walks in. All future attendance can be tracked under this same tag.
+
+#### Cash Box Reconciliation
+- The dashboard automatically tracks `walkUpCount` and calculates `walkUpCount * event.price`.
+- Displays a dedicated cash reconciliation pill on each event card (e.g. `12 walk-ups (60,000 MMK cash box)`), providing a clear audit trail against the physical cash box.
+
+---
+
+### D. Developer NFC Inventory Management
 
 ```mermaid
 sequenceDiagram
@@ -257,7 +295,7 @@ sequenceDiagram
 
 ---
 
-### D. Offline Synchronization Engine
+### E. Offline Synchronization Engine
 
 ```mermaid
 sequenceDiagram
@@ -299,7 +337,7 @@ sequenceDiagram
    - RLS is enabled on all tables in public schema.
    - Ownership predicates use `TO authenticated` with `USING (auth.uid() = user_id)` (never bypassing via `SECURITY DEFINER`).
 3. **Idempotent Handover Transactions**:
-   - `markNfcIssuedAction` runs inside `db.transaction()` and verifies `nfcIssued === false` before writing to prevent duplicate ledger entries.
+   - `markNfcIssuedAction` and `manualIssueNfcAction` run inside `db.transaction()` and verify `nfcIssued === false` before writing to prevent duplicate ledger entries.
 4. **Token Isolation**:
    - Physical NFC tags contain **only** the raw UUID string (`checkInToken`). No sensitive personal details, names, or emails are stored on the physical tag.
 5. **Developer Action Guard**:
@@ -329,11 +367,15 @@ DATABASE_URL="postgresql://postgres.<tenant>:<password>@<pooler-host>:6543/postg
 # Start local development server
 pnpm dev
 
-# Run Vitest automated test suite
+# Run Vitest automated test suite (25 tests)
 pnpm test
 
 # Run TypeScript type safety verification
 pnpm exec tsc --noEmit
+
+# Reset NFC issuances for a student or all users (Devtool)
+pnpm db:reset-nfc --email student@campus.edu
+pnpm db:reset-nfc --all
 
 # Generate Drizzle migration files
 pnpm drizzle-kit generate

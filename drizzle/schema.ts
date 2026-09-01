@@ -60,6 +60,7 @@ export const tickets = pgTable(
       .references(() => events.id, { onDelete: "cascade" }),
     isCheckedIn: boolean("is_checked_in").notNull().default(false),
     scannedAt: timestamp("scanned_at", { withTimezone: true }),
+    purchaseMethod: text("purchase_method").notNull().default("online"), // 'online' | 'cash_at_door'
   },
   (t) => [unique().on(t.userId, t.eventId)],
 );

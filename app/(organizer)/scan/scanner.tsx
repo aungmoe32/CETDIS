@@ -6,6 +6,7 @@ import {
   checkInAction,
   loadGuestListAction,
   markNfcIssuedAction,
+  sellWalkUpTicketToStudentAction,
 } from "./actions";
 import { offlineCheckIn } from "@/lib/offline-checkin";
 import { flushSyncQueue } from "@/lib/sync";
@@ -28,6 +29,7 @@ type ScanStatus =
   | "idle"
   | "scanning"
   | "success"
+  | "no_ticket"
   | "already_scanned"
   | "not_found"
   | "error";
@@ -50,6 +52,16 @@ export default function Scanner({ eventId }: Props) {
   } | null>(null);
   const [isWritingHandover, setIsWritingHandover] = useState(false);
   const [handoverSuccess, setHandoverSuccess] = useState(false);
+
+  // Scenario A: Walk-up at door for existing student without ticket
+  const [noTicketData, setNoTicketData] = useState<{
+    profileId: string;
+    fullName: string;
+    eventPrice: number;
+    eventTitle: string;
+    token: string;
+  } | null>(null);
+  const [isSellingWalkUp, setIsSellingWalkUp] = useState(false);
 
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const nfcAbortRef = useRef<AbortController | null>(null);
@@ -114,6 +126,7 @@ export default function Scanner({ eventId }: Props) {
   // ── Result handler ────────────────────────────────────────────────────────
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
+      setNoTicketData(null);
       setStatus("success");
       setMessage(result.fullName);
       if (result.needsNfcHandover) {
@@ -122,19 +135,37 @@ export default function Scanner({ eventId }: Props) {
           token: result.token,
         });
       }
+      setTimeout(() => {
+        setStatus(nfcScanningRef.current ? "scanning" : "idle");
+        setMessage("");
+      }, 3000);
+    } else if (result.status === "no_ticket") {
+      setStatus("no_ticket");
+      setNoTicketData({
+        profileId: result.profileId,
+        fullName: result.fullName,
+        eventPrice: result.eventPrice,
+        eventTitle: result.eventTitle,
+        token: result.token,
+      });
+      // Do NOT auto-dismiss immediately so organizer can click "Sell Ticket At Door"
     } else if (result.status === "already_scanned") {
+      setNoTicketData(null);
       setStatus("already_scanned");
       setMessage("Already checked in");
+      setTimeout(() => {
+        setStatus(nfcScanningRef.current ? "scanning" : "idle");
+        setMessage("");
+      }, 3000);
     } else {
+      setNoTicketData(null);
       setStatus("not_found");
       setMessage("Not on guest list");
+      setTimeout(() => {
+        setStatus(nfcScanningRef.current ? "scanning" : "idle");
+        setMessage("");
+      }, 3000);
     }
-    setTimeout(() => {
-      // NFC stays in scanning mode (reader keeps listening).
-      // QR returns to idle (user needs to re-tap Start).
-      setStatus(nfcScanningRef.current ? "scanning" : "idle");
-      setMessage("");
-    }, 3000);
   }, []);
 
   // ── Shared token processor (QR and NFC both call this) ───────────────────
@@ -392,6 +423,28 @@ export default function Scanner({ eventId }: Props) {
     }
   };
 
+  const handleSellWalkUpAtDoor = async () => {
+    if (!noTicketData) return;
+    setIsSellingWalkUp(true);
+    try {
+      const res = await sellWalkUpTicketToStudentAction({
+        profileId: noTicketData.profileId,
+        eventId,
+        token: noTicketData.token,
+      });
+      handleResult(res);
+    } catch (err: unknown) {
+      alert(`Walk-up sale failed: ${(err as Error).message || String(err)}`);
+    } finally {
+      setIsSellingWalkUp(false);
+    }
+  };
+
+  const handleDismissNoTicket = () => {
+    setNoTicketData(null);
+    setStatus(nfcScanningRef.current ? "scanning" : "idle");
+  };
+
   const handleDismissHandover = () => {
     setHandoverData(null);
     setHandoverSuccess(false);
@@ -402,6 +455,7 @@ export default function Scanner({ eventId }: Props) {
     idle: "bg-gray-50",
     scanning: "bg-gray-50",
     success: "bg-green-500",
+    no_ticket: "bg-amber-500",
     already_scanned: "bg-yellow-400",
     not_found: "bg-red-500",
     error: "bg-red-500",
@@ -411,8 +465,81 @@ export default function Scanner({ eventId }: Props) {
     <div
       className={`min-h-screen flex flex-col transition-colors duration-500 ${statusColors[status]}`}
     >
-      {/* ── Result flash ──────────────────────────────────────────────────── */}
-      {status !== "idle" && status !== "scanning" && (
+      {/* ── Scenario A: Recognized Student with No Ticket (Walk-Up Prompt) ─── */}
+      {status === "no_ticket" && noTicketData && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-white max-w-sm mx-auto w-full">
+          <div className="w-full bg-white rounded-3xl p-6 text-gray-900 shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                />
+              </svg>
+            </div>
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                User Recognized
+              </span>
+              <h3 className="text-xl font-bold text-gray-900 mt-2">
+                {noTicketData.fullName}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                No ticket registered for <span className="font-semibold text-gray-700">{noTicketData.eventTitle}</span>
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-amber-50 border border-amber-200/80 p-3.5 text-center">
+              <p className="text-xs text-amber-900 font-medium">Door Ticket Price</p>
+              <p className="text-2xl font-bold text-amber-950 font-mono mt-0.5">
+                {noTicketData.eventPrice > 0
+                  ? `${noTicketData.eventPrice.toLocaleString()} MMK`
+                  : "Free Entry"}
+              </p>
+              {noTicketData.eventPrice > 0 && (
+                <p className="text-[11px] text-amber-700 mt-1">
+                  Collect cash before admitting attendee
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleSellWalkUpAtDoor}
+                disabled={isSellingWalkUp}
+                className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                {isSellingWalkUp ? (
+                  <span>Processing Sale...</span>
+                ) : (
+                  <span>Sell Ticket At Door & Admit</span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDismissNoTicket}
+                disabled={isSellingWalkUp}
+                className="w-full rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+              >
+                Cancel / Back to Scanner
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Result flash (Standard success / already_scanned / not_found) ──── */}
+      {status !== "idle" && status !== "scanning" && status !== "no_ticket" && (
         <div className="flex-1 flex flex-col items-center justify-center px-8 gap-3">
           <span className="text-7xl font-bold text-white leading-none">
             {status === "success" ? "✓" : "✗"}
