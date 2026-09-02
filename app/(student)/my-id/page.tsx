@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
 import { profiles } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { getBaseUrl } from "@/utils/url";
 import QrDisplay from "./qr-display";
 import NfcSection from "./nfc-section";
 
@@ -23,7 +24,8 @@ export default async function MyIdPage() {
 
   if (!profile) redirect("/login");
 
-  const scanUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/scan/${profile.checkInToken}`;
+  const baseUrl = getBaseUrl();
+  const scanUrl = `${baseUrl}/scan/${profile.checkInToken}`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-8 gap-4">
