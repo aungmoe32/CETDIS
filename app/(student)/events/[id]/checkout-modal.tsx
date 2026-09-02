@@ -7,6 +7,9 @@ interface Props {
   eventId: string;
   eventTitle: string;
   price: number;
+  isOpen?: boolean;
+  onClose?: () => void;
+  renderTrigger?: (open: () => void) => React.ReactNode;
 }
 
 type PaymentMethod = "kpay" | "wave";
@@ -39,11 +42,26 @@ const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
   },
 };
 
-export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function CheckoutModal({
+  eventId,
+  eventTitle,
+  price,
+  isOpen: controlledIsOpen,
+  onClose: controlledOnClose,
+  renderTrigger,
+}: Props) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = (val: boolean) => {
+    if (!val && controlledOnClose) {
+      controlledOnClose();
+    }
+    setInternalIsOpen(val);
+  };
+
   const [method, setMethod] = useState<PaymentMethod>("kpay");
   const [txnId, setTxnId] = useState(
-    `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+    () => `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -76,25 +94,30 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      {renderTrigger ? (
+        renderTrigger(() => setIsOpen(true))
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-          />
-        </svg>
-        <span>Proceed to Checkout ({formattedPrice})</span>
-      </button>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          <span>Proceed to Checkout ({formattedPrice})</span>
+        </button>
+      )}
+
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
