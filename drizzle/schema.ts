@@ -36,6 +36,7 @@ export const profiles = pgTable("profiles", {
 export const events = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
+  description: text("description"),
   dateTime: timestamp("date_time", { withTimezone: true }).notNull(),
   location: text("location"),
   maxCapacity: integer("max_capacity").notNull(),

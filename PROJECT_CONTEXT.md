@@ -33,7 +33,7 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 | **Offline Storage**      | **IndexedDB (`idb`)**                       | Client-side database caching event attendees, check-in statuses, NFC issuance states, and sync queues.                                   |
 | **PWA & Service Worker** | **Serwist**                                 | Service worker caching static assets, shell HTML, and background synchronization events.                                                 |
 | **Hardware / Scanning**  | **`html5-qrcode` & Web NFC (`NDEFReader`)** | Camera QR scanning with cleanup safeguards + native Web NFC reading/writing with simulation fallbacks for iOS/desktop.                   |
-| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (34 tests across 7 test suites).                                       |
+| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (36 tests across 8 test suites).                                       |
 
 ---
 
@@ -63,6 +63,7 @@ erDiagram
     EVENTS {
         uuid id PK
         text title
+        text description "Markdown rich text"
         timestamp date_time
         text location
         integer max_capacity
@@ -177,6 +178,9 @@ cetdis/
 │   │       └── sync/
 │   │           └── route.ts            # Bulk offline sync handler (checkins + nfc issuances)
 │   └── proxy.ts                        # Root Auth & Role-based Access Proxy (Next.js 16)
+├── components/
+│   ├── rich-text-editor.tsx            # Rich text markdown editor with toolbar, shortcuts & preview
+│   └── rich-text-view.tsx              # Safe pure React Markdown rich text renderer
 ├── drizzle/
 │   └── schema.ts                       # Drizzle ORM PostgreSQL schema
 ├── lib/
@@ -400,7 +404,7 @@ DATABASE_URL="postgresql://postgres.<tenant>:<password>@<pooler-host>:6543/postg
 # Start local development server
 pnpm dev
 
-# Run Vitest automated test suite (34 tests across 7 suites)
+# Run Vitest automated test suite (36 tests across 8 suites)
 pnpm test
 
 # Run TypeScript type safety verification

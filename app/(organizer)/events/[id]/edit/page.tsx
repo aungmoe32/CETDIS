@@ -61,6 +61,7 @@ export default async function EditEventPage({ params }: Props) {
         eventId={event.id}
         initialData={{
           title: event.title,
+          description: event.description ?? "",
           dateTime: localIso,
           location: event.location || "",
           maxCapacity: event.maxCapacity,

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createEventAction } from "./actions";
+import RichTextEditor from "@/components/rich-text-editor";
 
 interface State {
   error?: string;
@@ -35,6 +36,14 @@ export default function CreateEventPage() {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
+
+        {/* Rich Text Event Description */}
+        <RichTextEditor
+          name="description"
+          label="Event Description"
+          placeholder="Enter event overview, special instructions, schedule details, or speaker line-up..."
+        />
+
         <div>
           <label htmlFor="date_time" className="block text-sm font-medium text-gray-700 mb-1">
             Date &amp; Time

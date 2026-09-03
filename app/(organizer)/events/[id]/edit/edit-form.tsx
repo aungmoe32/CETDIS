@@ -2,11 +2,13 @@
 
 import { useActionState } from "react";
 import { updateEventAction } from "./actions";
+import RichTextEditor from "@/components/rich-text-editor";
 
 interface Props {
   eventId: string;
   initialData: {
     title: string;
+    description: string;
     dateTime: string;
     location: string;
     maxCapacity: number;
@@ -45,6 +47,14 @@ export default function EditEventForm({ eventId, initialData }: Props) {
           className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
         />
       </div>
+
+      {/* Rich Text Event Description */}
+      <RichTextEditor
+        name="description"
+        defaultValue={initialData.description}
+        label="Event Description"
+        placeholder="Enter event overview, special instructions, schedule details, or speaker line-up..."
+      />
 
       <div>
         <label htmlFor="date_time" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">

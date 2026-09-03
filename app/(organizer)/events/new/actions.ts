@@ -21,6 +21,7 @@ export async function createEventAction(
   if (!user) return { error: "Not authenticated" };
 
   const title = formData.get("title") as string;
+  const description = (formData.get("description") as string)?.trim() || null;
   const dateTime = formData.get("date_time") as string;
   const location = formData.get("location") as string;
   const maxCapacity = parseInt(formData.get("max_capacity") as string, 10);
@@ -41,6 +42,7 @@ export async function createEventAction(
 
   await db.insert(events).values({
     title,
+    description,
     dateTime: new Date(dateTime),
     location: location || null,
     maxCapacity,
