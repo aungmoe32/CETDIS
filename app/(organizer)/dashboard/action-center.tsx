@@ -11,6 +11,7 @@ import {
   type StudentSearchResult,
 } from "./actions";
 import { markNfcIssuedLocally } from "@/lib/idb";
+import WobbleButton from "@/components/ui/wobble-button";
 
 interface EventSummary {
   id: string;
@@ -297,16 +298,16 @@ export default function ActionCenter({ events }: Props) {
   return (
     <section className="mb-8 space-y-4">
       {/* ── 1. Primary Action Targets: Scanner + Walk-Up Sales ────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {/* Button A: Open Scanner */}
         <button
           onClick={handleOpenScanner}
-          className="group relative flex items-center justify-between gap-3 rounded-2xl bg-indigo-600 px-5 py-4 text-white shadow-md hover:bg-indigo-700 active:scale-[0.99] transition text-left"
+          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-700 px-5 py-4.5 text-white shadow-sm hover:shadow-md tactile-hover text-left"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
               <svg
-                className="w-5 h-5 text-white"
+                className="w-5.5 h-5.5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -321,15 +322,12 @@ export default function ActionCenter({ events }: Props) {
               </svg>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold tracking-tight font-dingos-bold text-white">
                   Open Scanner
                 </span>
-                {/* <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.2 rounded-full">
-                  Door
-                </span> */}
               </div>
-              <p className="text-xs text-indigo-100 mt-0.5 truncate">
+              <p className="text-xs text-indigo-150 mt-0.5 truncate font-medium">
                 {targetEvents.length === 1
                   ? `${targetEvents[0].title}`
                   : `${targetEvents.length} events active`}
@@ -357,12 +355,12 @@ export default function ActionCenter({ events }: Props) {
         {/* Button B: Walk-Up Sales */}
         <button
           onClick={handleOpenWalkUpModal}
-          className="group relative flex items-center justify-between gap-3 rounded-2xl bg-white border border-gray-200 px-5 py-4 text-gray-900 shadow-xs hover:border-emerald-300 hover:bg-emerald-50/40 active:scale-[0.99] transition text-left"
+          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-200/80 px-5 py-4.5 text-gray-900 shadow-xs hover:border-emerald-300 hover:shadow-sm tactile-hover text-left"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
               <svg
-                className="w-5 h-5"
+                className="w-5.5 h-5.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -376,16 +374,13 @@ export default function ActionCenter({ events }: Props) {
               </svg>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight text-gray-900">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold tracking-tight text-gray-900 font-dingos-bold">
                   Walk-Up Sale
                 </span>
-                {/* <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                  Cash + NFC
-                </span> */}
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 truncate">
-                Sell ticket & issue pass at door
+              <p className="text-xs text-gray-500 mt-0.5 truncate font-medium">
+                Sell ticket &amp; issue pass at door
               </p>
             </div>
           </div>
@@ -409,15 +404,15 @@ export default function ActionCenter({ events }: Props) {
       </div>
 
       {/* ── 2. Manual Lookup: Live Search Bar ──────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-xs">
-        <div className="flex items-center justify-between mb-2">
+      <div className="rounded-3xl border border-gray-200/80 bg-white p-5 shadow-xs">
+        <div className="flex items-center justify-between mb-2.5">
           <label
             htmlFor="manual-student-lookup"
-            className="text-xs font-bold uppercase tracking-wider text-gray-500"
+            className="text-xs font-bold uppercase tracking-wider text-gray-600 font-dingos-bold"
           >
             Manual Attendee Lookup
           </label>
-          <span className="text-[11px] text-gray-400">
+          <span className="text-[11px] text-gray-400 font-medium">
             For dead phones or cracked screens
           </span>
         </div>
@@ -511,57 +506,62 @@ export default function ActionCenter({ events }: Props) {
                   return (
                     <div
                       key={student.id}
-                      className="rounded-xl border border-gray-100 bg-gray-50/70 p-3 hover:bg-gray-50 transition"
+                      className="rounded-2xl border border-gray-200/80 bg-slate-50/60 p-3.5 hover:bg-white hover:border-gray-300 transition tactile-hover"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-gray-900">
+                            <span className="text-sm font-bold text-gray-900 font-dingos-bold">
                               {student.fullName}
                             </span>
                             {hasNfc ? (
-                              <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
                                 NFC Active
                               </span>
                             ) : needsHandover ? (
-                              <span className="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
                                 Awaiting Tag
                               </span>
                             ) : (
-                              <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
                                 QR Only
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
                             {student.email}
                           </p>
                         </div>
 
                         {needsHandover && (
-                          <button
+                          <WobbleButton
+                            text="Issue NFC (Tap)"
+                            hoverText="Tap to Issue"
+                            fillColor="#d97706"
+                            hoverColor="#b45309"
+                            className="text-xs px-3 py-1.5"
+                            height={32}
                             onClick={() => handleOpenNfcTapModal(student)}
-                            className="flex-shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 active:scale-95 transition flex items-center gap-1.5 shadow-xs"
-                          >
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              strokeWidth={2}
-                            >
-                              <circle cx="12" cy="12" r="9" />
-                              <circle cx="12" cy="12" r="5" />
-                              <circle
-                                cx="12"
-                                cy="12"
-                                r="1.5"
-                                fill="currentColor"
-                                strokeWidth={0}
-                              />
-                            </svg>
-                            <span>Issue NFC (Tap)</span>
-                          </button>
+                            icon={
+                              <svg
+                                className="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                              >
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="5" />
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="1.5"
+                                  fill="currentColor"
+                                  strokeWidth={0}
+                                />
+                              </svg>
+                            }
+                          />
                         )}
                       </div>
 
@@ -580,13 +580,13 @@ export default function ActionCenter({ events }: Props) {
                             return (
                               <div
                                 key={t.ticketId}
-                                className="flex items-center justify-between gap-2 text-xs bg-white rounded-lg px-2.5 py-1.5 border border-gray-200/70"
+                                className="flex items-center justify-between gap-2 text-xs bg-white rounded-xl px-3 py-2 border border-gray-200/70 shadow-2xs"
                               >
                                 <div className="min-w-0">
                                   <p className="font-medium text-gray-800 truncate">
                                     {t.eventTitle}
                                   </p>
-                                  <p className="text-[10px] text-gray-400">
+                                  <p className="text-[10px] text-gray-400 mt-0.5">
                                     {new Date(
                                       t.eventDateTime,
                                     ).toLocaleDateString()}
@@ -595,7 +595,7 @@ export default function ActionCenter({ events }: Props) {
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   {t.isCheckedIn ? (
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                                       <svg
                                         className="w-3 h-3 text-emerald-600"
                                         fill="none"
@@ -612,17 +612,18 @@ export default function ActionCenter({ events }: Props) {
                                       Checked In
                                     </span>
                                   ) : (
-                                    <button
+                                    <WobbleButton
+                                      text={isThisTicketLoading ? "Checking in..." : "Check In"}
+                                      hoverText="Door Entry"
+                                      fillColor="#4f46e5"
+                                      hoverColor="#4338ca"
+                                      disabled={isThisTicketLoading}
+                                      className="text-xs px-3 py-1"
+                                      height={28}
                                       onClick={() =>
                                         handleManualCheckIn(t.ticketId)
                                       }
-                                      disabled={isThisTicketLoading}
-                                      className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition shadow-xs"
-                                    >
-                                      {isThisTicketLoading
-                                        ? "Checking in..."
-                                        : "Check In"}
-                                    </button>
+                                    />
                                   )}
                                 </div>
                               </div>
@@ -649,19 +650,19 @@ export default function ActionCenter({ events }: Props) {
       {/* ── 3. Quick Modal: Select Event to Scan ───────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200/90 p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-gray-900 font-dingos-bold">
                   Select Event to Scan
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 mt-0.5">
                   Choose which event entrance to operate
                 </p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-lg p-1 text-gray-400 hover:text-gray-600"
+                className="rounded-xl p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
               >
                 <svg
                   className="w-5 h-5"
@@ -679,7 +680,7 @@ export default function ActionCenter({ events }: Props) {
               </button>
             </div>
 
-            <div className="space-y-2 max-h-72 overflow-y-auto">
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {events.map((e) => {
                 const eventDate = new Date(e.dateTime);
                 const isToday =
@@ -690,15 +691,15 @@ export default function ActionCenter({ events }: Props) {
                     key={e.id}
                     href={`/scan?event=${e.id}`}
                     onClick={() => setIsModalOpen(false)}
-                    className="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-gray-50/70 hover:border-indigo-200 hover:bg-indigo-50/50 transition group"
+                    className="flex items-center justify-between p-3.5 rounded-2xl border border-gray-200/80 bg-slate-50/60 hover:border-indigo-300 hover:bg-indigo-50/40 transition tactile-hover group"
                   >
                     <div className="min-w-0 pr-2">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900 group-hover:text-indigo-900 truncate">
+                        <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-900 truncate font-dingos-bold">
                           {e.title}
                         </p>
                         {isToday && (
-                          <span className="text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded">
+                          <span className="text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
                             Today
                           </span>
                         )}
@@ -713,7 +714,7 @@ export default function ActionCenter({ events }: Props) {
                       </p>
                     </div>
 
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -735,8 +736,9 @@ export default function ActionCenter({ events }: Props) {
 
             <div className="pt-1">
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-full rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+                className="w-full rounded-2xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
@@ -748,10 +750,10 @@ export default function ActionCenter({ events }: Props) {
       {/* ── 4. NFC Tap Programming Modal (Phone Handover Flow) ─────────── */}
       {nfcModalStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white border border-gray-200/90 p-6 shadow-2xl space-y-4">
             {nfcWriteSuccess ? (
               <div className="text-center py-4 space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
                   <svg
                     className="w-6 h-6"
                     fill="none"
@@ -766,8 +768,8 @@ export default function ActionCenter({ events }: Props) {
                     />
                   </svg>
                 </div>
-                <h4 className="text-base font-bold text-gray-900">
-                  Tag Programmed & Linked!
+                <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
+                  Tag Programmed &amp; Linked!
                 </h4>
                 <p className="text-xs text-gray-500">
                   {nfcModalStudent.fullName}&apos;s physical pass is now ready
@@ -778,7 +780,7 @@ export default function ActionCenter({ events }: Props) {
               <>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">
+                    <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
                       Issue Physical NFC Tag
                     </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -791,7 +793,7 @@ export default function ActionCenter({ events }: Props) {
                   <button
                     onClick={() => setNfcModalStudent(null)}
                     disabled={isWritingNfc}
-                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                    className="rounded-xl p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition disabled:opacity-50"
                   >
                     <svg
                       className="w-5 h-5"
@@ -809,7 +811,7 @@ export default function ActionCenter({ events }: Props) {
                   </button>
                 </div>
 
-                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 flex items-center gap-3.5">
+                <div className="rounded-2xl bg-indigo-50/80 border border-indigo-100 p-4 flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <svg
                       className={`h-6 w-6 ${isWritingNfc ? "animate-pulse" : ""}`}
@@ -830,7 +832,7 @@ export default function ActionCenter({ events }: Props) {
                     </svg>
                   </div>
                   <div className="text-xs text-indigo-950 min-w-0">
-                    <p className="font-bold text-sm">
+                    <p className="font-bold text-sm font-dingos-bold">
                       {isWritingNfc
                         ? "Hold blank tag to phone..."
                         : "Ready to Tap"}
@@ -844,28 +846,30 @@ export default function ActionCenter({ events }: Props) {
                 </div>
 
                 {nfcWriteError && (
-                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3.5 py-2 font-medium">
                     {nfcWriteError}
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setNfcModalStudent(null)}
                     disabled={isWritingNfc}
-                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-full border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleExecuteNfcWrite}
+                  <WobbleButton
+                    text={isWritingNfc ? "Writing Tag..." : "Tap Tag to Issue"}
+                    hoverText="Program Pass"
+                    fillColor="#4f46e5"
+                    hoverColor="#4338ca"
                     disabled={isWritingNfc}
-                    className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
-                  >
-                    {isWritingNfc ? (
-                      <>
+                    className="flex-1 text-xs py-2"
+                    onClick={handleExecuteNfcWrite}
+                    icon={
+                      isWritingNfc ? (
                         <svg
                           className="w-3.5 h-3.5 animate-spin"
                           fill="none"
@@ -880,12 +884,9 @@ export default function ActionCenter({ events }: Props) {
                             d="M12 3v4"
                           />
                         </svg>
-                        <span>Writing Tag...</span>
-                      </>
-                    ) : (
-                      <span>Tap Tag to Issue</span>
-                    )}
-                  </button>
+                      ) : undefined
+                    }
+                  />
                 </div>
               </>
             )}
@@ -896,10 +897,10 @@ export default function ActionCenter({ events }: Props) {
       {/* ── 5. Walk-Up Sales Modal (Scenario B: Guest / No Account) ───── */}
       {isWalkUpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white border border-gray-200/90 p-6 shadow-2xl space-y-4">
             {walkUpStep === "success" ? (
               <div className="text-center py-5 space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
                   <svg
                     className="w-6 h-6"
                     fill="none"
@@ -914,8 +915,8 @@ export default function ActionCenter({ events }: Props) {
                     />
                   </svg>
                 </div>
-                <h4 className="text-base font-bold text-gray-900">
-                  Guest Ticket & NFC Pass Issued!
+                <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
+                  Guest Ticket &amp; NFC Pass Issued!
                 </h4>
                 <p className="text-xs text-gray-500">
                   {walkUpResultData?.fullName} has been checked in to{" "}
@@ -930,7 +931,7 @@ export default function ActionCenter({ events }: Props) {
               <>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">
+                    <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
                       Program Guest NFC Pass
                     </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -943,7 +944,7 @@ export default function ActionCenter({ events }: Props) {
                   <button
                     onClick={() => setIsWalkUpModalOpen(false)}
                     disabled={isProcessingWalkUp}
-                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                    className="rounded-xl p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition disabled:opacity-50"
                   >
                     <svg
                       className="w-5 h-5"
@@ -961,7 +962,7 @@ export default function ActionCenter({ events }: Props) {
                   </button>
                 </div>
 
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 flex items-center gap-3.5">
+                <div className="rounded-2xl bg-emerald-50/80 border border-emerald-100 p-4 flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <svg
                       className={`h-6 w-6 ${isProcessingWalkUp ? "animate-pulse" : ""}`}
@@ -982,7 +983,7 @@ export default function ActionCenter({ events }: Props) {
                     </svg>
                   </div>
                   <div className="text-xs text-emerald-950 min-w-0">
-                    <p className="font-bold text-sm">
+                    <p className="font-bold text-sm font-dingos-bold">
                       {isProcessingWalkUp
                         ? "Hold blank tag to phone..."
                         : "Ready to Tap Physical Tag"}
@@ -996,28 +997,30 @@ export default function ActionCenter({ events }: Props) {
                 </div>
 
                 {walkUpError && (
-                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3.5 py-2 font-medium">
                     {walkUpError}
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsWalkUpModalOpen(false)}
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-full border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleExecuteWalkUpNfcWrite}
+                  <WobbleButton
+                    text={isProcessingWalkUp ? "Writing Tag..." : "Tap Tag to Issue"}
+                    hoverText="Link Pass"
+                    fillColor="#059669"
+                    hoverColor="#047857"
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
-                  >
-                    {isProcessingWalkUp ? (
-                      <>
+                    className="flex-1 text-xs py-2"
+                    onClick={handleExecuteWalkUpNfcWrite}
+                    icon={
+                      isProcessingWalkUp ? (
                         <svg
                           className="w-3.5 h-3.5 animate-spin"
                           fill="none"
@@ -1032,12 +1035,9 @@ export default function ActionCenter({ events }: Props) {
                             d="M12 3v4"
                           />
                         </svg>
-                        <span>Writing Tag...</span>
-                      </>
-                    ) : (
-                      <span>Tap Tag to Issue</span>
-                    )}
-                  </button>
+                      ) : undefined
+                    }
+                  />
                 </div>
               </>
             ) : (
@@ -1045,17 +1045,17 @@ export default function ActionCenter({ events }: Props) {
               <form onSubmit={handleGenerateWalkUpTicket} className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">
+                    <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
                       Walk-Up Ticket Sale
                     </h4>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Issue guest pass & program physical tag at door
+                      Issue guest pass &amp; program physical tag at door
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsWalkUpModalOpen(false)}
-                    className="rounded-lg p-1 text-gray-400 hover:text-gray-600"
+                    className="rounded-xl p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
                   >
                     <svg
                       className="w-5 h-5"
@@ -1075,14 +1075,14 @@ export default function ActionCenter({ events }: Props) {
 
                 {/* Event Selector */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 font-dingos-bold mb-1.5">
                     Target Event
                   </label>
                   <select
                     value={walkUpEventId}
                     onChange={(e) => setWalkUpEventId(e.target.value)}
                     required
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
                   >
                     {events.map((e) => (
                       <option key={e.id} value={e.id}>
@@ -1095,9 +1095,9 @@ export default function ActionCenter({ events }: Props) {
 
                 {/* Guest Name (Optional) */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 font-dingos-bold mb-1.5">
                     Attendee Name{" "}
-                    <span className="font-normal text-gray-400 normal-case">
+                    <span className="font-normal text-gray-400 normal-case font-sans">
                       (Optional)
                     </span>
                   </label>
@@ -1106,7 +1106,7 @@ export default function ActionCenter({ events }: Props) {
                     value={walkUpGuestName}
                     onChange={(e) => setWalkUpGuestName(e.target.value)}
                     placeholder="Leave blank for Anonymous"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
                   />
                 </div>
 
@@ -1117,16 +1117,16 @@ export default function ActionCenter({ events }: Props) {
                   );
                   const price = selectedEvent?.price ?? 0;
                   return (
-                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3 flex items-center justify-between">
+                    <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200/80 p-3.5 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-emerald-900">
+                        <p className="text-xs font-bold text-emerald-900 font-dingos-bold">
                           Cash to Collect
                         </p>
                         <p className="text-[11px] text-emerald-700">
                           Cash box reconciliation
                         </p>
                       </div>
-                      <span className="text-base font-bold text-emerald-950 ">
+                      <span className="text-xl font-normal text-emerald-950 font-bebas tracking-wide">
                         {price > 0 ? `${price.toLocaleString()} MMK` : "Free"}
                       </span>
                     </div>
@@ -1134,31 +1134,29 @@ export default function ActionCenter({ events }: Props) {
                 })()}
 
                 {walkUpError && (
-                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3.5 py-2 font-medium">
                     {walkUpError}
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsWalkUpModalOpen(false)}
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
                   >
                     Cancel
                   </button>
-                  <button
+                  <WobbleButton
                     type="submit"
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 shadow-xs"
-                  >
-                    {isProcessingWalkUp ? (
-                      <span>Generating Ticket...</span>
-                    ) : (
-                      <span>Collect Cash & Issue Tag</span>
-                    )}
-                  </button>
+                    text={isProcessingWalkUp ? "Generating..." : "Collect Cash & Issue Tag"}
+                    hoverText="Confirm Sale"
+                    fillColor="#059669"
+                    hoverColor="#047857"
+                    className="flex-1 text-xs py-2.5"
+                  />
                 </div>
               </form>
             )}

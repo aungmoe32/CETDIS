@@ -93,17 +93,33 @@ export default async function DashboardPage() {
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
+      {/* ── Dashboard Header ────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 font-dingos-bold">
+            Organizer Operations
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Entrance gate control &amp; attendee management
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-150">
+          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+          Door Live
+        </span>
+      </div>
+
       {/* Conditional Low NFC Inventory Alert Banner */}
       {hasAllocationData && blankTagsRemaining <= 20 && (
         <div
-          className={`rounded-2xl border px-4 py-3.5 flex items-start sm:items-center gap-3 ${
+          className={`rounded-3xl border px-4 py-3.5 flex items-start sm:items-center gap-3 shadow-xs tactile-hover ${
             blankTagsRemaining <= 0
-              ? "bg-red-50 border-red-200"
-              : "bg-amber-50 border-amber-200"
+              ? "bg-red-50/80 border-red-200"
+              : "bg-amber-50/80 border-amber-200"
           }`}
         >
           <div
-            className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5 sm:mt-0 ${
+            className={`flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mt-0.5 sm:mt-0 ${
               blankTagsRemaining <= 0
                 ? "bg-red-100 text-red-600"
                 : "bg-amber-100 text-amber-600"
@@ -112,7 +128,7 @@ export default async function DashboardPage() {
             {blankTagsRemaining <= 0 ? (
               // Alert octagon / critical stop
               <svg
-                className="w-4 h-4"
+                className="w-4.5 h-4.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -127,7 +143,7 @@ export default async function DashboardPage() {
             ) : (
               // Warning triangle
               <svg
-                className="w-4 h-4"
+                className="w-4.5 h-4.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -143,8 +159,8 @@ export default async function DashboardPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p
-              className={`text-xs font-bold ${
-                blankTagsRemaining <= 0 ? "text-red-800" : "text-amber-900"
+              className={`text-xs font-bold font-dingos-bold ${
+                blankTagsRemaining <= 0 ? "text-red-900" : "text-amber-900"
               }`}
             >
               {blankTagsRemaining <= 0
@@ -170,10 +186,10 @@ export default async function DashboardPage() {
         <TodayEvents events={eventsForTodayList} />
       </div>
 
-      {/* Section 4 Preview: NFC Supply Chain Ledger Summary */}
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 border border-indigo-100/80 p-4.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+      {/* Section 4: NFC Supply Chain Ledger Summary */}
+      <div className="rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-100 p-5 flex items-center justify-between shadow-xs tactile-hover">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
             <svg
               className="h-5 w-5"
               fill="none"
@@ -194,23 +210,23 @@ export default async function DashboardPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 font-dingos-bold">
                 NFC Tags Issued
               </span>
-              {/* <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
-                Supply Chain
-              </span> */}
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-semibold">
+                Physical Pass
+              </span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
               Need more blank tags? Contact the Developer for a refill roll.
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-bold text-gray-900 ">
+        <div className="text-right pl-3 flex-shrink-0">
+          <span className="text-3xl text-gray-900 font-bebas tracking-wide block leading-none">
             {totalNfcIssued}
           </span>
-          <span className="block text-[11px] text-gray-400">
+          <span className="block text-[11px] text-gray-400 font-medium mt-1">
             tags handed out
           </span>
         </div>

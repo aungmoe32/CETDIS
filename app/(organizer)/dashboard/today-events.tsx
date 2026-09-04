@@ -67,21 +67,20 @@ export default function TodayEvents({ events }: Props) {
     <div className="space-y-4">
       {/* ── Today & Active Events (Live Metrics) ───────────────────────── */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold  text-gray-900">
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-xl font-bold text-gray-900 font-dingos-bold">
             Today&apos;s Events &amp; Live Metrics
-            {/* today's events & Live etrics */}
           </h3>
-          {/* {activeEvents.length > 0 && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+          {activeEvents.length > 0 && (
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
               Live
             </span>
-          )} */}
+          )}
         </div>
         <Link
           href="/events/all"
-          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 tactile-btn"
         >
           <span>View All Events</span>
           <svg
@@ -101,14 +100,14 @@ export default function TodayEvents({ events }: Props) {
       </div>
 
       {activeEvents.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+        <div className="rounded-3xl border border-dashed border-gray-200 bg-slate-50/50 p-8 text-center space-y-3 shadow-2xs">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200 text-gray-400 flex items-center justify-center mx-auto shadow-2xs">
             <svg
-              className="w-5 h-5"
+              className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              strokeWidth={2}
+              strokeWidth={1.8}
             >
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -117,7 +116,7 @@ export default function TodayEvents({ events }: Props) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">
+            <p className="text-base font-bold text-gray-800 font-dingos-bold">
               No events scheduled for today
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -126,7 +125,7 @@ export default function TodayEvents({ events }: Props) {
           </div>
           <Link
             href="/events/all"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition shadow-2xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs tactile-btn"
           >
             <span>Browse All &amp; Upcoming Events</span>
             <svg
@@ -176,19 +175,19 @@ export default function TodayEvents({ events }: Props) {
             return (
               <div
                 key={event.id}
-                className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-xs hover:border-gray-300 transition space-y-4"
+                className="rounded-3xl border border-gray-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-gray-300 transition space-y-4 tactile-hover"
               >
                 {/* Card Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-base font-bold text-gray-900 truncate">
+                      <h4 className="text-lg font-bold text-gray-900 truncate font-dingos-bold">
                         {event.title}
                       </h4>
                       <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           isFree
-                            ? "bg-green-50 text-green-700 border border-green-200"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "bg-indigo-50 text-indigo-700 border border-indigo-200"
                         }`}
                       >
@@ -197,7 +196,7 @@ export default function TodayEvents({ events }: Props) {
                           : `${event.price.toLocaleString()} MMK`}
                       </span>
                       {isToday && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
                           Today
                         </span>
                       )}
@@ -216,7 +215,7 @@ export default function TodayEvents({ events }: Props) {
 
                   <Link
                     href={`/scan?event=${event.id}`}
-                    className="flex-shrink-0 inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs"
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs tactile-btn font-dingos-bold"
                   >
                     <svg
                       className="w-3.5 h-3.5"
@@ -231,26 +230,30 @@ export default function TodayEvents({ events }: Props) {
                         d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"
                       />
                     </svg>
-                    <span>Scan</span>
+                    <span>Scan Door</span>
                   </Link>
                 </div>
 
                 {/* Dual Visual Progress Bars */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   {/* Metric 1: Capacity Limit Bar */}
-                  <div className="rounded-xl bg-gray-50 p-3 border border-gray-100 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-gray-600">
+                  <div className="rounded-2xl bg-slate-50/80 p-3.5 border border-slate-100 space-y-2">
+                    <div className="flex items-baseline justify-between text-xs">
+                      <span className="font-bold text-gray-600 font-dingos-bold">
                         Capacity
                       </span>
-                      <span className="font-bold text-gray-900 ">
-                        {event.totalRegistered} / {event.maxCapacity} (
-                        {capacityPct}%)
-                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-normal text-gray-900 font-bebas text-xl tracking-wide">
+                          {event.totalRegistered} / {event.maxCapacity}
+                        </span>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          ({capacityPct}%)
+                        </span>
+                      </div>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${
+                        className={`h-full rounded-full transition-all duration-300 ${
                           capacityPct >= 100
                             ? "bg-red-500"
                             : capacityPct >= 85
@@ -260,7 +263,7 @@ export default function TodayEvents({ events }: Props) {
                         style={{ width: `${capacityPct}%` }}
                       />
                     </div>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-gray-500 font-medium">
                       {spotsLeft > 0
                         ? `${spotsLeft} spots available`
                         : "Full capacity reached"}
@@ -268,23 +271,27 @@ export default function TodayEvents({ events }: Props) {
                   </div>
 
                   {/* Metric 2: Live Check-In Rate Bar */}
-                  <div className="rounded-xl bg-gray-50 p-3 border border-gray-100 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-gray-600">
+                  <div className="rounded-2xl bg-slate-50/80 p-3.5 border border-slate-100 space-y-2">
+                    <div className="flex items-baseline justify-between text-xs">
+                      <span className="font-bold text-gray-600 font-dingos-bold">
                         Admitted at Door
                       </span>
-                      <span className="font-bold text-emerald-700 ">
-                        {event.checkedIn} / {event.totalRegistered} (
-                        {checkInPct}%)
-                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-normal text-emerald-700 font-bebas text-xl tracking-wide">
+                          {event.checkedIn} / {event.totalRegistered}
+                        </span>
+                        <span className="text-[11px] text-emerald-700 font-medium">
+                          ({checkInPct}%)
+                        </span>
+                      </div>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                        className="h-full rounded-full bg-emerald-500 transition-all duration-300"
                         style={{ width: `${checkInPct}%` }}
                       />
                     </div>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-gray-500 font-medium">
                       {waitingCount > 0
                         ? `${waitingCount} waiting or expected`
                         : "All registered attendees checked in"}
@@ -294,8 +301,8 @@ export default function TodayEvents({ events }: Props) {
 
                 {/* Cash Box Reconciliation Pill (if walk-ups exist) */}
                 {event.walkUpCount > 0 && (
-                  <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 px-3 py-2 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-emerald-900 font-medium">
+                  <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200/80 px-4 py-2.5 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-emerald-900 font-medium">
                       <svg
                         className="w-4 h-4 text-emerald-600"
                         fill="none"
@@ -309,12 +316,12 @@ export default function TodayEvents({ events }: Props) {
                           d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
                         />
                       </svg>
-                      <span>
+                      <span className="font-dingos-bold">
                         {event.walkUpCount} Walk-Up Sale
                         {event.walkUpCount > 1 ? "s" : ""}
                       </span>
                     </div>
-                    <span className="font-bold text-emerald-950 ">
+                    <span className="font-normal text-emerald-950 font-bebas text-lg tracking-wide">
                       {(
                         event.walkUpCount * (event.price ?? 0)
                       ).toLocaleString()}{" "}
@@ -329,7 +336,7 @@ export default function TodayEvents({ events }: Props) {
                     type="button"
                     onClick={() => handleExportCsv(event.id)}
                     disabled={exportingId === event.id}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition shadow-2xs tactile-btn"
                   >
                     {exportingId === event.id ? (
                       <>
@@ -371,7 +378,7 @@ export default function TodayEvents({ events }: Props) {
 
                   <Link
                     href={`/events/${event.id}/edit`}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition shadow-2xs tactile-btn"
                   >
                     <svg
                       className="w-3.5 h-3.5 text-gray-500"
