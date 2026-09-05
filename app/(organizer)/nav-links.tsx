@@ -83,47 +83,57 @@ export function DesktopSidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="w-56 border-r border-gray-200 bg-white p-4 space-y-1.5 hidden sm:block min-h-[calc(100vh-3.5rem)]">
-      {/* <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pb-2 pt-1">
-        Navigation
-      </p> */}
+    <aside className="w-60 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-2 hidden sm:block min-h-[calc(100vh-3.5rem)] select-none">
+      <div className="px-3 pb-1 pt-0.5">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
+          Navigation
+        </span>
+      </div>
 
-      {NAV_ITEMS.map((item) => {
-        const isActive =
-          pathname === item.href ||
-          (item.href === "/events/all" &&
-            pathname.startsWith("/events/") &&
-            pathname !== "/events/new");
+      <nav className="space-y-1.5">
+        {NAV_ITEMS.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href === "/events/all" &&
+              pathname.startsWith("/events/") &&
+              pathname !== "/events/new");
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-              isActive
-                ? "bg-indigo-50 text-indigo-700 shadow-2xs font-bold"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <div
-              className={`p-1.5 rounded-lg ${
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition tactile-btn ${
                 isActive
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-gray-500"
+                  ? "bg-indigo-50/90 text-indigo-900 border border-indigo-200/80 shadow-2xs font-bold"
+                  : "text-gray-600 hover:bg-gray-50/80 hover:text-gray-900"
               }`}
             >
-              {item.icon}
-            </div>
-            <div className="min-w-0">
-              <span className="block truncate">{item.label}</span>
-              <span className="block text-[10px] text-gray-400 font-normal truncate">
-                {item.sublabel}
-              </span>
-            </div>
-          </Link>
-        );
-      })}
-    </nav>
+              <div
+                className={`p-2 rounded-xl transition-transform duration-200 ${
+                  isActive
+                    ? "bg-indigo-600 text-white shadow-xs scale-105"
+                    : "bg-gray-100 text-gray-500 group-hover:scale-105"
+                }`}
+              >
+                {item.icon}
+              </div>
+              <div className="min-w-0">
+                <span
+                  className={`block truncate text-sm ${
+                    isActive ? "font-dingos-bold text-indigo-950" : "font-dingos-bold text-gray-800"
+                  }`}
+                >
+                  {item.label}
+                </span>
+                <span className="block text-[10px] text-gray-400 font-medium truncate mt-0.5">
+                  {item.sublabel}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
   );
 }
 
@@ -131,7 +141,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-2 py-1.5 flex sm:hidden items-center justify-around shadow-lg">
+    <nav className="fixed bottom-3 inset-x-3 z-40 max-w-md mx-auto bg-white/90 backdrop-blur-md border border-gray-200/90 px-2 py-1.5 rounded-3xl flex sm:hidden items-center justify-around shadow-lg shadow-black/5 select-none">
       {NAV_ITEMS.map((item) => {
         const isActive =
           pathname === item.href ||
@@ -143,20 +153,22 @@ export function MobileBottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition active:scale-90 ${
               isActive
-                ? "text-indigo-600 font-bold"
-                : "text-gray-500 hover:text-gray-800"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
             }`}
           >
-            <div
-              className={`p-1 rounded-lg ${
-                isActive ? "bg-indigo-50 text-indigo-600" : "text-gray-500"
-              }`}
-            >
+            <div className="p-0.5">
               {item.icon}
             </div>
-            <span className="text-[10px] tracking-tight">{item.label}</span>
+            <span
+              className={`text-[10px] tracking-tight leading-none mt-1 ${
+                isActive ? "font-dingos-bold text-white" : "font-medium text-gray-600"
+              }`}
+            >
+              {item.label}
+            </span>
           </Link>
         );
       })}

@@ -30,12 +30,12 @@ export default async function DeveloperLayout({
   if (!profile || profile.role !== "developer") redirect("/login");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="border-b border-gray-200 bg-white px-5 py-3.5 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 flex flex-col select-none">
+      <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-6 w-6 rounded-md bg-indigo-600 flex items-center justify-center">
+          <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-2xs">
             <svg
-              className="h-3.5 w-3.5 text-white"
+              className="h-4 w-4 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -52,41 +52,48 @@ export default async function DeveloperLayout({
               />
             </svg>
           </div>
-          <span className="font-semibold text-gray-900 text-sm tracking-tight">
+          <span className="font-bold text-gray-900 text-base tracking-tight font-dingos-bold">
             CETDIS
           </span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 px-1.5 py-0.5 bg-indigo-50 border border-indigo-200 rounded">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full font-dingos-bold">
             Platform Admin
           </span>
         </div>
         <form action={signOut}>
-          <button className="text-xs text-gray-400 hover:text-gray-600 transition">
+          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-full transition tactile-btn font-medium">
             Sign out
           </button>
         </form>
       </header>
 
       <div className="flex flex-1">
-        <nav className="w-48 border-r border-gray-200 bg-white p-4 space-y-0.5 hidden sm:block">
+        <aside className="w-56 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-1.5 hidden sm:block">
+          <div className="px-3 pb-1 pt-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
+              Admin Area
+            </span>
+          </div>
           <Link
             href="/developer/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 hover:text-indigo-700 transition"
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-indigo-900 bg-indigo-50/90 border border-indigo-200/80 shadow-2xs transition tactile-btn font-dingos-bold"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-            >
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-            Dashboard
+            <div className="p-1.5 rounded-xl bg-indigo-600 text-white shadow-2xs">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </div>
+            <span>Dashboard</span>
           </Link>
-        </nav>
+        </aside>
 
         <main className="flex-1 bg-gray-50">{children}</main>
       </div>
