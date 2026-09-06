@@ -59,17 +59,17 @@ export default function RichTextEditor({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label htmlFor={name} className="block text-xs font-semibold uppercase tracking-wider text-gray-700">
+        <label htmlFor={name} className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold">
           {label}
         </label>
         {/* Tab switch between Write and Preview */}
-        <div className="flex bg-gray-100 p-0.5 rounded-lg text-xs font-medium">
+        <div className="flex bg-gray-100 p-0.5 rounded-full text-xs font-medium">
           <button
             type="button"
             onClick={() => setActiveTab("write")}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1 rounded-full transition font-dingos-bold text-[11px] ${
               activeTab === "write"
-                ? "bg-white text-indigo-700 font-semibold shadow-2xs"
+                ? "bg-white text-indigo-700 font-bold shadow-2xs"
                 : "text-gray-500 hover:text-gray-800"
             }`}
           >
@@ -78,9 +78,9 @@ export default function RichTextEditor({
           <button
             type="button"
             onClick={() => setActiveTab("preview")}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1 rounded-full transition font-dingos-bold text-[11px] ${
               activeTab === "preview"
-                ? "bg-white text-indigo-700 font-semibold shadow-2xs"
+                ? "bg-white text-indigo-700 font-bold shadow-2xs"
                 : "text-gray-500 hover:text-gray-800"
             }`}
           >
@@ -89,7 +89,7 @@ export default function RichTextEditor({
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-300 bg-white overflow-hidden shadow-2xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+      <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-2xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-150 transition">
         {/* Formatting Toolbar */}
         {activeTab === "write" && (
           <div className="flex items-center gap-1 px-2.5 py-1.5 border-b border-gray-100 bg-gray-50/70 overflow-x-auto scrollbar-none">

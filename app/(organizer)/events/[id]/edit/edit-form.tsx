@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import Link from "next/link";
 import { updateEventAction } from "./actions";
 import RichTextEditor from "@/components/rich-text-editor";
+import WobbleButton from "@/components/ui/wobble-button";
 
 interface Props {
   eventId: string;
@@ -22,7 +24,19 @@ interface State {
 
 const initialState: State = {};
 
+const CAPACITY_PRESETS = [50, 100, 200, 500, 1000];
+const PRICE_PRESETS = [
+  { label: "Free (0 MMK)", value: 0 },
+  { label: "1,000 MMK", value: 1000 },
+  { label: "3,000 MMK", value: 3000 },
+  { label: "5,000 MMK", value: 5000 },
+  { label: "10,000 MMK", value: 10000 },
+];
+
 export default function EditEventForm({ eventId, initialData }: Props) {
+  const [capacity, setCapacity] = useState<number | "">(initialData.maxCapacity);
+  const [price, setPrice] = useState<number | "">(initialData.price ?? 0);
+
   const [state, formAction, pending] = useActionState(
     async (prev: State, formData: FormData): Promise<State> => {
       const result = await updateEventAction(eventId, formData);
@@ -32,110 +46,245 @@ export default function EditEventForm({ eventId, initialData }: Props) {
   );
 
   return (
-    <form action={formAction} className="space-y-4 bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
-      <div>
-        <label htmlFor="title" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-          Event Title
+    <form
+      action={formAction}
+      className="rounded-3xl border border-gray-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-6"
+    >
+      {/* Error Notification */}
+      {state?.error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-xs font-medium text-red-800 flex items-start gap-2.5">
+          <svg
+            className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+          </svg>
+          <div>
+            <p className="font-bold font-dingos-bold">Unable to update event</p>
+            <p className="text-red-700 mt-0.5">{state.error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* 1. Title */}
+      <div className="space-y-1.5">
+        <label
+          htmlFor="title"
+          className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold"
+        >
+          Event Title <span className="text-red-500">*</span>
         </label>
-        <input
-          id="title"
-          name="title"
-          type="text"
-          required
-          defaultValue={initialData.title}
-          placeholder="e.g. Spring IT Hackathon"
-          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
-        />
+        <div className="relative">
+          <input
+            id="title"
+            name="title"
+            type="text"
+            required
+            defaultValue={initialData.title}
+            placeholder="e.g. Annual Tech Symposium & Hackathon 2026"
+            className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
+          />
+        </div>
       </div>
 
-      {/* Rich Text Event Description */}
+      {/* 2. Rich Text Description */}
       <RichTextEditor
         name="description"
         defaultValue={initialData.description}
-        label="Event Description"
-        placeholder="Enter event overview, special instructions, schedule details, or speaker line-up..."
+        label="Event Overview & Agenda"
+        placeholder="Outline event highlights, schedule, speakers, requirements, dress code, or special instructions..."
       />
 
-      <div>
-        <label htmlFor="date_time" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-          Date &amp; Time
-        </label>
-        <input
-          id="date_time"
-          name="date_time"
-          type="datetime-local"
-          required
-          defaultValue={initialData.dateTime}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="location" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-          Location
-        </label>
-        <input
-          id="location"
-          name="location"
-          type="text"
-          defaultValue={initialData.location}
-          placeholder="e.g. Main Auditorium"
-          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="max_capacity" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-            Max Capacity
+      {/* 3. Schedule & Location Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Date & Time */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="date_time"
+            className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold"
+          >
+            Date &amp; Time <span className="text-red-500">*</span>
           </label>
+          <div className="relative">
+            <input
+              id="date_time"
+              name="date_time"
+              type="datetime-local"
+              required
+              defaultValue={initialData.dateTime}
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
+            />
+          </div>
+          <p className="text-[11px] text-gray-400">Timezone is local campus time</p>
+        </div>
+
+        {/* Location */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="location"
+            className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold"
+          >
+            Venue / Location
+          </label>
+          <div className="relative">
+            <input
+              id="location"
+              name="location"
+              type="text"
+              defaultValue={initialData.location}
+              placeholder="e.g. Main Auditorium, Block C"
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
+            />
+          </div>
+          <p className="text-[11px] text-gray-400">Leave blank if online or TBD</p>
+        </div>
+      </div>
+
+      {/* 4. Capacity & Pricing */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-gray-100">
+        {/* Max Capacity */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="max_capacity"
+              className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold"
+            >
+              Max Capacity <span className="text-red-500">*</span>
+            </label>
+            <span className="text-[11px] text-gray-400 font-medium">Headcount limit</span>
+          </div>
+
           <input
             id="max_capacity"
             name="max_capacity"
             type="number"
-            min={1}
             required
-            defaultValue={initialData.maxCapacity}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            min={1}
+            value={capacity}
+            onChange={(e) =>
+              setCapacity(e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
+            className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
           />
+
+          {/* Quick Presets for Capacity */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span className="text-[10px] text-gray-400 font-semibold uppercase">Presets:</span>
+            {CAPACITY_PRESETS.map((val) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setCapacity(val)}
+                className={`text-[11px] px-2.5 py-0.5 rounded-full transition font-dingos-bold ${
+                  capacity === val
+                    ? "bg-indigo-600 text-white shadow-2xs"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {val}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="price" className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-            Price (MMK)
-          </label>
-          <input
-            id="price"
-            name="price"
-            type="number"
-            min={0}
-            defaultValue={initialData.price}
-            placeholder="0 = Free"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
-          />
+        {/* Ticket Price */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="price"
+              className="block text-xs font-bold uppercase tracking-wider text-gray-700 font-dingos-bold"
+            >
+              Ticket Price (MMK)
+            </label>
+            <span className="text-[11px] text-gray-400 font-medium">0 = Free event</span>
+          </div>
+
+          <div className="relative">
+            <input
+              id="price"
+              name="price"
+              type="number"
+              min={0}
+              step={500}
+              value={price}
+              onChange={(e) =>
+                setPrice(e.target.value === "" ? "" : parseInt(e.target.value, 10))
+              }
+              placeholder="0"
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
+            />
+            <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-semibold text-gray-400 pointer-events-none">
+              MMK
+            </span>
+          </div>
+
+          {/* Quick Presets for Price */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span className="text-[10px] text-gray-400 font-semibold uppercase">Presets:</span>
+            {PRICE_PRESETS.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => setPrice(p.value)}
+                className={`text-[11px] px-2.5 py-0.5 rounded-full transition font-dingos-bold ${
+                  price === p.value
+                    ? "bg-indigo-600 text-white shadow-2xs"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {p.value === 0 ? "Free" : `${(p.value / 1000).toLocaleString()}k`}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {state?.error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-          {state.error}
-        </p>
-      )}
-
-      <div className="pt-2 flex gap-3">
-        <a
-          href="/dashboard"
-          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 text-center hover:bg-gray-50 transition"
+      {/* Actions Footer */}
+      <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <Link
+          href="/events/all"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition font-dingos-bold"
         >
           Cancel
-        </a>
-        <button
+        </Link>
+
+        <WobbleButton
           type="submit"
           disabled={pending}
-          className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition shadow-xs"
-        >
-          {pending ? "Saving..." : "Save Changes"}
-        </button>
+          text={pending ? "Saving Changes..." : "Save Changes"}
+          hoverText={pending ? "Saving..." : "Update Event ✨"}
+          fillColor="#4f46e5"
+          hoverColor="#4338ca"
+          fontFamily="font-dingos-bold"
+          className="w-full sm:w-auto px-7 py-3 text-xs sm:text-sm text-white shadow-xs"
+          icon={
+            pending ? (
+              <svg
+                className="w-4 h-4 animate-spin text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v4" />
+              </svg>
+            ) : (
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )
+          }
+        />
       </div>
     </form>
   );

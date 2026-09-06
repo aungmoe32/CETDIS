@@ -35,26 +35,44 @@ export default async function EditEventPage({ params }: Props) {
   const localIso = new Date(d.getTime() - offset).toISOString().slice(0, 16);
 
   return (
-    <div className="px-4 py-6 max-w-lg mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Link
-            href="/dashboard"
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mb-1.5"
+    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6 pb-20 sm:pb-8">
+      {/* Top Breadcrumbs */}
+      <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
+        <Link
+          href="/events/all"
+          className="hover:text-indigo-600 transition flex items-center gap-1 font-dingos-bold"
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
           >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>Back to Dashboard</span>
-          </Link>
-          <h1 className="text-xl font-bold text-gray-900">Edit Event Details</h1>
-        </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
+          </svg>
+          <span>All Events</span>
+        </Link>
+        <span>/</span>
+        <span className="text-gray-900 font-dingos-bold truncate max-w-[200px]">
+          {event.title}
+        </span>
+        <span>/</span>
+        <span className="text-gray-500 font-medium">Edit</span>
+      </div>
+
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 font-dingos-bold">
+          Edit Event Details
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          Modify event parameters, venue location, capacity, or ticketing settings.
+        </p>
       </div>
 
       <EditEventForm

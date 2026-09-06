@@ -61,19 +61,29 @@ export default async function AllEventsPage() {
     walkUpCount: statsMap[e.id]?.walkUpCount ?? 0,
   }));
 
+  const totalEvents = formattedEvents.length;
+  const totalAdmitted = formattedEvents.reduce((sum, e) => sum + e.checkedIn, 0);
+  const totalRegistered = formattedEvents.reduce((sum, e) => sum + e.totalRegistered, 0);
+  const totalDoorRevenue = formattedEvents.reduce(
+    (sum, e) => sum + e.walkUpCount * e.price,
+    0,
+  );
+
   return (
     <div className="px-4 py-6 max-w-4xl mx-auto space-y-6 pb-20 sm:pb-6">
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">All Events</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 font-dingos-bold">
+            All Events
+          </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage your schedule, filter attendees, and export guest lists
+            Manage your campus schedule, monitor turnouts, and export guest lists
           </p>
         </div>
         <Link
           href="/events/new"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs flex-shrink-0"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs tactile-btn font-dingos-bold flex-shrink-0"
         >
           <svg
             className="w-4 h-4"
@@ -84,8 +94,56 @@ export default async function AllEventsPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          <span>Create Event</span>
+          <span>New Event</span>
         </Link>
+      </div>
+
+      {/* Summary KPI Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-3.5 sm:p-4 shadow-2xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+            Hosted Events
+          </p>
+          <p className="font-bebas text-3xl sm:text-4xl text-gray-900 tracking-wide mt-0.5">
+            {totalEvents}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-0.5">Campus schedules</p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-3.5 sm:p-4 shadow-2xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+            Total RSVPs
+          </p>
+          <p className="font-bebas text-3xl sm:text-4xl text-indigo-600 tracking-wide mt-0.5">
+            {totalRegistered}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-0.5">Registered students</p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-3.5 sm:p-4 shadow-2xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+            Admitted
+          </p>
+          <p className="font-bebas text-3xl sm:text-4xl text-emerald-600 tracking-wide mt-0.5">
+            {totalAdmitted}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-0.5">
+            {totalRegistered > 0
+              ? `${Math.round((totalAdmitted / totalRegistered) * 100)}% attendance rate`
+              : "Scanned in"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-3.5 sm:p-4 shadow-2xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+            Door Sales
+          </p>
+          <p className="font-bebas text-2xl sm:text-3xl text-emerald-700 tracking-wide mt-1">
+            {totalDoorRevenue.toLocaleString()}{" "}
+            <span className="text-xs font-sans font-semibold text-emerald-600">MMK</span>
+          </p>
+          <p className="text-[10px] text-gray-400 mt-0.5">Cash at door</p>
+        </div>
       </div>
 
       {/* Interactive Filterable Events List */}
