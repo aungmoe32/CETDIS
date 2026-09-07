@@ -452,7 +452,7 @@ export default function EventsListClient({ initialEvents }: Props) {
                       {event.walkUpCount} walk-up sale
                       {event.walkUpCount > 1 ? "s" : ""}
                     </span>
-                    <span className="font-normal text-emerald-950 font-bebas text-sm tracking-wide">
+                    <span className="font-normal text-emerald-950 font-dingos-bold text-sm tracking-wide">
                       {(
                         event.walkUpCount * (event.price ?? 0)
                       ).toLocaleString()}{" "}

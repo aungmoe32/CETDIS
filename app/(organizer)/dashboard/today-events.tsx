@@ -321,7 +321,7 @@ export default function TodayEvents({ events }: Props) {
                         {event.walkUpCount > 1 ? "s" : ""}
                       </span>
                     </div>
-                    <span className="font-normal text-emerald-950 font-bebas text-lg tracking-wide">
+                    <span className="font-normal text-emerald-950 font-dingos text-lg tracking-wide">
                       {(
                         event.walkUpCount * (event.price ?? 0)
                       ).toLocaleString()}{" "}

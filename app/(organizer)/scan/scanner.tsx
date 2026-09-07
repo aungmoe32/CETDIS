@@ -453,13 +453,13 @@ export default function Scanner({ eventId }: Props) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   const statusColors: Record<ScanStatus, string> = {
-    idle: "bg-gray-50",
-    scanning: "bg-gray-50",
-    success: "bg-green-500",
-    no_ticket: "bg-amber-500",
-    already_scanned: "bg-yellow-400",
-    not_found: "bg-red-500",
-    error: "bg-red-500",
+    idle: "bg-white",
+    scanning: "bg-white",
+    success: "bg-emerald-600",
+    no_ticket: "bg-amber-600",
+    already_scanned: "bg-amber-500",
+    not_found: "bg-rose-600",
+    error: "bg-rose-600",
   };
 
   return (
@@ -468,15 +468,15 @@ export default function Scanner({ eventId }: Props) {
     >
       {/* ── Scenario A: Recognized Student with No Ticket (Walk-Up Prompt) ─── */}
       {status === "no_ticket" && noTicketData && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-white max-w-sm mx-auto w-full">
-          <div className="w-full bg-white rounded-3xl p-6 text-gray-900 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-white max-w-sm mx-auto w-full animate-in zoom-in-95 duration-200">
+          <div className="w-full bg-white rounded-3xl p-6 sm:p-7 text-gray-900 shadow-2xl border border-amber-200/50 space-y-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-2xs">
               <svg
-                className="w-6 h-6"
+                className="w-7 h-7"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                strokeWidth={2}
+                strokeWidth={2.2}
               >
                 <path
                   strokeLinecap="round"
@@ -487,10 +487,10 @@ export default function Scanner({ eventId }: Props) {
             </div>
 
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                User Recognized
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full font-dingos-bold">
+                Student Recognized
               </span>
-              <h3 className="text-xl font-bold text-gray-900 mt-2">
+              <h3 className="text-xl font-bold text-gray-900 mt-2 font-dingos-bold">
                 {noTicketData.fullName}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
@@ -501,17 +501,17 @@ export default function Scanner({ eventId }: Props) {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-amber-50 border border-amber-200/80 p-3.5 text-center">
-              <p className="text-xs text-amber-900 font-medium">
+            <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-4 text-center">
+              <p className="text-xs text-amber-900 font-bold uppercase tracking-wider font-dingos-bold">
                 Door Ticket Price
               </p>
-              <p className="text-2xl font-bold text-amber-950 mt-0.5">
+              <p className="font-bebas text-3xl sm:text-4xl text-amber-950 tracking-wide mt-1">
                 {noTicketData.eventPrice > 0
                   ? `${noTicketData.eventPrice.toLocaleString()} MMK`
                   : "Free Entry"}
               </p>
               {noTicketData.eventPrice > 0 && (
-                <p className="text-[11px] text-amber-700 mt-1">
+                <p className="text-[11px] text-amber-700 mt-1 font-medium">
                   Collect cash before admitting attendee
                 </p>
               )}
@@ -522,12 +522,12 @@ export default function Scanner({ eventId }: Props) {
                 type="button"
                 onClick={handleSellWalkUpAtDoor}
                 disabled={isSellingWalkUp}
-                className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                className="w-full rounded-full bg-indigo-600 py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2 font-dingos-bold tactile-btn"
               >
                 {isSellingWalkUp ? (
                   <span>Processing Sale...</span>
                 ) : (
-                  <span>Sell Ticket At Door & Admit</span>
+                  <span>Sell Ticket At Door &amp; Admit</span>
                 )}
               </button>
 
@@ -535,7 +535,7 @@ export default function Scanner({ eventId }: Props) {
                 type="button"
                 onClick={handleDismissNoTicket}
                 disabled={isSellingWalkUp}
-                className="w-full rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                className="w-full rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition font-dingos-bold"
               >
                 Cancel / Back to Scanner
               </button>
@@ -567,46 +567,46 @@ export default function Scanner({ eventId }: Props) {
         <>
           {/* Mode tabs — only shown on devices that support NFC */}
           {nfcAvailable && status === "idle" && (
-            <div className="flex gap-1 mx-auto mt-3 sm:mt-4 rounded-xl bg-gray-100 p-1 shrink-0">
+            <div className="flex gap-1 mx-auto mt-3 sm:mt-4 rounded-full bg-gray-100 p-1 shrink-0 select-none">
               <button
                 onClick={() => switchMode("qr")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all tactile-btn font-dingos-bold ${
                   scanMode === "qr"
-                    ? "bg-white text-gray-900 shadow-xs"
+                    ? "bg-white text-indigo-700 shadow-2xs"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <svg
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth={1.8}
+                  strokeWidth={2}
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
                   <path
                     d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2h-2"
                     strokeLinecap="round"
                   />
                 </svg>
-                QR Code
+                <span>QR Code</span>
               </button>
               <button
                 onClick={() => switchMode("nfc")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all tactile-btn font-dingos-bold ${
                   scanMode === "nfc"
-                    ? "bg-white text-gray-900 shadow-xs"
+                    ? "bg-white text-indigo-700 shadow-2xs"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <svg
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth={1.8}
+                  strokeWidth={2}
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -620,7 +620,7 @@ export default function Scanner({ eventId }: Props) {
                     strokeWidth={0}
                   />
                 </svg>
-                NFC
+                <span>NFC Tag</span>
               </button>
             </div>
           )}
@@ -631,24 +631,27 @@ export default function Scanner({ eventId }: Props) {
             {scanMode === "qr" && (
               <>
                 {status === "scanning" && (
-                  <p className="text-xs sm:text-sm text-gray-400 shrink-0">
-                    Point camera at the student&apos;s QR code
-                  </p>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-bold font-dingos-bold shrink-0 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                    <span>Point camera at student QR code</span>
+                  </div>
                 )}
                 {/* html5-qrcode mounts video into this div */}
-                <div
-                  id="qr-reader"
-                  className="w-full max-w-xs sm:max-w-sm rounded-2xl overflow-hidden shadow-md shrink-0"
-                />
+                <div className="relative w-full max-w-xs sm:max-w-sm shrink-0">
+                  <div
+                    id="qr-reader"
+                    className="w-full rounded-3xl overflow-hidden shadow-md border-2 border-gray-100 bg-black"
+                  />
+                </div>
               </>
             )}
 
             {/* ── NFC idle visual ────────────────────────────────────── */}
             {scanMode === "nfc" && status === "idle" && (
               <div className="flex flex-col items-center gap-4">
-                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-indigo-100 flex items-center justify-center">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-indigo-100 flex items-center justify-center shadow-2xs">
                   <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 border-indigo-200 flex items-center justify-center">
-                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-400 flex items-center justify-center">
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-500 flex items-center justify-center shadow-xs">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -671,8 +674,7 @@ export default function Scanner({ eventId }: Props) {
                   </div>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500 text-center max-w-xs leading-relaxed">
-                  Tap <strong>Start Scanner</strong>, then have the student hold
-                  their NFC tag near the top of your device.
+                  Tap <strong className="font-dingos-bold text-gray-800">Start Scanner</strong>, then hold the student&apos;s NFC credential near the device antenna.
                 </p>
               </div>
             )}
@@ -683,7 +685,7 @@ export default function Scanner({ eventId }: Props) {
                 <div className="relative h-28 w-28 sm:h-36 sm:w-36 flex items-center justify-center">
                   <div className="absolute inset-0 rounded-full bg-indigo-100 animate-ping opacity-40" />
                   <div className="absolute inset-4 sm:inset-5 rounded-full bg-indigo-200 animate-ping opacity-50 [animation-delay:200ms]" />
-                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg">
+                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-indigo-600 flex items-center justify-center shadow-lg">
                     <svg
                       className="h-7 w-7 sm:h-8 sm:w-8 text-white"
                       fill="none"
@@ -704,7 +706,7 @@ export default function Scanner({ eventId }: Props) {
                     </svg>
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-bold text-gray-700 font-dingos-bold">
                   Ready — hold NFC tag near device
                 </p>
               </div>
@@ -714,18 +716,40 @@ export default function Scanner({ eventId }: Props) {
             {status === "idle" && (
               <button
                 onClick={startScanner}
-                className="w-full max-w-xs sm:max-w-sm rounded-2xl bg-indigo-600 px-6 py-3.5 sm:py-4 text-base font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md shrink-0"
+                className="w-full max-w-xs sm:max-w-sm inline-flex items-center justify-center gap-2.5 rounded-full bg-indigo-600 px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs hover:shadow-md font-dingos-bold shrink-0 tactile-btn"
               >
-                Start Scanner
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"
+                  />
+                </svg>
+                <span>Start Scanner</span>
               </button>
             )}
 
             {status === "scanning" && (
               <button
                 onClick={stopScanner}
-                className="w-full max-w-xs sm:max-w-sm rounded-2xl border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all shrink-0"
+                className="w-full max-w-xs sm:max-w-sm inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition shadow-2xs font-dingos-bold shrink-0 tactile-btn"
               >
-                Stop Scanner
+                <svg
+                  className="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                >
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+                <span>Stop Scanner</span>
               </button>
             )}
           </div>
@@ -743,7 +767,7 @@ export default function Scanner({ eventId }: Props) {
                 {/* Left: Cache Mode Pill */}
                 <div>
                   {offlineEnabled ? (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-indigo-50 text-indigo-700 border-indigo-200">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200 font-dingos-bold">
                       <svg
                         className="w-3 h-3 text-indigo-600"
                         fill="none"
@@ -757,14 +781,12 @@ export default function Scanner({ eventId }: Props) {
                           d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
                         />
                       </svg>
-                      <span className="font-semibold text-[11px]">
-                        Offline Cached
-                      </span>
+                      <span className="text-[11px]">Offline Cached</span>
                     </div>
                   ) : (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                      <span className="font-medium text-[11px]">Live Mode</span>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200/80 font-dingos-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[11px]">Live Database Mode</span>
                     </div>
                   )}
                 </div>
@@ -779,7 +801,7 @@ export default function Scanner({ eventId }: Props) {
                         ? "Click to sync pending check-ins now"
                         : "Stored locally. Will sync automatically when back online."
                     }
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition tactile-btn font-dingos-bold ${
                       isOnline
                         ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 active:scale-95 cursor-pointer shadow-2xs"
                         : "bg-gray-100 text-gray-600 border-gray-200 cursor-default"
@@ -798,9 +820,10 @@ export default function Scanner({ eventId }: Props) {
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
-                    <span>
-                      {isSyncing ? "Syncing…" : `${pendingCount} Unsynced`}
+                    <span className="font-bebas text-sm text-amber-900 tracking-wide">
+                      {pendingCount}
                     </span>
+                    <span>{isSyncing ? "Syncing…" : "Unsynced"}</span>
                   </button>
                 )}
               </div>
@@ -810,7 +833,7 @@ export default function Scanner({ eventId }: Props) {
                 <button
                   onClick={downloadGuestList}
                   disabled={isLoading}
-                  className="w-full rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 active:scale-[0.99] px-4 py-2.5 text-xs sm:text-sm font-semibold text-indigo-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-2"
+                  className="w-full rounded-full border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 active:scale-95 px-4 py-2.5 text-xs sm:text-sm font-bold text-indigo-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-2 font-dingos-bold tactile-btn"
                 >
                   {isLoading ? (
                     <>
@@ -855,7 +878,7 @@ export default function Scanner({ eventId }: Props) {
                   <button
                     onClick={downloadGuestList}
                     disabled={isLoading}
-                    className="flex-1 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-[0.98] px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-1.5"
+                    className="flex-1 rounded-full border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 px-3 py-2 text-xs font-bold text-gray-700 disabled:opacity-50 transition shadow-2xs flex items-center justify-center gap-1.5 font-dingos-bold tactile-btn"
                   >
                     <svg
                       className={`w-3.5 h-3.5 text-gray-500 ${isLoading ? "animate-spin text-indigo-600" : ""}`}
@@ -874,7 +897,7 @@ export default function Scanner({ eventId }: Props) {
                   </button>
                   <button
                     onClick={disableOfflineMode}
-                    className="flex-1 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 active:scale-[0.98] px-3 py-2 text-xs font-semibold text-indigo-700 transition shadow-2xs flex items-center justify-center gap-1.5"
+                    className="flex-1 rounded-full border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 active:scale-95 px-3 py-2 text-xs font-bold text-indigo-700 transition shadow-2xs flex items-center justify-center gap-1.5 font-dingos-bold tactile-btn"
                   >
                     <svg
                       className="w-3.5 h-3.5 text-indigo-600"
@@ -895,7 +918,7 @@ export default function Scanner({ eventId }: Props) {
               )}
 
               {!isOnline && (
-                <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 px-3 py-2 text-center text-xs font-medium text-amber-800 flex items-center justify-center gap-1.5">
+                <div className="rounded-2xl border border-amber-200/80 bg-amber-50/70 px-3.5 py-2.5 text-center text-xs font-medium text-amber-800 flex items-center justify-center gap-1.5">
                   <svg
                     className="w-3.5 h-3.5 text-amber-600 shrink-0"
                     fill="none"
@@ -922,14 +945,14 @@ export default function Scanner({ eventId }: Props) {
       {/* ── NFC Handover Fast Issuing Modal Overlay ─────────────────────── */}
       {handoverData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-gray-100 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800 font-dingos-bold">
                 NFC Tag Handover
               </span>
               <button
                 onClick={handleDismissHandover}
-                className="text-gray-400 hover:text-gray-600 text-xs font-medium"
+                className="text-gray-400 hover:text-gray-600 text-xs font-bold font-dingos-bold"
               >
                 Skip / Later
               </button>
@@ -937,10 +960,10 @@ export default function Scanner({ eventId }: Props) {
 
             {handoverSuccess ? (
               <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold shadow-2xs">
                   ✓
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">
+                <h4 className="text-base font-bold text-gray-900 font-dingos-bold">
                   Tag Linked &amp; Handed Over!
                 </h4>
                 <p className="text-xs text-gray-500">
@@ -950,7 +973,7 @@ export default function Scanner({ eventId }: Props) {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">
+                  <h3 className="text-lg font-bold text-gray-900 font-dingos-bold">
                     {handoverData.fullName}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -959,7 +982,7 @@ export default function Scanner({ eventId }: Props) {
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 flex items-center gap-3">
+                <div className="rounded-2xl bg-indigo-50/80 border border-indigo-100 p-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                     <svg
                       className="h-5 w-5"
@@ -980,7 +1003,7 @@ export default function Scanner({ eventId }: Props) {
                     </svg>
                   </div>
                   <div className="text-xs text-indigo-950">
-                    <p className="font-semibold">
+                    <p className="font-bold font-dingos-bold">
                       {isWritingHandover
                         ? "Hold blank tag near device..."
                         : "Ready to write"}
@@ -996,7 +1019,7 @@ export default function Scanner({ eventId }: Props) {
                     type="button"
                     onClick={handleDismissHandover}
                     disabled={isWritingHandover}
-                    className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition font-dingos-bold"
                   >
                     Skip for Now
                   </button>
@@ -1004,7 +1027,7 @@ export default function Scanner({ eventId }: Props) {
                     type="button"
                     onClick={handleIssueHandoverTag}
                     disabled={isWritingHandover}
-                    className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5"
+                    className="flex-1 rounded-full bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-1.5 font-dingos-bold tactile-btn"
                   >
                     {isWritingHandover ? (
                       <span>Writing Tag...</span>
