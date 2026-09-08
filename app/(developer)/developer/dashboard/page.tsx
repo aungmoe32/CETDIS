@@ -64,147 +64,208 @@ export default async function DeveloperDashboardPage() {
 
   const platformAllocated = platformTotals?.totalAllocated ?? 0;
   const platformIssued = issuanceTotals?.totalIssued ?? 0;
-  const platformUnissued = platformAllocated - platformIssued;
+  const platformUnissued = Math.max(0, platformAllocated - platformIssued);
+  const issuePercentage =
+    platformAllocated > 0
+      ? Math.min(100, Math.round((platformIssued / platformAllocated) * 100))
+      : 0;
 
   return (
-    <div className="px-5 py-7 max-w-4xl mx-auto">
-      <h1 className="text-xl font-semibold text-gray-900 mb-1">
-        NFC Inventory Dashboard
-      </h1>
-      <p className="text-sm text-gray-500 mb-7">
-        Track blank physical NFC tag rolls allocated to organizers and monitor
-        field issuance.
-      </p>
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-5xl mx-auto space-y-6 sm:space-y-8">
+      {/* Page Header */}
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2.5 py-0.5 rounded-full font-dingos-bold">
+            Hardware Supply Chain
+          </span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mt-1.5 font-dingos-bold">
+          NFC Inventory Dashboard
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          Track blank physical NFC tag rolls allocated to organizers, monitor door issuances, and replenish stock.
+        </p>
+      </div>
 
       {/* Platform-level stats */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {[
-          {
-            label: "Total Tags Allocated",
-            value: platformAllocated,
-            bg: "bg-indigo-50 border-indigo-100",
-            valueColor: "text-indigo-700",
-          },
-          {
-            label: "Tags Linked to Students",
-            value: platformIssued,
-            bg: "bg-emerald-50 border-emerald-100",
-            valueColor: "text-emerald-700",
-          },
-          {
-            label: "Unissued in Circulation",
-            value: platformUnissued,
-            bg: "bg-amber-50 border-amber-100",
-            valueColor: "text-amber-700",
-          },
-        ].map((stat) => (
-          <div key={stat.label} className={`rounded-2xl border ${stat.bg} p-4`}>
-            <p className="text-xs text-gray-500 mb-1.5">{stat.label}</p>
-            <p className={`text-3xl font-bold  ${stat.valueColor}`}>
-              {stat.value}
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        {/* Allocated */}
+        <div className="rounded-3xl border border-gray-200/90 bg-white p-5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+              Total Tags Allocated
+            </span>
+            <span className="p-1.5 rounded-xl bg-indigo-50 text-indigo-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+              </svg>
+            </span>
           </div>
-        ))}
+          <p className="font-bebas text-4xl text-indigo-700 tracking-wide">
+            {platformAllocated.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-gray-400 font-medium">
+            Dispatched rolls across campus
+          </p>
+        </div>
+
+        {/* Issued */}
+        <div className="rounded-3xl border border-gray-200/90 bg-white p-5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+              Tags Linked to Students
+            </span>
+            <span className="p-1.5 rounded-xl bg-emerald-50 text-emerald-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <circle cx="12" cy="12" r="9" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+              </svg>
+            </span>
+          </div>
+          <p className="font-bebas text-4xl text-emerald-600 tracking-wide">
+            {platformIssued.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-gray-400 font-medium">
+            {issuePercentage}% of allocated tags issued
+          </p>
+        </div>
+
+        {/* Unissued in Circulation */}
+        <div className="rounded-3xl border border-gray-200/90 bg-white p-5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 font-dingos-bold">
+              Unissued in Field
+            </span>
+            <span className="p-1.5 rounded-xl bg-amber-50 text-amber-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <circle cx="12" cy="12" r="9" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
+              </svg>
+            </span>
+          </div>
+          <p className="font-bebas text-4xl text-amber-600 tracking-wide">
+            {platformUnissued.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-gray-400 font-medium">
+            Held in organizer kits
+          </p>
+        </div>
       </div>
 
       {/* Organizer table */}
-      <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-xs">
-        <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-800">
-            Organizer Inventory
-          </h2>
-          <span className="text-xs text-gray-400">
-            {organizers.length} organizers
+      <div className="rounded-3xl border border-gray-200/90 bg-white overflow-hidden shadow-xs">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 font-dingos-bold">
+              Organizer Inventory
+            </h2>
+            <p className="text-[11px] text-gray-400">
+              Field distribution by organizer
+            </p>
+          </div>
+          <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full font-dingos-bold">
+            {organizers.length} Organizers
           </span>
         </div>
 
         {organizers.length === 0 ? (
-          <p className="text-sm text-gray-400 px-5 py-8 text-center">
-            No organizers found. Invite an organizer to get started.
-          </p>
+          <div className="p-8 text-center space-y-2">
+            <p className="text-sm font-bold text-gray-800 font-dingos-bold">
+              No organizers registered yet
+            </p>
+            <p className="text-xs text-gray-400">
+              When an organizer creates an account, they will appear here for tag allocation.
+            </p>
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/60">
-                {[
-                  "Organizer",
-                  "Total Given",
-                  "Total Issued",
-                  "Stock Remaining",
-                  "",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider px-5 py-3"
-                  >
-                    {h}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider px-5 py-3 font-dingos-bold">
+                    Organizer
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {organizers.map((org) => {
-                const totalAllocated = allocationsMap[org.id] ?? 0;
-                const totalIssued = issuancesMap[org.id] ?? 0;
-                const stockRemaining = totalAllocated - totalIssued;
-                const isLow = stockRemaining <= 20 && stockRemaining >= 0;
-                const isOver = stockRemaining < 0;
+                  <th className="text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider px-5 py-3 font-dingos-bold">
+                    Total Given
+                  </th>
+                  <th className="text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider px-5 py-3 font-dingos-bold">
+                    Total Issued
+                  </th>
+                  <th className="text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider px-5 py-3 font-dingos-bold">
+                    Stock Remaining
+                  </th>
+                  <th className="text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider px-5 py-3 font-dingos-bold">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {organizers.map((org) => {
+                  const totalAllocated = allocationsMap[org.id] ?? 0;
+                  const totalIssued = issuancesMap[org.id] ?? 0;
+                  const stockRemaining = totalAllocated - totalIssued;
+                  const isLow = stockRemaining <= 20 && stockRemaining >= 0;
+                  const isOver = stockRemaining < 0;
 
-                return (
-                  <tr
-                    key={org.id}
-                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition"
-                  >
-                    <td className="px-5 py-3.5">
-                      <p className="font-medium text-gray-800 text-sm">
-                        {org.fullName}
-                      </p>
-                      <p className="text-xs text-gray-400">{org.email}</p>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className=" font-semibold text-gray-700">
-                        {totalAllocated}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className=" font-semibold text-emerald-600">
-                        {totalIssued}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5  font-bold ${
-                          isOver
-                            ? "text-red-600"
-                            : isLow
-                              ? "text-amber-600"
-                              : "text-gray-800"
-                        }`}
-                      >
-                        {isOver && (
-                          <span className="text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.5 rounded">
-                            OVER
+                  return (
+                    <tr
+                      key={org.id}
+                      className="hover:bg-gray-50/60 transition"
+                    >
+                      <td className="px-5 py-3.5">
+                        <p className="font-bold text-gray-900 text-sm font-dingos-bold">
+                          {org.fullName}
+                        </p>
+                        <p className="text-xs text-gray-400">{org.email}</p>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="font-bebas text-xl text-gray-900 tracking-wide">
+                          {totalAllocated}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="font-bebas text-xl text-emerald-600 tracking-wide">
+                          {totalIssued}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-bebas text-xl tracking-wide ${
+                              isOver
+                                ? "text-red-600"
+                                : isLow
+                                  ? "text-amber-600"
+                                  : "text-gray-900"
+                            }`}
+                          >
+                            {stockRemaining}
                           </span>
-                        )}
-                        {isLow && (
-                          <span className="text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded">
-                            LOW
-                          </span>
-                        )}
-                        {stockRemaining}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <AllocationModal
-                        organizerId={org.id}
-                        organizerName={org.fullName}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          {isOver && (
+                            <span className="text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-dingos-bold">
+                              Over Issued
+                            </span>
+                          )}
+                          {isLow && (
+                            <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-dingos-bold">
+                              Low Stock
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <AllocationModal
+                          organizerId={org.id}
+                          organizerName={org.fullName}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

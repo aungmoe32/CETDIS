@@ -30,7 +30,8 @@ export default async function DeveloperLayout({
   if (!profile || profile.role !== "developer") redirect("/login");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col select-none">
+    <div className="min-h-screen bg-white flex flex-col select-none">
+      {/* Top Admin Header */}
       <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-2xs">
@@ -60,17 +61,18 @@ export default async function DeveloperLayout({
           </span>
         </div>
         <form action={signOut}>
-          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-full transition tactile-btn font-medium">
+          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-3 py-1 rounded-full transition tactile-btn font-medium">
             Sign out
           </button>
         </form>
       </header>
 
       <div className="flex flex-1">
-        <aside className="w-56 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-1.5 hidden sm:block">
+        {/* Desktop Sidebar Navigation */}
+        <aside className="w-56 border-r border-gray-100 bg-white p-4 space-y-2 hidden sm:block">
           <div className="px-3 pb-1 pt-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
-              Admin Area
+              Admin Controls
             </span>
           </div>
           <Link
@@ -91,11 +93,12 @@ export default async function DeveloperLayout({
                 <rect x="14" y="14" width="7" height="7" rx="1" />
               </svg>
             </div>
-            <span>Dashboard</span>
+            <span>NFC Inventory</span>
           </Link>
         </aside>
 
-        <main className="flex-1 bg-gray-50">{children}</main>
+        {/* Main Content Viewport */}
+        <main className="flex-1 bg-white">{children}</main>
       </div>
     </div>
   );

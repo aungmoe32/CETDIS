@@ -39,7 +39,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-12 select-none">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
-        <div className="flex flex-col items-center text-center space-y-2">
+        {/* <div className="flex flex-col items-center text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center flex-shrink-0 shadow-xs transition-transform hover:scale-105">
             <svg
               className="h-6 w-6 text-white"
@@ -67,7 +67,7 @@ export default function LoginPage() {
               Campus Event Check-In System
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* Card Container */}
         <div className="rounded-3xl border border-gray-200/90 bg-white p-7 sm:p-9 shadow-xs space-y-6">
