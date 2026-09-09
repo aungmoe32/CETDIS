@@ -106,9 +106,9 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
             {/* Header */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-3.5">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full font-dingos-bold inline-block mb-1">
+                {/* <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full font-dingos-bold inline-block mb-1">
                   Ticket Purchase
-                </span>
+                </span> */}
                 <h2 className="text-lg font-bold text-gray-900 font-dingos-bold">
                   Demo Checkout
                 </h2>
@@ -177,39 +177,38 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                     Select Mobile Wallet
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setMethod("kpay")}
-                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn cursor-pointer ${
-                        method === "kpay"
-                          ? MERCHANTS.kpay.activeBg
-                          : "border-gray-200 hover:border-gray-300 bg-white"
-                      }`}
-                    >
-                      <span className="font-bold text-sm text-blue-700 font-dingos-bold">
-                        KBZPay
-                      </span>
-                      <span className="text-[11px] text-gray-500">
-                        KPay Wallet
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setMethod("wave")}
-                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn cursor-pointer ${
-                        method === "wave"
-                          ? MERCHANTS.wave.activeBg
-                          : "border-gray-200 hover:border-gray-300 bg-white"
-                      }`}
-                    >
-                      <span className="font-bold text-sm text-amber-600 font-dingos-bold">
-                        WavePay
-                      </span>
-                      <span className="text-[11px] text-gray-500">
-                        Wave Money
-                      </span>
-                    </button>
+                    {(["kpay", "wave"] as const).map((m) => {
+                      const info = MERCHANTS[m];
+                      const isSelected = method === m;
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setMethod(m)}
+                          className={`p-3 rounded-2xl border text-left transition relative flex flex-col justify-between h-20 active:scale-98 tactile-btn cursor-pointer ${
+                            isSelected
+                              ? info.activeBg
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div>
+                            <p
+                              className={`font-bold text-sm font-dingos-bold ${info.color}`}
+                            >
+                              {info.label}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              {info.subLabel}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+                              ✓
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
