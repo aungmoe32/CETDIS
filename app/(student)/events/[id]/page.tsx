@@ -55,7 +55,7 @@ export default async function EventDetailPage({ params }: Props) {
       <div>
         <Link
           href="/events"
-          className="inline-flex items-center gap-1.5 text-xs font-bold font-dingos-bold text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition active:scale-95"
+          className="inline-flex items-center gap-1.5 text-xs font-bold font-dingos-bold text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition active:scale-95 cursor-pointer"
         >
           <svg
             className="w-3.5 h-3.5"

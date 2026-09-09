@@ -46,7 +46,8 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
       // Search matching (title or location)
       if (q) {
         const matchesTitle = event.title.toLowerCase().includes(q);
-        const matchesLocation = event.location?.toLowerCase().includes(q) ?? false;
+        const matchesLocation =
+          event.location?.toLowerCase().includes(q) ?? false;
         if (!matchesTitle && !matchesLocation) return false;
       }
 
@@ -62,7 +63,8 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
     });
   }, [initialEvents, searchQuery, priceFilter, availableOnly]);
 
-  const hasActiveFilters = searchQuery.trim() !== "" || priceFilter !== "all" || availableOnly;
+  const hasActiveFilters =
+    searchQuery.trim() !== "" || priceFilter !== "all" || availableOnly;
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -73,7 +75,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-5 pb-24 select-none">
       {/* Top Page Switcher Pills */}
-      <div className="flex items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80">
+      {/* <div className="flex items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80">
         <div className="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-2xs font-dingos-bold">
           Explore Events
         </div>
@@ -83,7 +85,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
         >
           My Tickets
         </Link>
-      </div>
+      </div> */}
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -115,7 +117,13 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
                 strokeWidth={2}
               >
                 <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" strokeLinecap="round" />
+                <line
+                  x1="21"
+                  y1="21"
+                  x2="16.65"
+                  y2="16.65"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
             <input
@@ -129,7 +137,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -138,7 +146,11 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
                   viewBox="0 0 24 24"
                   strokeWidth={2.5}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -149,7 +161,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
             <button
               type="button"
               onClick={() => setPriceFilter("all")}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                 priceFilter === "all"
                   ? "bg-indigo-600 text-white font-dingos-bold shadow-2xs"
                   : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -161,7 +173,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
             <button
               type="button"
               onClick={() => setPriceFilter("free")}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                 priceFilter === "free"
                   ? "bg-emerald-600 text-white font-dingos-bold shadow-2xs"
                   : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -174,7 +186,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
               <button
                 type="button"
                 onClick={() => setPriceFilter("paid")}
-                className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                   priceFilter === "paid"
                     ? "bg-indigo-600 text-white font-dingos-bold shadow-2xs"
                     : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -187,7 +199,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
             <button
               type="button"
               onClick={() => setAvailableOnly(!availableOnly)}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 border ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 border cursor-pointer ${
                 availableOnly
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-dingos-bold"
                   : "border-transparent bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -200,7 +212,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-[11px] font-bold text-gray-400 hover:text-gray-700 underline px-2 shrink-0 transition"
+                className="text-[11px] font-bold text-gray-400 hover:text-gray-700 underline px-2 shrink-0 transition cursor-pointer"
               >
                 Reset
               </button>
@@ -230,7 +242,8 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
             No Upcoming Events
           </p>
           <p className="text-xs text-gray-400 max-w-xs mx-auto">
-            There are currently no scheduled events. Check back soon for new campus announcements.
+            There are currently no scheduled events. Check back soon for new
+            campus announcements.
           </p>
         </div>
       )}
@@ -247,7 +260,13 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
               strokeWidth={2}
             >
               <circle cx="11" cy="11" r="7" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" strokeLinecap="round" />
+              <line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"
+                strokeLinecap="round"
+              />
             </svg>
           </div>
           <p className="text-sm font-bold text-gray-800 font-dingos-bold">
@@ -261,7 +280,7 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold font-dingos-bold transition tactile-btn"
+            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold font-dingos-bold transition tactile-btn cursor-pointer"
           >
             Clear Filters
           </button>
@@ -272,13 +291,16 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
       {hasActiveFilters && filteredEvents.length > 0 && (
         <div className="flex items-center justify-between px-1 text-[11px] text-gray-400 font-medium">
           <span>
-            Showing <strong className="text-gray-700 font-bold">{filteredEvents.length}</strong> of{" "}
-            {initialEvents.length} events
+            Showing{" "}
+            <strong className="text-gray-700 font-bold">
+              {filteredEvents.length}
+            </strong>{" "}
+            of {initialEvents.length} events
           </span>
           <button
             type="button"
             onClick={resetFilters}
-            className="text-indigo-600 hover:text-indigo-800 font-bold font-dingos-bold"
+            className="text-indigo-600 hover:text-indigo-800 font-bold font-dingos-bold cursor-pointer"
           >
             Clear all
           </button>
@@ -329,20 +351,26 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
                             : "bg-indigo-50 text-indigo-700 border border-indigo-200"
                         }`}
                       >
-                        {isFree ? "Free" : `${event.price.toLocaleString()} MMK`}
+                        {isFree
+                          ? "Free"
+                          : `${event.price.toLocaleString()} MMK`}
                       </span>
                     </div>
 
                     <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 truncate">
                       <span>{timeStr}</span>
                       <span>·</span>
-                      <span className="truncate">{event.location || "Campus Venue"}</span>
+                      <span className="truncate">
+                        {event.location || "Campus Venue"}
+                      </span>
                     </p>
 
                     <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100 text-xs">
                       <span
                         className={`font-semibold text-[11px] ${
-                          event.spotsLeft > 0 ? "text-emerald-600" : "text-red-500"
+                          event.spotsLeft > 0
+                            ? "text-emerald-600"
+                            : "text-red-500"
                         }`}
                       >
                         {event.spotsLeft > 0

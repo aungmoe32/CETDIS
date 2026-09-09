@@ -78,7 +78,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full rounded-2xl bg-indigo-600 px-4 py-3.5 text-sm font-bold font-dingos-bold text-white shadow-xs hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+        className="w-full rounded-2xl bg-indigo-600 px-4 py-3.5 text-sm font-bold font-dingos-bold text-white shadow-xs hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
         <svg
           className="w-4 h-4"
@@ -119,7 +119,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
               <button
                 onClick={() => setIsOpen(false)}
                 disabled={isProcessing}
-                className="rounded-full p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+                className="rounded-full p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition cursor-pointer disabled:cursor-not-allowed"
               >
                 <svg
                   className="w-4 h-4"
@@ -180,7 +180,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                     <button
                       type="button"
                       onClick={() => setMethod("kpay")}
-                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn cursor-pointer ${
                         method === "kpay"
                           ? MERCHANTS.kpay.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
@@ -197,7 +197,7 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                     <button
                       type="button"
                       onClick={() => setMethod("wave")}
-                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn cursor-pointer ${
                         method === "wave"
                           ? MERCHANTS.wave.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
@@ -256,14 +256,14 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                     type="button"
                     onClick={() => setIsOpen(false)}
                     disabled={isProcessing}
-                    className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-xs font-bold font-dingos-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition tactile-btn"
+                    className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-xs font-bold font-dingos-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition tactile-btn cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="flex-1 rounded-2xl bg-indigo-600 px-4 py-2.5 text-xs font-bold font-dingos-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2 shadow-xs tactile-btn"
+                    className="flex-1 rounded-2xl bg-indigo-600 px-4 py-2.5 text-xs font-bold font-dingos-bold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 shadow-xs tactile-btn cursor-pointer"
                   >
                     {isProcessing ? (
                       <>

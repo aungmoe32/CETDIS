@@ -77,7 +77,7 @@ export default function NfcSection({ purchasedNfc, nfcIssued }: Props) {
             </p>
             <button
               onClick={() => setIsRevokeModalOpen(true)}
-              className="w-full rounded-full border border-red-200 bg-red-50/50 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100/70 active:scale-95 transition font-dingos-bold"
+              className="w-full rounded-full border border-red-200 bg-red-50/50 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100/70 active:scale-95 transition font-dingos-bold cursor-pointer"
             >
               Report Lost Tag
             </button>
@@ -175,7 +175,7 @@ export default function NfcSection({ purchasedNfc, nfcIssued }: Props) {
                 type="button"
                 onClick={() => setIsRevokeModalOpen(false)}
                 disabled={isRevoking}
-                className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition font-dingos-bold"
+                className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition font-dingos-bold cursor-pointer"
               >
                 Cancel
               </button>
@@ -183,7 +183,7 @@ export default function NfcSection({ purchasedNfc, nfcIssued }: Props) {
                 type="button"
                 onClick={handleReportLost}
                 disabled={isRevoking}
-                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-bold text-white hover:bg-red-700 active:scale-95 disabled:opacity-50 transition font-dingos-bold shadow-xs"
+                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-bold text-white hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition font-dingos-bold shadow-xs cursor-pointer"
               >
                 {isRevoking ? "Deactivating..." : "Deactivate Tag"}
               </button>

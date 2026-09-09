@@ -82,7 +82,7 @@ export default function LoginPage() {
               </span>
             </span>
 
-            {step === "otp" && (
+            {/* {step === "otp" && (
               <button
                 type="button"
                 onClick={() => setStep("email")}
@@ -90,7 +90,7 @@ export default function LoginPage() {
               >
                 Change Email
               </button>
-            )}
+            )} */}
           </div>
 
           {/* Title & Description */}

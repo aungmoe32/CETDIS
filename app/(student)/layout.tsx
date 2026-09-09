@@ -52,7 +52,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
         </div>
 
         <form action={signOut}>
-          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-full transition tactile-btn font-medium">
+          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-full transition tactile-btn font-medium cursor-pointer">
             Sign out
           </button>
         </form>

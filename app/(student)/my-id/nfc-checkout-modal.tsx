@@ -96,7 +96,7 @@ export default function NfcCheckoutModal({
           <button
             onClick={onClose}
             disabled={isProcessing}
-            className="rounded-full w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+            className="rounded-full w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer disabled:cursor-not-allowed"
           >
             ✕
           </button>
@@ -131,7 +131,7 @@ export default function NfcCheckoutModal({
                       key={m}
                       type="button"
                       onClick={() => setMethod(m)}
-                      className={`p-3 rounded-2xl border text-left transition relative tactile-btn ${
+                      className={`p-3 rounded-2xl border text-left transition relative tactile-btn cursor-pointer ${
                         isSelected
                           ? info.activeBg
                           : "border-gray-200 bg-white hover:bg-gray-50/70"
@@ -198,14 +198,14 @@ export default function NfcCheckoutModal({
                 type="button"
                 onClick={onClose}
                 disabled={isProcessing}
-                className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 transition font-dingos-bold"
+                className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition font-dingos-bold cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="flex-1 rounded-full bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition font-dingos-bold tactile-btn flex items-center justify-center gap-1.5"
+                className="flex-1 rounded-full bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition font-dingos-bold tactile-btn flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isProcessing ? (
                   <>

@@ -138,7 +138,7 @@ export default function MyTicketsClient({
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -162,7 +162,7 @@ export default function MyTicketsClient({
             <button
               type="button"
               onClick={() => setActiveTab("all")}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                 activeTab === "all"
                   ? "bg-indigo-600 text-white font-dingos-bold shadow-2xs"
                   : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -174,7 +174,7 @@ export default function MyTicketsClient({
             <button
               type="button"
               onClick={() => setActiveTab("upcoming")}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                 activeTab === "upcoming"
                   ? "bg-indigo-600 text-white font-dingos-bold shadow-2xs"
                   : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -186,7 +186,7 @@ export default function MyTicketsClient({
             <button
               type="button"
               onClick={() => setActiveTab("attended")}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold transition tactile-btn shrink-0 cursor-pointer ${
                 activeTab === "attended"
                   ? "bg-indigo-600 text-white font-dingos-bold shadow-2xs"
                   : "bg-gray-100/90 text-gray-600 hover:bg-gray-200 font-medium"
@@ -227,7 +227,7 @@ export default function MyTicketsClient({
           </div>
           <Link
             href="/events"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold font-dingos-bold transition active:scale-95 shadow-xs tactile-btn"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold font-dingos-bold transition active:scale-95 shadow-xs tactile-btn cursor-pointer"
           >
             <span>Browse Upcoming Events</span>
             <span>→</span>
@@ -270,7 +270,7 @@ export default function MyTicketsClient({
               setSearchQuery("");
               setActiveTab("all");
             }}
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold font-dingos-bold transition tactile-btn"
+            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold font-dingos-bold transition tactile-btn cursor-pointer"
           >
             Reset Filters
           </button>
@@ -410,7 +410,7 @@ export default function MyTicketsClient({
 
                   <Link
                     href={`/events/${ticket.eventId}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors font-dingos-bold"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors font-dingos-bold cursor-pointer"
                   >
                     <span>Event Details</span>
                     <svg
@@ -444,7 +444,7 @@ export default function MyTicketsClient({
               </span>
               <button
                 onClick={() => setSelectedTicketForQr(null)}
-                className="rounded-full p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+                className="rounded-full p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -503,7 +503,7 @@ export default function MyTicketsClient({
               <button
                 type="button"
                 onClick={() => setSelectedTicketForQr(null)}
-                className="w-full rounded-2xl border border-gray-200 py-2.5 text-xs font-bold font-dingos-bold text-gray-700 hover:bg-gray-50 transition tactile-btn"
+                className="w-full rounded-2xl border border-gray-200 py-2.5 text-xs font-bold font-dingos-bold text-gray-700 hover:bg-gray-50 transition tactile-btn cursor-pointer"
               >
                 Close Pass
               </button>

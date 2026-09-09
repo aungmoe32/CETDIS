@@ -4,11 +4,16 @@ const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("❌ Error: DATABASE_URL is not set.");
-  console.error("Run with: node --env-file=.env.local scripts/seed-events.mjs [options]");
+  console.error(
+    "Run with: node --env-file=.env.local scripts/seed-events.mjs [options]",
+  );
   process.exit(1);
 }
 
-const sql = postgres(connectionString, { prepare: false, ssl: { rejectUnauthorized: false } });
+const sql = postgres(connectionString, {
+  prepare: false,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function main() {
   const args = process.argv.slice(2);
@@ -57,7 +62,9 @@ Options:
       process.exit(1);
     }
     organizerId = org.id;
-    console.log(`Selected organizer: ${org.full_name || "Organizer"} (${org.email})`);
+    console.log(
+      `Selected organizer: ${org.full_name || "Organizer"} (${org.email})`,
+    );
   } else {
     // Find first organizer or developer
     const organizers = await sql`
@@ -67,17 +74,24 @@ Options:
     `;
     if (organizers.length === 0) {
       // Fallback to any profile
-      const [anyProfile] = await sql`SELECT id, email, full_name, role FROM profiles LIMIT 1`;
+      const [anyProfile] =
+        await sql`SELECT id, email, full_name, role FROM profiles LIMIT 1`;
       if (!anyProfile) {
-        console.error("❌ No profiles found in the database. Please sign up or log in first.");
+        console.error(
+          "❌ No profiles found in the database. Please sign up or log in first.",
+        );
         await sql.end();
         process.exit(1);
       }
       organizerId = anyProfile.id;
-      console.log(`⚠️ No organizer profile found. Using profile: ${anyProfile.email}`);
+      console.log(
+        `⚠️ No organizer profile found. Using profile: ${anyProfile.email}`,
+      );
     } else {
       organizerId = organizers[0].id;
-      console.log(`Assigning to organizer: ${organizers[0].full_name || "Organizer"} (${organizers[0].email})`);
+      console.log(
+        `Assigning to organizer: ${organizers[0].full_name || "Organizer"} (${organizers[0].email})`,
+      );
     }
   }
 
@@ -87,11 +101,15 @@ Options:
     WHERE role = 'student'
     ORDER BY created_at ASC
   `;
-  console.log(`Found ${students.length} student profile(s) to participate in mock RSVPs.\n`);
+  console.log(
+    `Found ${students.length} student profile(s) to participate in mock RSVPs.\n`,
+  );
 
   // Step 3: Optional Reset
   if (shouldReset) {
-    console.log("🧹 Wiping existing tickets and events as requested (--reset)...");
+    console.log(
+      "🧹 Wiping existing tickets and events as requested (--reset)...",
+    );
     await sql.begin(async (tx) => {
       await tx`DELETE FROM tickets`;
       await tx`DELETE FROM events`;
@@ -149,7 +167,7 @@ A fun-filled evening introducing campus clubs, student life, and leadership oppo
       description: `### 24-Hour AI Prototype Challenge
 Build agents, LLM applications, and computer vision models. High-speed campus Wi-Fi, mentorship desk, and coffee bar provided throughout the event.
 
-#### Door Policy
+*Door Policy*
 - Scan your digital QR pass or tap your physical NFC card at the entrance gate.
 - Walk-up ticketing available at the door for 5,000 MMK.`,
     },
@@ -207,7 +225,9 @@ Over 40 international food stalls, cultural dance performances, traditional craf
     },
   ];
 
-  console.log(`Inserting ${mockEventsData.length} events across PAST, TODAY, and FUTURE timeline...\n`);
+  console.log(
+    `Inserting ${mockEventsData.length} events across PAST, TODAY, and FUTURE timeline...\n`,
+  );
 
   const createdEvents = [];
 
@@ -240,13 +260,17 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   let checkedInCount = 0;
 
   if (students.length > 0) {
-    console.log("🎟️ Generating realistic student ticket RSVPs and check-in states...");
+    console.log(
+      "🎟️ Generating realistic student ticket RSVPs and check-in states...",
+    );
 
     for (const event of createdEvents) {
       // Pick a subset of students for this event
       const numTickets = Math.min(
         students.length,
-        event.category === "PAST" ? students.length : Math.max(2, Math.floor(students.length * 0.75))
+        event.category === "PAST"
+          ? students.length
+          : Math.max(2, Math.floor(students.length * 0.75)),
       );
 
       for (let i = 0; i < numTickets; i++) {
@@ -260,7 +284,9 @@ Over 40 international food stalls, cultural dance performances, traditional craf
 
         if (isPast && i % 4 !== 0) {
           isCheckedIn = true;
-          scannedAt = new Date(new Date(event.date_time).getTime() + 15 * 60 * 1000); // 15 mins after start
+          scannedAt = new Date(
+            new Date(event.date_time).getTime() + 15 * 60 * 1000,
+          ); // 15 mins after start
           checkedInCount++;
         } else if (isToday && i === 0) {
           isCheckedIn = true;
@@ -294,9 +320,13 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   }
 
   // Step 6: Summary table
-  console.log("\n================================================================================");
+  console.log(
+    "\n================================================================================",
+  );
   console.log("✅ Seed Complete! Overview of Generated Events:");
-  console.log("================================================================================\n");
+  console.log(
+    "================================================================================\n",
+  );
 
   console.table(
     createdEvents.map((e) => {
@@ -309,14 +339,18 @@ Over 40 international food stalls, cultural dance performances, traditional craf
         Price: e.price === 0 ? "Free" : `${e.price.toLocaleString()} MMK`,
         Capacity: e.max_capacity,
       };
-    })
+    }),
   );
 
   console.log(`Summary:`);
-  console.log(`  • Events created:     ${createdEvents.length} (2 Past, 2 Today, 4 Future)`);
+  console.log(
+    `  • Events created:     ${createdEvents.length} (2 Past, 2 Today, 4 Future)`,
+  );
   console.log(`  • Tickets registered: ${ticketCount}`);
   console.log(`  • Already checked-in: ${checkedInCount}`);
-  console.log("\n💡 You can now view Today's Events on the Organizer Dashboard and browse upcoming events on the Student Events Catalog!\n");
+  console.log(
+    "\n💡 You can now view Today's Events on the Organizer Dashboard and browse upcoming events on the Student Events Catalog!\n",
+  );
 
   await sql.end();
 }
