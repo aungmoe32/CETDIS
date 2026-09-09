@@ -103,10 +103,10 @@ export default async function DashboardPage() {
             Entrance gate control &amp; attendee management
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-150">
+        {/* <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-150">
           <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
           Door Live
-        </span>
+        </span> */}
       </div>
 
       {/* Conditional Low NFC Inventory Alert Banner */}

@@ -59,24 +59,6 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-  {
-    href: "/admin",
-    label: "NFC Admin",
-    sublabel: "Student Lookup & Tags",
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-      >
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="5" />
-        <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
-      </svg>
-    ),
-  },
 ];
 
 export function DesktopSidebarNav() {
