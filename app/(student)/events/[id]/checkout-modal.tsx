@@ -166,9 +166,9 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-dingos-bold">
+                  {/* <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-dingos-bold">
                     Single Admission
-                  </span>
+                  </span> */}
                 </div>
 
                 {/* Payment Methods */}
@@ -247,7 +247,8 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
 
                 {/* Notice */}
                 <p className="text-[10px] text-gray-400 text-center">
-                  This is a demonstration environment. No actual funds are charged.
+                  This is a demonstration environment. No actual funds are
+                  charged.
                 </p>
 
                 {/* Actions */}

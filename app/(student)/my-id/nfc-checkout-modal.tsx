@@ -157,8 +157,8 @@ export default function NfcCheckoutModal({
             </div>
 
             {/* Merchant Account Details Box */}
-            <div className="rounded-2xl bg-gray-50/80 border border-gray-200/80 p-3.5 space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl bg-gray-50/80 border border-gray-200/80 p-3.5 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/70">
                 <span className="text-gray-500 font-medium">
                   Recipient Account:
                 </span>
@@ -166,21 +166,32 @@ export default function NfcCheckoutModal({
                   {selectedMerchant.name}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/70">
                 <span className="text-gray-500 font-medium">
                   Phone / PayID:
                 </span>
-                <span className="font-bold text-indigo-700 font-dingos-bold text-sm">
+                <span className="font-bold text-indigo-700 font-mono text-sm">
                   {selectedMerchant.phone}
                 </span>
               </div>
-              {/* <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
-                <span className="text-gray-500 font-medium">Simulated Txn ID:</span>
-                <span className="font-mono text-gray-600 text-[11px]">
-                  {txnId}
-                </span>
-              </div> */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider font-dingos-bold mb-1">
+                  Demo Transaction ID (Pre-filled):
+                </label>
+                <input
+                  type="text"
+                  value={txnId}
+                  onChange={(e) => setTxnId(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-mono text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                />
+              </div>
             </div>
+
+            {/* Notice */}
+            <p className="text-[10px] text-gray-400 text-center">
+              This is a demonstration environment. No actual funds are charged.
+            </p>
 
             {/* Price Breakdown */}
             <div className="flex items-center justify-between px-1">

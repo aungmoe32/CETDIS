@@ -18,28 +18,36 @@ const sql = postgres(connectionString, {
 async function main() {
   const args = process.argv.slice(2);
   const shouldReset = args.includes("--reset") || args.includes("-r");
+  const allUsers = args.includes("--all-users");
   const organizerIdx = args.findIndex((a) => a === "--organizer" || a === "-o");
   const organizerTarget = organizerIdx !== -1 ? args[organizerIdx + 1] : null;
+  const studentIdx = args.findIndex((a) => a === "--student" || a === "-s");
+  const studentTarget = studentIdx !== -1 ? args[studentIdx + 1] : null;
 
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`
-CETDIS Mock Events & Tickets Seeder
+CETDIS Mock Events & Random Student Tickets Seeder
 ================================================================================
 Usage:
-  # 1. Seed past, present (today), and future mock events:
+  # 1. Seed past, present (today), and future events with randomized student tickets:
   pnpm db:seed-events
   node --env-file=.env.local scripts/seed-events.mjs
 
-  # 2. Reset database and seed fresh mock events:
+  # 2. Reset database and seed fresh events + randomized student tickets:
   pnpm db:seed-events --reset
   node --env-file=.env.local scripts/seed-events.mjs --reset
 
   # 3. Assign seeded events to a specific organizer:
   node --env-file=.env.local scripts/seed-events.mjs --organizer organizer@example.com
 
+  # 4. Generate random tickets for a specific student/developer:
+  node --env-file=.env.local scripts/seed-events.mjs --student student@example.com
+
 Options:
   --reset, -r            Wipe existing events and tickets before seeding
   --organizer, -o <id>   Assign events to a specific organizer email or UUID
+  --student, -s <id>     Only seed tickets for a specific student/dev email or UUID
+  --all-users            Include all profiles (even organizers) for student ticket mock
 ================================================================================
 `);
     await sql.end();
@@ -95,15 +103,38 @@ Options:
     }
   }
 
-  // Step 2: Query students to attach mock tickets
-  const students = await sql`
-    SELECT id, email, full_name, check_in_token FROM profiles 
-    WHERE role = 'student'
-    ORDER BY created_at ASC
-  `;
-  console.log(
-    `Found ${students.length} student profile(s) to participate in mock RSVPs.\n`,
-  );
+  // Step 2: Query students & developers eligible for randomized tickets
+  let students;
+  if (studentTarget) {
+    students = await sql`
+      SELECT id, email, full_name, role, check_in_token FROM profiles 
+      WHERE id::text = ${studentTarget} OR LOWER(email) = ${studentTarget.toLowerCase()}
+    `;
+    if (students.length === 0) {
+      console.error(`❌ Specified student not found: "${studentTarget}"`);
+      await sql.end();
+      process.exit(1);
+    }
+    console.log(
+      `Targeted student: ${students[0].full_name || "Student"} (${students[0].email}) [role: ${students[0].role}]`,
+    );
+  } else if (allUsers) {
+    students = await sql`
+      SELECT id, email, full_name, role, check_in_token FROM profiles 
+      ORDER BY created_at ASC
+    `;
+    console.log(`Found ${students.length} total profile(s) to participate in mock RSVPs.`);
+  } else {
+    // Include all students and developers (so developers testing student views also get mock tickets)
+    students = await sql`
+      SELECT id, email, full_name, role, check_in_token FROM profiles 
+      WHERE role IN ('student', 'developer')
+      ORDER BY created_at ASC
+    `;
+    console.log(
+      `Found ${students.length} student & tester profile(s) to participate in mock RSVPs.\n`,
+    );
+  }
 
   // Step 3: Optional Reset
   if (shouldReset) {
@@ -255,44 +286,138 @@ Over 40 international food stalls, cultural dance performances, traditional craf
     createdEvents.push({ ...inserted, category: item.category });
   }
 
-  // Step 5: Issue sample tickets if students exist
+  // Helper function to shuffle an array
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Helper random int between min and max inclusive
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Step 5: Issue randomized tickets per student
   let ticketCount = 0;
   let checkedInCount = 0;
 
+  // Track detailed metrics per student
+  const studentStats = new Map(
+    students.map((s) => [
+      s.id,
+      {
+        id: s.id,
+        email: s.email,
+        name: s.full_name || s.email.split("@")[0],
+        role: s.role,
+        tickets: 0,
+        pastAttended: 0,
+        pastMissed: 0,
+        todayScanned: 0,
+        todayReady: 0,
+        futureUpcoming: 0,
+      },
+    ]),
+  );
+
+  // Track event registration count
+  const eventRegistrations = new Map(
+    createdEvents.map((e) => [
+      e.id,
+      {
+        ...e,
+        total: 0,
+        checkedIn: 0,
+        pending: 0,
+      },
+    ]),
+  );
+
   if (students.length > 0) {
     console.log(
-      "🎟️ Generating realistic student ticket RSVPs and check-in states...",
+      "🎲 Generating individualized random tickets & realistic check-in states per student...",
     );
 
-    for (const event of createdEvents) {
-      // Pick a subset of students for this event
-      const numTickets = Math.min(
-        students.length,
-        event.category === "PAST"
-          ? students.length
-          : Math.max(2, Math.floor(students.length * 0.75)),
-      );
+    // 1. Iterate per student and assign a randomized number of tickets
+    for (const student of students) {
+      const stats = studentStats.get(student.id);
 
-      for (let i = 0; i < numTickets; i++) {
-        const student = students[i];
+      // Student activity profiles:
+      // ~20% casual (1 to 2 tickets)
+      // ~50% regular (2 to 4 tickets)
+      // ~30% active (4 to 6 tickets)
+      const roll = Math.random();
+      let targetTicketCount;
+      if (roll < 0.2) {
+        targetTicketCount = randomInt(1, 2);
+      } else if (roll < 0.7) {
+        targetTicketCount = randomInt(2, 4);
+      } else {
+        targetTicketCount = randomInt(4, Math.min(6, createdEvents.length));
+      }
+
+      // Pick random distinct events for this student
+      const chosenEvents = shuffle(createdEvents).slice(0, targetTicketCount);
+
+      for (const event of chosenEvents) {
+        const evReg = eventRegistrations.get(event.id);
+        // Ensure event capacity isn't exceeded
+        if (evReg && evReg.total >= event.max_capacity) {
+          continue;
+        }
+
         const isPast = event.category === "PAST";
         const isToday = event.category === "TODAY";
 
-        // For past events: 80% checked in. For today: 30% checked in. For future: 0% checked in.
         let isCheckedIn = false;
         let scannedAt = null;
 
-        if (isPast && i % 4 !== 0) {
-          isCheckedIn = true;
-          scannedAt = new Date(
-            new Date(event.date_time).getTime() + 15 * 60 * 1000,
-          ); // 15 mins after start
-          checkedInCount++;
-        } else if (isToday && i === 0) {
-          isCheckedIn = true;
-          scannedAt = new Date();
-          checkedInCount++;
+        if (isPast) {
+          // Past events: ~80% attended and checked in, ~20% no-show
+          isCheckedIn = Math.random() < 0.8;
+          if (isCheckedIn) {
+            // Check-in around event start time (-15 mins to +45 mins)
+            const eventTime = new Date(event.date_time).getTime();
+            const jitterMinutes = randomInt(-15, 45);
+            scannedAt = new Date(eventTime + jitterMinutes * 60 * 1000);
+            checkedInCount++;
+            stats.pastAttended++;
+            if (evReg) evReg.checkedIn++;
+          } else {
+            stats.pastMissed++;
+            if (evReg) evReg.pending++;
+          }
+        } else if (isToday) {
+          // Today's events: ~35% already scanned at the door, ~65% ready for door scan!
+          isCheckedIn = Math.random() < 0.35;
+          if (isCheckedIn) {
+            // Scanned earlier today (between 5 and 120 minutes ago)
+            const minutesAgo = randomInt(5, 120);
+            scannedAt = new Date(Date.now() - minutesAgo * 60 * 1000);
+            checkedInCount++;
+            stats.todayScanned++;
+            if (evReg) evReg.checkedIn++;
+          } else {
+            stats.todayReady++;
+            if (evReg) evReg.pending++;
+          }
+        } else {
+          // Future upcoming events
+          stats.futureUpcoming++;
+          if (evReg) evReg.pending++;
         }
+
+        // Purchase method: Free events are always 'online', paid are 80% 'online' / 20% 'cash_at_door'
+        const purchaseMethod =
+          event.price === 0
+            ? "online"
+            : Math.random() < 0.2
+              ? "cash_at_door"
+              : "online";
 
         try {
           await sql`
@@ -307,14 +432,80 @@ Over 40 international food stalls, cultural dance performances, traditional craf
               ${event.id},
               ${isCheckedIn},
               ${scannedAt},
-              ${i % 3 === 0 ? "cash_at_door" : "online"}
+              ${purchaseMethod}
             )
             ON CONFLICT (user_id, event_id) DO NOTHING
           `;
           ticketCount++;
+          stats.tickets++;
+          if (evReg) evReg.total++;
         } catch {
-          // Ignore duplicates
+          // Ignore conflict
         }
+      }
+    }
+
+    // 2. Organizer Testing Quality Assurance Pass:
+    // Ensure every TODAY event has at least 1 checked-in attendee and at least 2 pending attendees
+    for (const event of createdEvents.filter((e) => e.category === "TODAY")) {
+      const evReg = eventRegistrations.get(event.id);
+      if (!evReg) continue;
+
+      // Find students not yet registered for this event
+      const existingAttendees = await sql`
+        SELECT user_id, is_checked_in FROM tickets WHERE event_id = ${event.id}
+      `;
+      const registeredUserIds = new Set(existingAttendees.map((t) => t.user_id));
+      const unassignedStudents = shuffle(
+        students.filter((s) => !registeredUserIds.has(s.id)),
+      );
+
+      // Need more checked-in attendees?
+      let currentCheckedIn = existingAttendees.filter((t) => t.is_checked_in).length;
+      let currentPending = existingAttendees.filter((t) => !t.is_checked_in).length;
+
+      while (currentCheckedIn < 1 && unassignedStudents.length > 0) {
+        const student = unassignedStudents.pop();
+        const minutesAgo = randomInt(10, 60);
+        const scannedAt = new Date(Date.now() - minutesAgo * 60 * 1000);
+        try {
+          await sql`
+            INSERT INTO tickets (user_id, event_id, is_checked_in, scanned_at, purchase_method)
+            VALUES (${student.id}, ${event.id}, true, ${scannedAt}, 'online')
+            ON CONFLICT (user_id, event_id) DO NOTHING
+          `;
+          ticketCount++;
+          checkedInCount++;
+          currentCheckedIn++;
+          const stats = studentStats.get(student.id);
+          if (stats) {
+            stats.tickets++;
+            stats.todayScanned++;
+          }
+          evReg.total++;
+          evReg.checkedIn++;
+        } catch {}
+      }
+
+      // Need more pending door scan attendees?
+      while (currentPending < 2 && unassignedStudents.length > 0) {
+        const student = unassignedStudents.pop();
+        try {
+          await sql`
+            INSERT INTO tickets (user_id, event_id, is_checked_in, scanned_at, purchase_method)
+            VALUES (${student.id}, ${event.id}, false, null, 'online')
+            ON CONFLICT (user_id, event_id) DO NOTHING
+          `;
+          ticketCount++;
+          currentPending++;
+          const stats = studentStats.get(student.id);
+          if (stats) {
+            stats.tickets++;
+            stats.todayReady++;
+          }
+          evReg.total++;
+          evReg.pending++;
+        } catch {}
       }
     }
   }
@@ -331,15 +522,31 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   console.table(
     createdEvents.map((e) => {
       const dt = new Date(e.date_time);
+      const evReg = eventRegistrations.get(e.id);
       return {
         Timeline: e.category,
         Title: e.title,
         "Date & Time": `${dt.toLocaleDateString([], { month: "short", day: "numeric" })} ${dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-        Venue: e.location.slice(0, 24) + "...",
+        Venue: e.location.length > 24 ? e.location.slice(0, 24) + "..." : e.location,
         Price: e.price === 0 ? "Free" : `${e.price.toLocaleString()} MMK`,
         Capacity: e.max_capacity,
+        Registered: evReg ? evReg.total : 0,
+        "Checked In": evReg ? evReg.checkedIn : 0,
       };
     }),
+  );
+
+  console.log("🎟️ Randomized Student Ticket Distribution:");
+  console.table(
+    Array.from(studentStats.values()).map((s) => ({
+      Student: s.name,
+      Email: s.email,
+      Role: s.role,
+      "Total Tickets": s.tickets,
+      "Past (Attended/Missed)": `${s.pastAttended} / ${s.pastMissed}`,
+      "Today (Scanned/Ready)": `${s.todayScanned} / ${s.todayReady}`,
+      Upcoming: s.futureUpcoming,
+    })),
   );
 
   console.log(`Summary:`);
@@ -348,6 +555,9 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   );
   console.log(`  • Tickets registered: ${ticketCount}`);
   console.log(`  • Already checked-in: ${checkedInCount}`);
+  console.log(
+    `  • Ready at door:      ${ticketCount - checkedInCount}`,
+  );
   console.log(
     "\n💡 You can now view Today's Events on the Organizer Dashboard and browse upcoming events on the Student Events Catalog!\n",
   );
