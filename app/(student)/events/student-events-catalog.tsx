@@ -72,6 +72,19 @@ export default function StudentEventsCatalog({ initialEvents }: Props) {
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-5 pb-24 select-none">
+      {/* Top Page Switcher Pills */}
+      <div className="flex items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80">
+        <div className="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-2xs font-dingos-bold">
+          Explore Events
+        </div>
+        <Link
+          href="/my-tickets"
+          className="flex-1 text-center py-2 rounded-xl text-xs font-medium text-gray-600 hover:text-gray-900 transition active:scale-95"
+        >
+          My Tickets
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
