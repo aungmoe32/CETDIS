@@ -112,13 +112,13 @@ export default function NfcSection({ purchasedNfc, nfcIssued }: Props) {
                 <span className="text-[10px] text-gray-400 block font-medium">
                   One-Time Fee
                 </span>
-                <span className="font-bebas text-2xl text-gray-900 tracking-wide">
+                <span className="font-dingos-bold text-md text-gray-900 tracking-wide">
                   3,000 MMK
                 </span>
               </div>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="rounded-full bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 transition font-dingos-bold tactile-btn"
+                className="rounded-full cursor-pointer bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-95 transition font-dingos-bold tactile-btn"
               >
                 Get NFC Tag
               </button>
