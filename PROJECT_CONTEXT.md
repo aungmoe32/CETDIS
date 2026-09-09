@@ -365,6 +365,60 @@ sequenceDiagram
 
 ---
 
+### G. Deep Dive: Offline-First Check-In Flow, Split-Brain Resolution & Caching Strategy
+
+This offline-first check-in system solves some of the most notoriously difficult problems in distributed web architecture. When dealing with event check-ins, data integrity is critical: you cannot afford to let two people in with the same ticket, nor can you afford the app crashing if the venue’s Wi-Fi drops.
+
+Here is a comprehensive breakdown of how this architecture solves the core problems of **Check-In Flows, Split-Brain conflicts, Caching, and Data Synchronization.**
+
+#### 1. The Check-In Process (The Flow)
+
+Whether the organizer uses the **QR Scanner** or the newly integrated **NFC Scanner**, the application routes the scanned token through a shared, highly resilient logic flow:
+
+1. **The "Local-First" Interception:** Before doing anything, the app queries IndexedDB. If the local database says `is_checked_in: true`, it instantly rejects the ticket as a duplicate, without ever touching the network.
+2. **Network Routing:**
+   - **If Offline:** The app queries IndexedDB. If the ticket is found and valid, it updates the local state to `true`, pushes the record to the `sync_queue`, and grants entry. (If not found locally, it securely rejects the ticket).
+   - **If Online:** The app sends the token to the Next.js Server Action. The server securely verifies ownership, updates the Postgres database, and returns a success response.
+3. **Cache On-The-Fly:** If the online check-in succeeds, the app immediately writes that ticket's success status into the local IndexedDB, keeping the offline backup perfectly up-to-date.
+
+#### 2. Conquering the "Split-Brain" Problem
+
+A "Split-Brain" occurs when the live server and the offline device disagree on the truth. If an organizer downloads the guest list at 8:00 AM, scans a ticket _online_ at 8:15 AM, and goes _offline_ at 8:30 AM, their offline database could wrongly think that ticket is still valid.
+
+The app solves this using a **3-Part Shield**:
+
+- **The "Cache On-The-Fly" Shield:** Every successful online scan automatically updates the local IndexedDB. If the Wi-Fi drops a minute later, the local database already knows exactly who walked through the doors.
+- **The "Safe Merge" Shield (Preventing Local Wipes):** If the organizer re-downloads the guest list while they have pending offline scans, the app does not blindly overwrite the local database. It checks the `sync_queue` and forces those pending tickets to remain `is_checked_in: true` during the merge, preventing accidental double-scans.
+- **The Server-Side "Time Travel" Shield:** If an offline device tries to sync a ticket that was scanned at 10:15 AM, but the server already recorded that ticket as scanned at 10:00 AM, the server rejects the offline sync. The Postgres update query is strictly scoped: `where(and(eq(tickets.id, id), eq(tickets.isCheckedIn, false)))`.
+
+#### 3. The Synchronization Engine (Handling Offline Data)
+
+When tickets are scanned offline, they are trapped in the device's `sync_queue`. Getting them safely to the server requires careful handling of network events:
+
+- **Triggering the Sync:** The sync process (`flushSyncQueue`) is triggered in two ways to ensure data is never orphaned:
+  1. **Event-Driven:** The exact millisecond the browser fires the `online` event (Wi-Fi reconnects).
+  2. **On-Mount:** The moment the scanner page is opened (if the device is already online). This catches tickets that were scanned offline if the user closed the app before reconnecting.
+- **The Mutex Lock (Race Condition Prevention):** If a user walks through a spotty Wi-Fi area, the `online` event might fire 10 times in three seconds. The `flushSyncQueue` uses a memory lock (`isSyncing = true`) to ensure that it never fires parallel API requests, protecting the Next.js server from being spammed with duplicate payloads.
+
+#### 4. The Dual-Layer Caching Strategy
+
+An offline PWA requires two completely different types of caching to function. CETDIS handles both:
+
+**Layer 1: The Asset Cache (Serwist / Service Worker)**
+- Next.js and Turbopack generate the UI (HTML, CSS, JS, Fonts).
+- Serwist intercepts network traffic. If the user goes offline, Serwist serves the Next.js UI from the browser's Cache Storage.
+- _Crucial Rule:_ The Next.js `proxy.ts` middleware is configured to ignore the `/~offline` and `/serwist` routes. This ensures the Service Worker can install itself securely in the background without being accidentally redirected to the `/login` page.
+
+**Layer 2: The Data Cache (IndexedDB)**
+- While Serwist loads the UI, it doesn't know about user data. IndexedDB acts as your local Postgres replica.
+- **Auto-Downloading:** To protect organizers from forgetting to click "Download Guest List", the scanner page `useEffect` is configured to silently fetch the entire guest list in the background the moment they open the camera.
+
+#### Architectural Summary
+
+By combining **Next.js Server Actions** (for secure, authenticated online processing), **Serwist** (for offline UI rendering), and **IndexedDB** (for resilient, conflict-free data storage), CETDIS provides an enterprise-grade check-in system that seamlessly bridges the gap between the server and the local device without data loss or duplicate entries.
+
+---
+
 ## 7. Security, RLS & Access Control Rules
 
 1. **Next.js 16 `proxy.ts`**:
