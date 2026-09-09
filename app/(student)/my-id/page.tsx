@@ -93,9 +93,9 @@ export default async function MyIdPage() {
           <p className="text-xs text-gray-500">
             Show this QR code at any campus event door
           </p>
-          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
+          {/* <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
             ID: {profile.checkInToken.slice(0, 18)}...
-          </p>
+          </p> */}
         </div>
       </div>
 

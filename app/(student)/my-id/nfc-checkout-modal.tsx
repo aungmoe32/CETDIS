@@ -83,9 +83,9 @@ export default function NfcCheckoutModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full font-dingos-bold">
+            {/* <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full font-dingos-bold">
               Instant Order
-            </span>
+            </span> */}
             <h2 className="text-xl font-bold text-gray-900 mt-1 font-dingos-bold">
               Universal NFC ID Tag
             </h2>
@@ -111,7 +111,8 @@ export default function NfcCheckoutModal({
               Payment Confirmed!
             </h4>
             <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
-              Your NFC pass is ready. Show your digital QR code to any organizer to claim your physical tag.
+              Your NFC pass is ready. Show your digital QR code to any organizer
+              to claim your physical tag.
             </p>
           </div>
         ) : (
@@ -136,7 +137,9 @@ export default function NfcCheckoutModal({
                           : "border-gray-200 bg-white hover:bg-gray-50/70"
                       }`}
                     >
-                      <p className={`font-bold text-sm font-dingos-bold ${info.color}`}>
+                      <p
+                        className={`font-bold text-sm font-dingos-bold ${info.color}`}
+                      >
                         {info.label}
                       </p>
                       <p className="text-[11px] text-gray-400 mt-0.5">
@@ -156,23 +159,27 @@ export default function NfcCheckoutModal({
             {/* Merchant Account Details Box */}
             <div className="rounded-2xl bg-gray-50/80 border border-gray-200/80 p-3.5 space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 font-medium">Recipient Account:</span>
+                <span className="text-gray-500 font-medium">
+                  Recipient Account:
+                </span>
                 <span className="font-bold text-gray-900 font-dingos-bold">
                   {selectedMerchant.name}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 font-medium">Phone / PayID:</span>
+                <span className="text-gray-500 font-medium">
+                  Phone / PayID:
+                </span>
                 <span className="font-bold text-indigo-700 font-dingos-bold text-sm">
                   {selectedMerchant.phone}
                 </span>
               </div>
-              <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
+              {/* <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
                 <span className="text-gray-500 font-medium">Simulated Txn ID:</span>
                 <span className="font-mono text-gray-600 text-[11px]">
                   {txnId}
                 </span>
-              </div>
+              </div> */}
             </div>
 
             {/* Price Breakdown */}
@@ -180,7 +187,7 @@ export default function NfcCheckoutModal({
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider font-dingos-bold">
                 Total Due:
               </span>
-              <span className="font-bebas text-3xl text-gray-900 tracking-wide">
+              <span className="font-dingos-bold text-md text-gray-900 tracking-wide">
                 {formattedPrice}
               </span>
             </div>
@@ -209,12 +216,17 @@ export default function NfcCheckoutModal({
                       viewBox="0 0 24 24"
                     >
                       <circle cx="12" cy="12" r="9" strokeWidth={2} />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 3v4"
+                      />
                     </svg>
                     <span>Verifying...</span>
                   </>
                 ) : (
-                  <span>Pay {formattedPrice}</span>
+                  <span>Pay</span>
                 )}
               </button>
             </div>
