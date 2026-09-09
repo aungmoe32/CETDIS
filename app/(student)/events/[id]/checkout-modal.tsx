@@ -27,7 +27,7 @@ const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
     label: "KBZPay",
     subLabel: "KPay Wallet",
     color: "text-blue-700",
-    activeBg: "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20",
+    activeBg: "border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20",
   },
   wave: {
     name: "Daw Hnin Ei (CETDIS Wave)",
@@ -35,7 +35,7 @@ const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
     label: "WavePay",
     subLabel: "Wave Money",
     color: "text-amber-600",
-    activeBg: "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20",
+    activeBg: "border-amber-600 bg-amber-50/60 ring-2 ring-amber-500/20",
   },
 };
 
@@ -78,50 +78,59 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+        className="w-full rounded-2xl bg-indigo-600 px-4 py-3.5 text-sm font-bold font-dingos-bold text-white shadow-xs hover:bg-indigo-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
       >
         <svg
           className="w-4 h-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          strokeWidth={2}
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={2}
             d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
           />
         </svg>
-        <span>Proceed to Checkout ({formattedPrice})</span>
+        <span>
+          Proceed to Checkout (
+          <span className="font-bebas text-base">{price.toLocaleString()}</span>{" "}
+          MMK)
+        </span>
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 relative overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 select-none">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-gray-100 relative overflow-hidden space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+            <div className="flex items-start justify-between border-b border-gray-100 pb-3.5">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full font-dingos-bold inline-block mb-1">
+                  Ticket Purchase
+                </span>
+                <h2 className="text-lg font-bold text-gray-900 font-dingos-bold">
                   Demo Checkout
                 </h2>
-                <p className="text-xs text-gray-500">{eventTitle}</p>
+                <p className="text-xs text-gray-500 truncate max-w-xs mt-0.5">
+                  {eventTitle}
+                </p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
                 disabled={isProcessing}
-                className="rounded-full p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+                className="rounded-full p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  strokeWidth={2.5}
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
@@ -130,46 +139,54 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
 
             {isSuccess ? (
               <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl font-bold animate-bounce">
+                <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold shadow-xs animate-bounce">
                   ✓
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-bold text-gray-900 font-dingos-bold">
                   Payment Successful!
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Your ticket for {formattedPrice} has been issued.
+                <p className="text-xs text-gray-500">
+                  Your ticket for {formattedPrice} has been confirmed.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleCheckout} className="space-y-4">
-                {/* Order summary box */}
-                <div className="rounded-xl bg-gray-50 p-3.5 border border-gray-200 flex items-center justify-between">
+                {/* Order Summary Box */}
+                <div className="rounded-2xl bg-gray-50 border border-gray-200/80 p-3.5 flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-gray-500 block">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-dingos-bold block">
                       Ticket Price
                     </span>
-                    <span className="text-base font-bold text-gray-900">
-                      {formattedPrice}
-                    </span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-2xl font-bold text-gray-900 font-bebas">
+                        {price.toLocaleString()}
+                      </span>
+                      <span className="text-xs font-bold text-gray-500 font-dingos-bold">
+                        MMK
+                      </span>
+                    </div>
                   </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-dingos-bold">
+                    Single Admission
+                  </span>
                 </div>
 
                 {/* Payment Methods */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                    Select Payment Method
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider font-dingos-bold mb-2">
+                    Select Mobile Wallet
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       onClick={() => setMethod("kpay")}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn ${
                         method === "kpay"
                           ? MERCHANTS.kpay.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
                       }`}
                     >
-                      <span className="font-bold text-sm text-blue-700">
+                      <span className="font-bold text-sm text-blue-700 font-dingos-bold">
                         KBZPay
                       </span>
                       <span className="text-[11px] text-gray-500">
@@ -180,13 +197,13 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                     <button
                       type="button"
                       onClick={() => setMethod("wave")}
-                      className={`p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 active:scale-98 tactile-btn ${
                         method === "wave"
                           ? MERCHANTS.wave.activeBg
                           : "border-gray-200 hover:border-gray-300 bg-white"
                       }`}
                     >
-                      <span className="font-bold text-sm text-amber-600">
+                      <span className="font-bold text-sm text-amber-600 font-dingos-bold">
                         WavePay
                       </span>
                       <span className="text-[11px] text-gray-500">
@@ -197,21 +214,25 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                 </div>
 
                 {/* Dynamic Merchant Details for Selected Method */}
-                <div className="rounded-xl border border-gray-200 p-3.5 bg-gray-50/70 space-y-2.5">
+                <div className="rounded-2xl border border-gray-200/80 p-3.5 bg-gray-50/70 space-y-2.5">
                   <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
-                    <span className="text-gray-500">Account Name:</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-gray-400 font-medium">
+                      Account Name:
+                    </span>
+                    <span className="font-semibold text-gray-900">
                       {selectedMerchant.name}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs pb-1.5 border-b border-gray-200/70">
-                    <span className="text-gray-500">Merchant Phone:</span>
-                    <span className=" font-bold text-gray-900 text-sm">
+                    <span className="text-gray-400 font-medium">
+                      Merchant Phone:
+                    </span>
+                    <span className="font-bold text-gray-900 font-mono text-sm">
                       {selectedMerchant.phone}
                     </span>
                   </div>
                   <div>
-                    <label className="block text-[11px] text-gray-500 mb-1">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider font-dingos-bold mb-1">
                       Demo Transaction ID (Pre-filled):
                     </label>
                     <input
@@ -219,36 +240,35 @@ export default function CheckoutModal({ eventId, eventTitle, price }: Props) {
                       value={txnId}
                       onChange={(e) => setTxnId(e.target.value)}
                       required
-                      className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs  focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-mono text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
                     />
                   </div>
                 </div>
 
                 {/* Notice */}
-                <p className="text-[11px] text-gray-400 text-center">
-                  This is a demonstration environment. No actual funds are
-                  charged.
+                <p className="text-[10px] text-gray-400 text-center">
+                  This is a demonstration environment. No actual funds are charged.
                 </p>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
                     disabled={isProcessing}
-                    className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-xs font-bold font-dingos-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition tactile-btn"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                    className="flex-1 rounded-2xl bg-indigo-600 px-4 py-2.5 text-xs font-bold font-dingos-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2 shadow-xs tactile-btn"
                   >
                     {isProcessing ? (
                       <>
                         <svg
-                          className="animate-spin h-4 w-4 text-white"
+                          className="animate-spin h-3.5 w-3.5 text-white"
                           fill="none"
                           viewBox="0 0 24 24"
                         >
