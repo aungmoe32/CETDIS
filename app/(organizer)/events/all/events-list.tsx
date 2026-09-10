@@ -156,6 +156,8 @@ export default function EventsListClient({ initialEvents }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events by title or location..."
+            autoComplete="off"
+            suppressHydrationWarning
             className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
           />
           {searchQuery && (

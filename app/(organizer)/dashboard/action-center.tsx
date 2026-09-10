@@ -442,6 +442,8 @@ export default function ActionCenter({ events }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Type student name or email to check in..."
+            autoComplete="off"
+            suppressHydrationWarning
             className="w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
           />
 
@@ -1116,6 +1118,8 @@ export default function ActionCenter({ events }: Props) {
                     value={walkUpGuestName}
                     onChange={(e) => setWalkUpGuestName(e.target.value)}
                     placeholder="Leave blank for Anonymous"
+                    autoComplete="off"
+                    suppressHydrationWarning
                     className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
                   />
                 </div>
