@@ -324,7 +324,7 @@ export default function ActionCenter({ events }: Props) {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-base sm:text-lg font-bold tracking-tight font-dingos-bold text-white">
-                  Open Scanner
+                  Quick Scanner
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-indigo-150 mt-0.5 truncate font-medium">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { getPendingSyncs } from "@/lib/idb";
 import { flushSyncQueue } from "@/lib/sync";
 import { signOut } from "@/app/(auth)/login/actions";
@@ -9,6 +10,8 @@ export default function GlobalStatusBar() {
   const [isOnline, setIsOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const checkSyncCount = useCallback(async () => {
     try {
@@ -65,6 +68,25 @@ export default function GlobalStatusBar() {
       clearInterval(interval);
     };
   }, [checkSyncCount]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 py-2.5 sm:py-3 transition-colors select-none">
@@ -143,15 +165,107 @@ export default function GlobalStatusBar() {
             </span>
           </div>
 
-          {/* Sign Out */}
-          <form action={signOut} className="flex items-center">
+          {/* User Account & Profile Dropdown */}
+          <div className="relative" ref={menuRef}>
             <button
-              type="submit"
-              className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2 sm:px-2.5 py-1 rounded-full transition tactile-btn font-medium"
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-expanded={menuOpen}
+              aria-haspopup="true"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 text-gray-700 text-xs font-semibold transition tactile-btn shadow-2xs"
             >
-              Sign out
+              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0 text-[10px] font-bold font-dingos-bold">
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                  />
+                </svg>
+              </div>
+              <span className="hidden sm:inline font-dingos-bold text-[11px] text-gray-800">
+                Account
+              </span>
+              <svg
+                className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${
+                  menuOpen ? "rotate-180 text-indigo-600" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
             </button>
-          </form>
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white border border-gray-200/90 shadow-lg p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none space-y-0.5"
+              >
+                <div className="px-3 py-1.5 border-b border-gray-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
+                    Signed in as
+                  </p>
+                  <p className="text-xs font-bold text-gray-800 font-dingos-bold truncate">
+                    Campus Organizer
+                  </p>
+                </div>
+
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-900 transition tactile-btn font-dingos-bold"
+                >
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                  <span>Organizer Profile</span>
+                </Link>
+
+                <div className="border-t border-gray-100 my-0.5" />
+
+                <form action={signOut} className="w-full">
+                  <button
+                    type="submit"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 active:scale-95 transition tactile-btn font-dingos-bold text-left"
+                  >
+                    <svg
+                      className="w-4 h-4 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                      />
+                    </svg>
+                    <span>Sign Out</span>
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
