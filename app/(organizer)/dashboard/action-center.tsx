@@ -613,7 +613,11 @@ export default function ActionCenter({ events }: Props) {
                                     </span>
                                   ) : (
                                     <WobbleButton
-                                      text={isThisTicketLoading ? "Checking in..." : "Check In"}
+                                      text={
+                                        isThisTicketLoading
+                                          ? "Checking in..."
+                                          : "Check In"
+                                      }
                                       hoverText="Door Entry"
                                       fillColor="#4f46e5"
                                       hoverColor="#4338ca"
@@ -1003,16 +1007,22 @@ export default function ActionCenter({ events }: Props) {
                 )}
 
                 <div className="flex items-center gap-2 pt-1">
-                  <button
+                  <WobbleButton
                     type="button"
                     onClick={() => setIsWalkUpModalOpen(false)}
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-full border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
-                  >
-                    Cancel
-                  </button>
+                    text="Cancel"
+                    hoverText="Dismiss"
+                    fillColor="#f3f4f6"
+                    hoverColor="#e5e7eb"
+                    textColor="#4b5563"
+                    hoverTextColor="#111827"
+                    className="flex-1 text-xs py-2 border border-gray-200/80 shadow-2xs"
+                  />
                   <WobbleButton
-                    text={isProcessingWalkUp ? "Writing Tag..." : "Tap Tag to Issue"}
+                    text={
+                      isProcessingWalkUp ? "Writing Tag..." : "Tap Tag to Issue"
+                    }
                     hoverText="Link Pass"
                     fillColor="#059669"
                     hoverColor="#047857"
@@ -1126,7 +1136,7 @@ export default function ActionCenter({ events }: Props) {
                           Cash box reconciliation
                         </p>
                       </div>
-                      <span className="text-xl font-normal text-emerald-950 font-bebas tracking-wide">
+                      <span className="text-md font-normal text-emerald-950 font-dingos-bold tracking-wide">
                         {price > 0 ? `${price.toLocaleString()} MMK` : "Free"}
                       </span>
                     </div>
@@ -1140,18 +1150,26 @@ export default function ActionCenter({ events }: Props) {
                 )}
 
                 <div className="flex items-center gap-2 pt-1">
-                  <button
+                  <WobbleButton
                     type="button"
                     onClick={() => setIsWalkUpModalOpen(false)}
                     disabled={isProcessingWalkUp}
-                    className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
-                  >
-                    Cancel
-                  </button>
+                    text="Cancel"
+                    hoverText="Dismiss"
+                    fillColor="#f3f4f6"
+                    hoverColor="#e5e7eb"
+                    textColor="#4b5563"
+                    hoverTextColor="#111827"
+                    className="flex-1 text-xs py-2.5 border border-gray-200/80 shadow-2xs"
+                  />
                   <WobbleButton
                     type="submit"
                     disabled={isProcessingWalkUp}
-                    text={isProcessingWalkUp ? "Generating..." : "Collect Cash & Issue Tag"}
+                    text={
+                      isProcessingWalkUp
+                        ? "Generating..."
+                        : "Collect Cash & Issue Tag"
+                    }
                     hoverText="Confirm Sale"
                     fillColor="#059669"
                     hoverColor="#047857"

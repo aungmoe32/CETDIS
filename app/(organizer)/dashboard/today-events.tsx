@@ -299,34 +299,56 @@ export default function TodayEvents({ events }: Props) {
                   </div>
                 </div>
 
-                {/* Cash Box Reconciliation Pill (if walk-ups exist) */}
+                {/* Cash Box Reconciliation (if walk-ups exist) */}
                 {event.walkUpCount > 0 && (
-                  <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200/80 px-4 py-2.5 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-emerald-900 font-medium">
-                      <svg
-                        className="w-4 h-4 text-emerald-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      <span className="font-dingos-bold">
-                        {event.walkUpCount} Walk-Up Sale
-                        {event.walkUpCount > 1 ? "s" : ""}
+                  <div className="rounded-2xl bg-slate-50/80 p-3.5 border border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center flex-shrink-0">
+                        <svg
+                          className="w-4.5 h-4.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-gray-900 font-dingos-bold">
+                            Door Walk-Up Sales
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-dingos-bold">
+                            {event.walkUpCount}{" "}
+                            {event.walkUpCount === 1 ? "ticket" : "tickets"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                          Cash received at door registration
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="flex items-baseline justify-end gap-1">
+                        <span className="font-dingos-bold text-md text-emerald-600 tracking-wide">
+                          {(
+                            event.walkUpCount * (event.price ?? 0)
+                          ).toLocaleString()}
+                        </span>
+                        <span className="text-xs font-bold text-gray-500 font-dingos-bold">
+                          MMK
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-dingos-bold block">
+                        Cash Total
                       </span>
                     </div>
-                    <span className="font-normal text-emerald-950 font-dingos text-lg tracking-wide">
-                      {(
-                        event.walkUpCount * (event.price ?? 0)
-                      ).toLocaleString()}{" "}
-                      MMK cash box
-                    </span>
                   </div>
                 )}
 
