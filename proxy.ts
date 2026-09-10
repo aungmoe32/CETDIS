@@ -4,10 +4,12 @@ import { type NextRequest, NextResponse } from "next/server";
 const PUBLIC_PATHS = ["/login"];
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  request.headers.set("x-pathname", pathname);
+
   // updateSession refreshes the session cookie AND returns the current user.
   // Both happen inside the same client, so refreshed tokens are never lost.
   const { supabaseResponse, user } = await updateSession(request);
-  const { pathname } = request.nextUrl;
 
   // Already authenticated user trying to access public auth paths (e.g. /login) -> redirect to root
   if (user && PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {

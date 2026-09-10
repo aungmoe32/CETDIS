@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { db } from "@/utils/db";
@@ -25,7 +25,15 @@ export default async function OrganizerLayout({ children }: { children: ReactNod
     .limit(1);
 
   if (!profile) redirect("/login");
-  if (profile.role === "student") redirect("/my-id");
+
+  if (profile.role === "student") {
+    const headerList = await headers();
+    const pathname = headerList.get("x-pathname");
+    if (pathname?.startsWith("/profile")) {
+      redirect("/my-profile");
+    }
+    redirect("/my-id");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
