@@ -9,7 +9,19 @@ export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  // Public paths — let them through regardless of auth state.
+  // Already authenticated user trying to access public auth paths (e.g. /login) -> redirect to root
+  if (user && PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
+  }
+
+  // Public paths for unauthenticated users — let them through.
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return supabaseResponse;
   }

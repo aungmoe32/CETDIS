@@ -22,13 +22,30 @@ export default async function RootPage() {
 
   if (!user) redirect("/login");
 
-  const [profile] = await db
+  let [profile] = await db
     .select({ role: profiles.role })
     .from(profiles)
     .where(eq(profiles.id, user.id))
     .limit(1);
 
-  if (!profile) redirect("/login");
+  if (!profile) {
+    const [created] = await db
+      .insert(profiles)
+      .values({
+        id: user.id,
+        email: user.email!,
+        fullName: user.user_metadata?.full_name ?? "",
+      })
+      .onConflictDoNothing()
+      .returning({ role: profiles.role });
+
+    profile = created;
+  }
+
+  if (!profile) {
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
 
   if (profile.role === "developer") redirect("/developer/dashboard");
   redirect(profile.role === "organizer" ? "/dashboard" : "/my-id");
