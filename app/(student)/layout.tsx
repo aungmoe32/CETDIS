@@ -26,6 +26,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
 
   if (!profile) redirect("/login");
   if (profile.role === "organizer") redirect("/dashboard");
+  if (profile.role === "developer") redirect("/developer/dashboard");
 
   return (
     <div className="min-h-screen bg-white flex flex-col select-none">

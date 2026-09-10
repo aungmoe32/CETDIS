@@ -35,6 +35,15 @@ export default async function OrganizerLayout({ children }: { children: ReactNod
     redirect("/my-id");
   }
 
+  if (profile.role === "developer") {
+    const headerList = await headers();
+    const pathname = headerList.get("x-pathname");
+    if (pathname?.startsWith("/profile")) {
+      redirect("/developer/profile");
+    }
+    redirect("/developer/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <GlobalStatusBar />

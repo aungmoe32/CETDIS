@@ -28,6 +28,7 @@ export default async function OrganizerProfilePage() {
 
   if (!profile) redirect("/login");
   if (profile.role === "student") redirect("/my-profile");
+  if (profile.role === "developer") redirect("/developer/profile");
 
   // Fetch count of hosted events by this organizer
   const [eventsResult] = await db

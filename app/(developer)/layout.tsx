@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/(auth)/login/actions";
 
+import { DeveloperHeader } from "./developer-header";
+
 export default async function DeveloperLayout({
   children,
 }: {
@@ -27,45 +29,14 @@ export default async function DeveloperLayout({
     .where(eq(profiles.id, user.id))
     .limit(1);
 
-  if (!profile || profile.role !== "developer") redirect("/login");
+  if (!profile) redirect("/login");
+  if (profile.role === "student") redirect("/my-id");
+  if (profile.role === "organizer") redirect("/dashboard");
+  if (profile.role !== "developer") redirect("/login");
 
   return (
     <div className="min-h-screen bg-white flex flex-col select-none">
-      {/* Top Admin Header */}
-      <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-5 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-2xs">
-            <svg
-              className="h-4 w-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-            >
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="5" />
-              <circle
-                cx="12"
-                cy="12"
-                r="1.5"
-                fill="currentColor"
-                strokeWidth={0}
-              />
-            </svg>
-          </div>
-          <span className="font-bold text-gray-900 text-base tracking-tight font-dingos-bold">
-            CETDIS
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full font-dingos-bold">
-            Platform Admin
-          </span>
-        </div>
-        <form action={signOut}>
-          <button className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-3 py-1 rounded-full transition tactile-btn font-medium">
-            Sign out
-          </button>
-        </form>
-      </header>
+      <DeveloperHeader />
 
       <div className="flex flex-1">
         {/* Desktop Sidebar Navigation */}
