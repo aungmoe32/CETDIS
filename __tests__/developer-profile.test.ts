@@ -128,3 +128,12 @@ describe("Developer Profile Server Actions", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/developer/dashboard");
   });
 });
+
+describe("Developer Dashboard maskEmail helper", () => {
+  it("masks email in the format a*****@domain.com", async () => {
+    const { maskEmail } = await import("@/app/(developer)/developer/dashboard/masked-email");
+    expect(maskEmail("alex@gmail.com")).toBe("a*****@gmail.com");
+    expect(maskEmail("john.doe@cetdis.edu")).toBe("j*****@cetdis.edu");
+    expect(maskEmail("invalid-email")).toBe("••••••••");
+  });
+});

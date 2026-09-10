@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { count, eq, sum } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import AllocationModal from "./allocation-modal";
+import MaskedEmail from "./masked-email";
 
 export const metadata = { title: "Developer Dashboard · CETDIS" };
 
@@ -74,16 +75,17 @@ export default async function DeveloperDashboardPage() {
     <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-5xl mx-auto space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2.5 py-0.5 rounded-full font-dingos-bold">
             Hardware Supply Chain
           </span>
-        </div>
+        </div> */}
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mt-1.5 font-dingos-bold">
           NFC Inventory Dashboard
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Track blank physical NFC tag rolls allocated to organizers, monitor door issuances, and replenish stock.
+          Track blank physical NFC tag rolls allocated to organizers, monitor
+          door issuances, and replenish stock.
         </p>
       </div>
 
@@ -96,7 +98,13 @@ export default async function DeveloperDashboardPage() {
               Total Tags Allocated
             </span>
             <span className="p-1.5 rounded-xl bg-indigo-50 text-indigo-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
                 <rect x="2" y="7" width="20" height="14" rx="2" />
                 <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
               </svg>
@@ -117,9 +125,19 @@ export default async function DeveloperDashboardPage() {
               Tags Linked to Students
             </span>
             <span className="p-1.5 rounded-xl bg-emerald-50 text-emerald-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
                 <circle cx="12" cy="12" r="9" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4"
+                />
               </svg>
             </span>
           </div>
@@ -138,9 +156,19 @@ export default async function DeveloperDashboardPage() {
               Unissued in Field
             </span>
             <span className="p-1.5 rounded-xl bg-amber-50 text-amber-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
                 <circle cx="12" cy="12" r="9" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 8v4l3 3"
+                />
               </svg>
             </span>
           </div>
@@ -175,7 +203,8 @@ export default async function DeveloperDashboardPage() {
               No organizers registered yet
             </p>
             <p className="text-xs text-gray-400">
-              When an organizer creates an account, they will appear here for tag allocation.
+              When an organizer creates an account, they will appear here for
+              tag allocation.
             </p>
           </div>
         ) : (
@@ -209,15 +238,12 @@ export default async function DeveloperDashboardPage() {
                   const isOver = stockRemaining < 0;
 
                   return (
-                    <tr
-                      key={org.id}
-                      className="hover:bg-gray-50/60 transition"
-                    >
+                    <tr key={org.id} className="hover:bg-gray-50/60 transition">
                       <td className="px-5 py-3.5">
                         <p className="font-bold text-gray-900 text-sm font-dingos-bold">
                           {org.fullName}
                         </p>
-                        <p className="text-xs text-gray-400">{org.email}</p>
+                        <MaskedEmail email={org.email} />
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="font-bebas text-xl text-gray-900 tracking-wide">
