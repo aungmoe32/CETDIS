@@ -1,6 +1,6 @@
 # CETDIS — Full Project Context & Architecture Guide
 
-> **Campus Event Check-In System (CETDIS)**  
+> **Campus Event Ticketing and Digital Identification System (CETDIS)**  
 > A Next.js 16 Progressive Web Application built for high-throughput campus event ticketing, door check-in, offline synchronization, physical Universal NFC pass management, and at-the-door Walk-Up sales with cash reconciliation.
 
 ---

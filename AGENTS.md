@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # CETDIS Project Rules
 
 ## What this app is
-Campus Event Check-In System (CETDIS). Students RSVP to events. Organizers scan QR codes at the door. Works offline using IndexedDB + background sync.
+Campus Event Ticketing and Digital Identification System (CETDIS). Students RSVP to events. Organizers scan QR codes at the door. Works offline using IndexedDB + background sync.
 
 ## Tech Stack Decisions (DO NOT change without user approval)
 - **Auth**: Supabase Email OTP (`supabase.auth.signInWithOtp`)
