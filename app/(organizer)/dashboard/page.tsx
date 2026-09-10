@@ -92,27 +92,23 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
+    <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-2xl mx-auto space-y-5 sm:space-y-6">
       {/* ── Dashboard Header ────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 font-dingos-bold">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 font-dingos-bold">
             Organizer Operations
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
             Entrance gate control &amp; attendee management
           </p>
         </div>
-        {/* <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-150">
-          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-          Door Live
-        </span> */}
       </div>
 
       {/* Conditional Low NFC Inventory Alert Banner */}
       {hasAllocationData && blankTagsRemaining <= 20 && (
         <div
-          className={`rounded-3xl border px-4 py-3.5 flex items-start sm:items-center gap-3 shadow-xs tactile-hover ${
+          className={`rounded-3xl border px-3.5 sm:px-4 py-3 sm:py-3.5 flex items-start sm:items-center gap-3 shadow-xs tactile-hover ${
             blankTagsRemaining <= 0
               ? "bg-red-50/80 border-red-200"
               : "bg-amber-50/80 border-amber-200"
@@ -187,9 +183,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Section 4: NFC Supply Chain Ledger Summary */}
-      <div className="rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-100 p-5 flex items-center justify-between shadow-xs tactile-hover">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+      <div className="rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs tactile-hover">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
             <svg
               className="h-5 w-5"
               fill="none"
@@ -208,8 +204,8 @@ export default async function DashboardPage() {
               />
             </svg>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 font-dingos-bold">
                 NFC Tags Issued
               </span>
@@ -222,13 +218,16 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
-        <div className="text-right pl-3 flex-shrink-0">
-          <span className="text-3xl text-gray-900 font-bebas tracking-wide block leading-none">
-            {totalNfcIssued}
-          </span>
-          <span className="block text-[11px] text-gray-400 font-medium mt-1">
-            tags handed out
-          </span>
+        <div className="flex items-center sm:block justify-between sm:text-right sm:pl-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-indigo-100/60 w-full sm:w-auto flex-shrink-0">
+          <span className="text-xs text-gray-500 font-medium sm:hidden">Total Issued:</span>
+          <div className="flex items-baseline gap-1.5 sm:block">
+            <span className="text-2xl sm:text-3xl text-gray-900 font-bebas tracking-wide block leading-none">
+              {totalNfcIssued}
+            </span>
+            <span className="block text-[11px] text-gray-400 font-medium sm:mt-1">
+              tags handed out
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@ export default async function EditEventPage({ params }: Props) {
   const localIso = new Date(d.getTime() - offset).toISOString().slice(0, 16);
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6 pb-20 sm:pb-8">
+    <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-2xl mx-auto space-y-5 sm:space-y-6 pb-6">
       {/* Top Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
         <Link

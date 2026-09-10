@@ -39,7 +39,8 @@ export default async function ScanPage({ searchParams }: Props) {
               No Event Selected
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
-              Please choose an active event from your schedule to launch the door scanner.
+              Please choose an active event from your schedule to launch the
+              door scanner.
             </p>
           </div>
 
@@ -75,7 +76,7 @@ export default async function ScanPage({ searchParams }: Props) {
   if (!event) notFound();
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem-4rem)] sm:h-[calc(100dvh-3.5rem)] overflow-hidden bg-gray-50/30">
+    <div className="flex flex-col min-h-[calc(100dvh-10rem)] sm:h-[calc(100dvh-4rem)] overflow-hidden bg-gray-50/30">
       {/* Top Scanner Navigation Bar */}
       <div className="px-4 py-2.5 sm:py-3 border-b border-gray-200/90 bg-white shrink-0 flex items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3 min-w-0">
@@ -91,7 +92,11 @@ export default async function ScanPage({ searchParams }: Props) {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
             </svg>
           </Link>
 
@@ -112,7 +117,7 @@ export default async function ScanPage({ searchParams }: Props) {
         </div>
 
         {/* Live Status indicator */}
-        <div className="flex-shrink-0 flex items-center gap-2">
+        {/* <div className="flex-shrink-0 flex items-center gap-2">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 font-dingos-bold shadow-2xs">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -120,7 +125,7 @@ export default async function ScanPage({ searchParams }: Props) {
             </span>
             <span>Gate Open</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Interactive Scanner Component */}

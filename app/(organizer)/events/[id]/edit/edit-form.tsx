@@ -48,7 +48,7 @@ export default function EditEventForm({ eventId, initialData }: Props) {
   return (
     <form
       action={formAction}
-      className="rounded-3xl border border-gray-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-6"
+      className="rounded-3xl border border-gray-200/90 bg-white p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6"
     >
       {/* Error Notification */}
       {state?.error && (
@@ -244,10 +244,10 @@ export default function EditEventForm({ eventId, initialData }: Props) {
       </div>
 
       {/* Actions Footer */}
-      <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <Link
           href="/events/all"
-          className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition font-dingos-bold"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-3 sm:py-2.5 rounded-full border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition font-dingos-bold text-center"
         >
           Cancel
         </Link>

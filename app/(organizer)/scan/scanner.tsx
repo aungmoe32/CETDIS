@@ -763,7 +763,7 @@ export default function Scanner({ eventId }: Props) {
           >
             <div className="max-w-md mx-auto space-y-2.5">
               {/* Row 1: status chips + sync badge */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 {/* Left: Cache Mode Pill */}
                 <div>
                   {offlineEnabled ? (

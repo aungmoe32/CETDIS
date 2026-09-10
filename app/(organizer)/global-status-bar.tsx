@@ -87,20 +87,20 @@ export default function GlobalStatusBar() {
           <span className="font-bold text-gray-900 text-base tracking-tight truncate font-dingos-bold">
             CETDIS
           </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full flex-shrink-0 hidden xs:inline-block font-dingos-bold">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full flex-shrink-0 hidden sm:inline-block font-dingos-bold">
             Organizer
           </span>
         </div>
 
         {/* Right: Status Indicators & Actions */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           {/* Pending Sync Count Badge (if pending items exist) */}
           {pendingCount > 0 && (
             <button
               onClick={handleManualSync}
               disabled={!isOnline || isSyncing}
               title={isOnline ? "Click to sync now" : "Stored locally. Will sync when back online."}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition tactile-btn ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold border transition tactile-btn ${
                 isOnline
                   ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 cursor-pointer shadow-2xs"
                   : "bg-gray-100 text-gray-700 border-gray-300 cursor-default"
@@ -119,15 +119,15 @@ export default function GlobalStatusBar() {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              <span className="font-dingos-bold">
-                {isSyncing ? "Syncing..." : `${pendingCount} Pending Sync`}
+              <span className="font-dingos-bold text-[11px] sm:text-xs">
+                {isSyncing ? "Syncing..." : `${pendingCount} Sync`}
               </span>
             </button>
           )}
 
           {/* Network Indicator */}
           <div
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border shadow-2xs transition ${
+            className={`inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full text-xs font-medium border shadow-2xs transition ${
               isOnline
                 ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                 : "bg-gray-100 text-gray-600 border-gray-200"
@@ -147,7 +147,7 @@ export default function GlobalStatusBar() {
           <form action={signOut} className="flex items-center">
             <button
               type="submit"
-              className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-full transition tactile-btn font-medium"
+              className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2 sm:px-2.5 py-1 rounded-full transition tactile-btn font-medium"
             >
               Sign out
             </button>

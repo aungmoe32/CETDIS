@@ -34,7 +34,7 @@ export default function CreateEventPage() {
   );
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6 pb-20 sm:pb-8">
+    <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-2xl mx-auto space-y-5 sm:space-y-6 pb-6">
       {/* Top Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
         <Link
@@ -66,14 +66,15 @@ export default function CreateEventPage() {
           Create New Event
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Publish a campus gathering, define venue logistics, capacity limits, and pricing.
+          Publish a campus gathering, define venue logistics, capacity limits,
+          and pricing.
         </p>
       </div>
 
       {/* Form Container Card */}
       <form
         action={formAction}
-        className="rounded-3xl border border-gray-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-6"
+        className="rounded-3xl border border-gray-200/90 bg-white p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6"
       >
         {/* Error Notification */}
         {state.error && (
@@ -86,10 +87,16 @@ export default function CreateEventPage() {
               strokeWidth={2}
             >
               <circle cx="12" cy="12" r="9" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4m0 4h.01"
+              />
             </svg>
             <div>
-              <p className="font-bold font-dingos-bold">Unable to create event</p>
+              <p className="font-bold font-dingos-bold">
+                Unable to create event
+              </p>
               <p className="text-red-700 mt-0.5">{state.error}</p>
             </div>
           </div>
@@ -141,7 +148,9 @@ export default function CreateEventPage() {
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
               />
             </div>
-            <p className="text-[11px] text-gray-400">Timezone is local campus time</p>
+            <p className="text-[11px] text-gray-400">
+              Timezone is local campus time
+            </p>
           </div>
 
           {/* Location */}
@@ -161,7 +170,9 @@ export default function CreateEventPage() {
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
               />
             </div>
-            <p className="text-[11px] text-gray-400">Leave blank if online or TBD</p>
+            <p className="text-[11px] text-gray-400">
+              Leave blank if online or TBD
+            </p>
           </div>
         </div>
 
@@ -176,7 +187,9 @@ export default function CreateEventPage() {
               >
                 Max Capacity <span className="text-red-500">*</span>
               </label>
-              <span className="text-[11px] text-gray-400 font-medium">Headcount limit</span>
+              <span className="text-[11px] text-gray-400 font-medium">
+                Headcount limit
+              </span>
             </div>
 
             <input
@@ -187,7 +200,9 @@ export default function CreateEventPage() {
               min={1}
               value={capacity}
               onChange={(e) =>
-                setCapacity(e.target.value === "" ? "" : parseInt(e.target.value, 10))
+                setCapacity(
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10),
+                )
               }
               placeholder="e.g. 200"
               className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
@@ -195,7 +210,9 @@ export default function CreateEventPage() {
 
             {/* Quick Presets for Capacity */}
             <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="text-[10px] text-gray-400 font-semibold uppercase">Presets:</span>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">
+                Presets:
+              </span>
               {CAPACITY_PRESETS.map((val) => (
                 <button
                   key={val}
@@ -222,7 +239,9 @@ export default function CreateEventPage() {
               >
                 Ticket Price (MMK)
               </label>
-              <span className="text-[11px] text-gray-400 font-medium">0 = Free event</span>
+              <span className="text-[11px] text-gray-400 font-medium">
+                0 = Free event
+              </span>
             </div>
 
             <div className="relative">
@@ -234,7 +253,9 @@ export default function CreateEventPage() {
                 step={500}
                 value={price}
                 onChange={(e) =>
-                  setPrice(e.target.value === "" ? "" : parseInt(e.target.value, 10))
+                  setPrice(
+                    e.target.value === "" ? "" : parseInt(e.target.value, 10),
+                  )
                 }
                 placeholder="0"
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
@@ -246,7 +267,9 @@ export default function CreateEventPage() {
 
             {/* Quick Presets for Price */}
             <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="text-[10px] text-gray-400 font-semibold uppercase">Presets:</span>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">
+                Presets:
+              </span>
               {PRICE_PRESETS.map((p) => (
                 <button
                   key={p.value}
@@ -258,7 +281,9 @@ export default function CreateEventPage() {
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
-                  {p.value === 0 ? "Free" : `${(p.value / 1000).toLocaleString()}k`}
+                  {p.value === 0
+                    ? "Free"
+                    : `${(p.value / 1000).toLocaleString()}k`}
                 </button>
               ))}
             </div>
@@ -266,10 +291,10 @@ export default function CreateEventPage() {
         </div>
 
         {/* Actions Footer */}
-        <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <Link
             href="/events/all"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition font-dingos-bold"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-3 sm:py-2.5 rounded-full border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition font-dingos-bold text-center"
           >
             Discard &amp; Return
           </Link>
@@ -278,7 +303,7 @@ export default function CreateEventPage() {
             type="submit"
             disabled={pending}
             text={pending ? "Publishing Event..." : "Publish Event"}
-            hoverText={pending ? "Publishing..." : "Launch Event 🚀"}
+            hoverText={pending ? "Publishing..." : "Launch Event"}
             fillColor="#4f46e5"
             hoverColor="#4338ca"
             fontFamily="font-dingos-bold"
@@ -292,7 +317,12 @@ export default function CreateEventPage() {
                   viewBox="0 0 24 24"
                 >
                   <circle cx="12" cy="12" r="9" strokeWidth={2} />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v4"
+                  />
                 </svg>
               ) : (
                 <svg

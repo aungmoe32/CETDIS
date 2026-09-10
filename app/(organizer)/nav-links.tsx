@@ -65,7 +65,7 @@ export function DesktopSidebarNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-2 hidden sm:block min-h-[calc(100vh-3.5rem)] select-none">
+    <aside className="w-56 lg:w-60 shrink-0 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-2 hidden md:block min-h-[calc(100vh-3.5rem)] select-none">
       <div className="px-3 pb-1 pt-0.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
           Navigation
@@ -123,7 +123,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-3 inset-x-3 z-40 max-w-md mx-auto bg-white/90 backdrop-blur-md border border-gray-200/90 px-2 py-1.5 rounded-3xl flex sm:hidden items-center justify-around shadow-lg shadow-black/5 select-none">
+    <nav className="fixed bottom-3 inset-x-3 z-40 max-w-md mx-auto bg-white/90 backdrop-blur-md border border-gray-200/90 px-2 py-1.5 rounded-3xl flex md:hidden items-center justify-around shadow-lg shadow-black/5 select-none">
       {NAV_ITEMS.map((item) => {
         const isActive =
           pathname === item.href ||

@@ -241,7 +241,7 @@ export default function LoginPage() {
                     required
                     autoFocus
                     placeholder="······"
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 px-4 text-center font-bebas text-3xl tracking-[0.35em] text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 px-4 text-center font-dingos-bold text-2xl tracking-[0.35em] text-gray-900 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
                   />
                 </div>
                 <p className="text-[11px] text-gray-400 text-center">
@@ -278,7 +278,7 @@ export default function LoginPage() {
                   text={
                     verifyPending ? "Verifying Code..." : "Verify & Sign In"
                   }
-                  hoverText={verifyPending ? "Verifying..." : "Enter Campus 🚀"}
+                  hoverText={verifyPending ? "Verifying..." : "Enter Campus"}
                   fillColor="#4f46e5"
                   hoverColor="#4338ca"
                   fontFamily="font-dingos-bold"

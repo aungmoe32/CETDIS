@@ -298,16 +298,16 @@ export default function ActionCenter({ events }: Props) {
   return (
     <section className="mb-8 space-y-4">
       {/* ── 1. Primary Action Targets: Scanner + Walk-Up Sales ────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
         {/* Button A: Open Scanner */}
         <button
           onClick={handleOpenScanner}
-          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-700 px-5 py-4.5 text-white shadow-sm hover:shadow-md tactile-hover text-left"
+          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-700 px-4 py-3.5 sm:px-5 sm:py-4.5 text-white shadow-sm hover:shadow-md tactile-hover text-left"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
               <svg
-                className="w-5.5 h-5.5 text-white"
+                className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -323,11 +323,11 @@ export default function ActionCenter({ events }: Props) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-tight font-dingos-bold text-white">
+                <span className="text-base sm:text-lg font-bold tracking-tight font-dingos-bold text-white">
                   Open Scanner
                 </span>
               </div>
-              <p className="text-xs text-indigo-150 mt-0.5 truncate font-medium">
+              <p className="text-[11px] sm:text-xs text-indigo-150 mt-0.5 truncate font-medium">
                 {targetEvents.length === 1
                   ? `${targetEvents[0].title}`
                   : `${targetEvents.length} events active`}
@@ -355,12 +355,12 @@ export default function ActionCenter({ events }: Props) {
         {/* Button B: Walk-Up Sales */}
         <button
           onClick={handleOpenWalkUpModal}
-          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-200/80 px-5 py-4.5 text-gray-900 shadow-xs hover:border-emerald-300 hover:shadow-sm tactile-hover text-left"
+          className="group relative flex items-center justify-between gap-3.5 rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-200/80 px-4 py-3.5 sm:px-5 sm:py-4.5 text-gray-900 shadow-xs hover:border-emerald-300 hover:shadow-sm tactile-hover text-left"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
               <svg
-                className="w-5.5 h-5.5"
+                className="w-5 h-5 sm:w-5.5 sm:h-5.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -375,11 +375,11 @@ export default function ActionCenter({ events }: Props) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-tight text-gray-900 font-dingos-bold">
+                <span className="text-base sm:text-lg font-bold tracking-tight text-gray-900 font-dingos-bold">
                   Walk-Up Sale
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 truncate font-medium">
+              <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate font-medium">
                 Sell ticket &amp; issue pass at door
               </p>
             </div>
@@ -404,8 +404,8 @@ export default function ActionCenter({ events }: Props) {
       </div>
 
       {/* ── 2. Manual Lookup: Live Search Bar ──────────────────────────── */}
-      <div className="rounded-3xl border border-gray-200/80 bg-white p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-2.5">
+      <div className="rounded-3xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5">
           <label
             htmlFor="manual-student-lookup"
             className="text-xs font-bold uppercase tracking-wider text-gray-600 font-dingos-bold"
