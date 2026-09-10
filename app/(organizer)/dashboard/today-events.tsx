@@ -71,12 +71,12 @@ export default function TodayEvents({ events }: Props) {
           <h3 className="text-xl font-bold text-gray-900 font-dingos-bold">
             Today&apos;s Events &amp; Live Metrics
           </h3>
-          {activeEvents.length > 0 && (
+          {/* {activeEvents.length > 0 && (
             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
               Live
             </span>
-          )}
+          )} */}
         </div>
         <Link
           href="/events/all"
@@ -335,7 +335,9 @@ export default function TodayEvents({ events }: Props) {
                     </div>
 
                     <div className="flex items-center sm:block justify-between sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200/60">
-                      <span className="text-xs text-gray-500 font-medium sm:hidden">Cash Total:</span>
+                      <span className="text-xs text-gray-500 font-medium sm:hidden">
+                        Cash Total:
+                      </span>
                       <div className="flex items-baseline justify-end gap-1">
                         <span className="font-dingos-bold text-md text-emerald-600 tracking-wide">
                           {(

@@ -103,7 +103,13 @@ export default function GlobalStatusBar() {
             >
               <circle cx="12" cy="12" r="9" />
               <circle cx="12" cy="12" r="5" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+              <circle
+                cx="12"
+                cy="12"
+                r="1.5"
+                fill="currentColor"
+                strokeWidth={0}
+              />
             </svg>
           </div>
           <span className="font-bold text-gray-900 text-base tracking-tight truncate font-dingos-bold">
@@ -121,7 +127,11 @@ export default function GlobalStatusBar() {
             <button
               onClick={handleManualSync}
               disabled={!isOnline || isSyncing}
-              title={isOnline ? "Click to sync now" : "Stored locally. Will sync when back online."}
+              title={
+                isOnline
+                  ? "Click to sync now"
+                  : "Stored locally. Will sync when back online."
+              }
               className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold border transition tactile-btn ${
                 isOnline
                   ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 cursor-pointer shadow-2xs"
@@ -201,7 +211,11 @@ export default function GlobalStatusBar() {
                 viewBox="0 0 24 24"
                 strokeWidth={2.5}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                />
               </svg>
             </button>
 
@@ -237,7 +251,7 @@ export default function GlobalStatusBar() {
                       d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
                     />
                   </svg>
-                  <span>Organizer Profile</span>
+                  <span>Profile</span>
                 </Link>
 
                 <div className="border-t border-gray-100 my-0.5" />

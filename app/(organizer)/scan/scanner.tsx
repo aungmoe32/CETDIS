@@ -674,7 +674,12 @@ export default function Scanner({ eventId }: Props) {
                   </div>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500 text-center max-w-xs leading-relaxed">
-                  Tap <strong className="font-dingos-bold text-gray-800">Start Scanner</strong>, then hold the student&apos;s NFC credential near the device antenna.
+                  Tap{" "}
+                  <strong className="font-dingos-bold text-gray-800">
+                    Start Scanner
+                  </strong>
+                  , then hold the student&apos;s NFC credential near the device
+                  antenna.
                 </p>
               </div>
             )}
@@ -786,7 +791,7 @@ export default function Scanner({ eventId }: Props) {
                   ) : (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200/80 font-dingos-bold">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[11px]">Live Database Mode</span>
+                      <span className="text-[11px]">Live Mode</span>
                     </div>
                   )}
                 </div>
@@ -933,7 +938,8 @@ export default function Scanner({ eventId }: Props) {
                     />
                   </svg>
                   <span>
-                    Operating offline. Scans are queued and will sync when back online.
+                    Operating offline. Scans are queued and will sync when back
+                    online.
                   </span>
                 </div>
               )}

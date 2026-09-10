@@ -220,25 +220,104 @@ export default function EventsListClient({ initialEvents }: Props) {
 
           {/* Secondary Selectors (Price & Sort) */}
           <div className="flex items-center gap-2 w-full lg:w-auto">
-            <select
-              value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value as PriceFilter)}
-              className="flex-1 lg:flex-initial rounded-2xl border border-gray-200 bg-gray-50/60 px-3 py-1.5 text-xs text-gray-700 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
-            >
-              <option value="all">All Prices</option>
-              <option value="free">Free Only</option>
-              <option value="paid">Paid Only</option>
-            </select>
+            {/* Price Filter Pill */}
+            <div className="relative flex-1 lg:flex-initial">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-gray-400">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 6h.008v.008H6V6Z"
+                  />
+                </svg>
+              </div>
+              <select
+                value={priceFilter}
+                onChange={(e) => setPriceFilter(e.target.value as PriceFilter)}
+                className={`w-full appearance-none rounded-full border pl-7.5 pr-7 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer tactile-btn font-dingos-bold focus:outline-none focus:ring-2 focus:ring-indigo-150 ${
+                  priceFilter !== "all"
+                    ? "border-indigo-200 bg-indigo-50/80 text-indigo-700"
+                    : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+                }`}
+              >
+                <option value="all">All Prices</option>
+                <option value="free">Free Only</option>
+                <option value="paid">Paid Only</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </div>
+            </div>
 
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value as SortOption)}
-              className="flex-1 lg:flex-initial rounded-2xl border border-gray-200 bg-gray-50/60 px-3 py-1.5 text-xs text-gray-700 font-medium focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-150 transition"
-            >
-              <option value="date_asc">Date (Soonest first)</option>
-              <option value="date_desc">Date (Latest first)</option>
-              <option value="registered_desc">Registrations (High)</option>
-            </select>
+            {/* Sort Selector Pill */}
+            <div className="relative flex-1 lg:flex-initial">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-gray-400">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+                  />
+                </svg>
+              </div>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+                className={`w-full appearance-none rounded-full border pl-7.5 pr-7 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer tactile-btn font-dingos-bold focus:outline-none focus:ring-2 focus:ring-indigo-150 ${
+                  sortOption !== "date_asc"
+                    ? "border-indigo-200 bg-indigo-50/80 text-indigo-700"
+                    : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+                }`}
+              >
+                <option value="date_asc">Soonest Date</option>
+                <option value="date_desc">Latest Date</option>
+                <option value="registered_desc">Registrations (High)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1165,11 +1165,7 @@ export default function ActionCenter({ events }: Props) {
                   <WobbleButton
                     type="submit"
                     disabled={isProcessingWalkUp}
-                    text={
-                      isProcessingWalkUp
-                        ? "Generating..."
-                        : "Collect Cash & Issue Tag"
-                    }
+                    text={isProcessingWalkUp ? "Generating..." : "Confirm Sale"}
                     hoverText="Confirm Sale"
                     fillColor="#059669"
                     hoverColor="#047857"
