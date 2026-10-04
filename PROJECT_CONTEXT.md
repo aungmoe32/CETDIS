@@ -33,7 +33,7 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 | **Offline Storage**      | **IndexedDB (`idb`)**                       | Client-side database caching event attendees, check-in statuses, NFC issuance states, and sync queues.                                   |
 | **PWA & Service Worker** | **Serwist**                                 | Service worker caching static assets, shell HTML, and background synchronization events.                                                 |
 | **Hardware / Scanning**  | **`html5-qrcode` & Web NFC (`NDEFReader`)** | Camera QR scanning with cleanup safeguards + native Web NFC reading/writing with simulation fallbacks for iOS/desktop.                   |
-| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (36 tests across 8 test suites).                                       |
+| **Testing**              | **Vitest**                                  | Fast unit and integration tests with mocked DB and session layers (59 tests across 12 test suites).                                      |
 
 ---
 
@@ -184,8 +184,8 @@ cetdis/
 ├── drizzle/
 │   └── schema.ts                       # Drizzle ORM PostgreSQL schema
 ├── lib/
-│   ├── idb.ts                          # IndexedDB wrapper (attendees cache & sync queue)
-│   ├── offline-checkin.ts              # Optimistic local check-in & handover verification
+│   ├── idb.ts                          # IndexedDB wrapper (attendees, profiles & event cache, sync queue)
+│   ├── offline-checkin.ts              # Optimistic local check-in, student recognition & handover verification
 │   ├── sync.ts                         # Queue flusher & background reconciliation
 │   └── web-nfc.d.ts                    # Global Web NFC TypeScript definitions
 ├── scripts/
@@ -249,9 +249,12 @@ When an attendee arrives at an event:
 1. **Scan / Tap**: Organizer points camera at attendee QR or taps attendee NFC tag.
 2. **Lookup**:
    - **Online**: Calls `checkInAction(token, eventId)`.
-   - **Offline**: Queries IndexedDB via `offlineCheckIn(token)`.
+   - **Offline**: Queries IndexedDB via `offlineCheckIn(token, eventId)`:
+     - Checks `cached_tickets` for the current event.
+     - If not found, checks `cached_profiles` (campus student directory) to recognize registered students who haven't RSVP'd.
 3. **Validation**:
-   - If attendee not registered → returns `no_ticket` (triggers Scenario A Walk-Up prompt) or `not_found`.
+   - If attendee not registered for event but recognized in campus directory → returns `no_ticket` (triggers Scenario A Walk-Up prompt with event door price and title).
+   - If attendee not found in directory or guest list → returns `not_found`.
    - If attendee already checked in → returns `already_scanned`.
    - If attendee registered and valid → marks `is_checked_in = true`, records timestamp.
 4. **Fast NFC Handover Modal**:
@@ -272,10 +275,11 @@ Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
 
 #### Scenario A: Existing Student (Forgot to RSVP)
 1. Student scans QR or taps wristband at the door.
-2. Scanner identifies the student profile but detects no ticket for the event.
-3. Scanner immediately displays an amber prompt: **"User Recognized: [Full Name]. No Ticket for this Event."**
-4. Organizer collects cash and taps **"Sell Ticket At Door & Admit"**.
-5. Server action inserts `tickets` row with `purchaseMethod = 'cash_at_door'`, sets `isCheckedIn = true`, and flashes the green success screen.
+2. Scanner identifies the student profile (`check_in_token`) via server query (online) or `cached_profiles` (offline), but detects no ticket for the event.
+3. Scanner immediately displays an amber prompt: **"Student Recognized: [Full Name]. No Ticket for this Event."** with the event's door price.
+4. Organizer collects cash and taps **"Collect Cash & Sell Ticket"**:
+   - **Online**: Server action `sellWalkUpTicketToStudentAction` inserts a `tickets` row with `purchaseMethod = 'cash_at_door'`, sets `isCheckedIn = true`, and flashes the green success screen.
+   - **Offline**: Scanner generates a local ticket ID (`walkup_${uuid}`), inserts into `cached_tickets` as checked in (preventing duplicate entries), enqueues a `walkup_sale` mutation in `sync_queue`, updates door metrics, and displays instant green check-in confirmation. When network connectivity resumes, the background sync worker flushes the sale to `/api/checkin/sync` to persist into PostgreSQL.
 
 #### Scenario B: The Guest (No App, No Account)
 1. Organizer taps **"Walk-Up Sale"** in the Dashboard Action Center.
@@ -343,13 +347,22 @@ sequenceDiagram
 
     Note over S,IDB: Organizer downloads guest list before event
     S->>API: loadGuestListAction(eventId)
-    API-->>S: Attendee records
-    S->>IDB: saveGuestList(attendees)
+    API-->>S: { attendees, profiles, eventMeta }
+    S->>IDB: saveGuestList(attendees), saveProfiles(profiles), saveEventMeta(eventMeta)
 
     Note over S,IDB: Network disconnects (Offline Mode)
-    S->>IDB: offlineCheckIn(token)
-    IDB-->>S: Success (Mark checked in locally)
-    S->>IDB: addToSyncQueue({ ticket_id, type: "checkin", scanned_at })
+    S->>IDB: offlineCheckIn(token, eventId)
+    alt Ticket found for event
+        IDB-->>S: Success (Mark checked in locally)
+        S->>IDB: addToSyncQueue({ ticket_id, type: "checkin", scanned_at })
+    else No ticket, but student in cached_profiles
+        IDB-->>S: no_ticket (Alex Morgan, 5,000 MMK)
+        Note over S: Organizer collects cash & taps "Collect Cash & Sell Ticket"
+        S->>IDB: upsertTicket(walkupTicket)
+        S->>IDB: addToSyncQueue({ ticket_id: "walkup_...", type: "walkup_sale", profile_id, event_id, amount_collected })
+    else Unrecognized token
+        IDB-->>S: not_found (Not on guest list or directory)
+    end
 
     Note over S,IDB: Tag handover occurs offline
     S->>IDB: markNfcIssuedLocally(token)
@@ -358,6 +371,7 @@ sequenceDiagram
     Note over S,DB: Network reconnects
     S->>API: POST /api/checkin/sync (pending queue)
     API->>DB: Bulk update tickets (is_checked_in = true)
+    API->>DB: Insert walk-up tickets (purchaseMethod = 'cash_at_door', is_checked_in = true)
     API->>DB: Transactional update profiles & insert nfc_issuances
     API-->>S: { results: [{ ticket_id, success: true }] }
     S->>IDB: markSyncCompleted(ticket_id)
@@ -377,7 +391,7 @@ Whether the organizer uses the **QR Scanner** or the newly integrated **NFC Scan
 
 1. **The "Local-First" Interception:** Before doing anything, the app queries IndexedDB. If the local database says `is_checked_in: true`, it instantly rejects the ticket as a duplicate, without ever touching the network.
 2. **Network Routing:**
-   - **If Offline:** The app queries IndexedDB. If the ticket is found and valid, it updates the local state to `true`, pushes the record to the `sync_queue`, and grants entry. (If not found locally, it securely rejects the ticket).
+   - **If Offline:** The app calls `offlineCheckIn(token, eventId)`. If a ticket is found for this event, it updates the local state to `true`, pushes a `checkin` record to the `sync_queue`, and grants entry. If no ticket exists for this event, it checks `cached_profiles` (campus directory); if the student is recognized, it triggers the amber Walk-Up prompt with door pricing. (If found in neither, it securely rejects the ticket as `not_found`).
    - **If Online:** The app sends the token to the Next.js Server Action. The server securely verifies ownership, updates the Postgres database, and returns a success response.
 3. **Cache On-The-Fly:** If the online check-in succeeds, the app immediately writes that ticket's success status into the local IndexedDB, keeping the offline backup perfectly up-to-date.
 
@@ -393,14 +407,19 @@ The app solves this using a **3-Part Shield**:
 
 #### 3. The Synchronization Engine (Handling Offline Data)
 
-When tickets are scanned offline, they are trapped in the device's `sync_queue`. Getting them safely to the server requires careful handling of network events:
+When tickets are scanned offline, they are trapped in the device's `sync_queue`. The engine supports three distinct mutation types:
+- `checkin`: Updates an existing ticket to `isCheckedIn: true` with the offline `scannedAt` timestamp.
+- `issue_nfc`: Sets `nfcIssued: true` and writes an audit row to `nfc_issuances`.
+- `walkup_sale`: Inserts a brand new `tickets` row with `purchaseMethod: 'cash_at_door'` and `isCheckedIn: true`.
+
+Getting them safely to the server requires careful handling of network events:
 
 - **Triggering the Sync:** The sync process (`flushSyncQueue`) is triggered in two ways to ensure data is never orphaned:
   1. **Event-Driven:** The exact millisecond the browser fires the `online` event (Wi-Fi reconnects).
   2. **On-Mount:** The moment the scanner page is opened (if the device is already online). This catches tickets that were scanned offline if the user closed the app before reconnecting.
 - **The Mutex Lock (Race Condition Prevention):** If a user walks through a spotty Wi-Fi area, the `online` event might fire 10 times in three seconds. The `flushSyncQueue` uses a memory lock (`isSyncing = true`) to ensure that it never fires parallel API requests, protecting the Next.js server from being spammed with duplicate payloads.
 
-#### 4. The Dual-Layer Caching Strategy
+#### 4. The Multi-Store Caching Strategy
 
 An offline PWA requires two completely different types of caching to function. CETDIS handles both:
 
@@ -409,13 +428,17 @@ An offline PWA requires two completely different types of caching to function. C
 - Serwist intercepts network traffic. If the user goes offline, Serwist serves the Next.js UI from the browser's Cache Storage.
 - _Crucial Rule:_ The Next.js `proxy.ts` middleware is configured to ignore the `/~offline` and `/serwist` routes. This ensures the Service Worker can install itself securely in the background without being accidentally redirected to the `/login` page.
 
-**Layer 2: The Data Cache (IndexedDB)**
-- While Serwist loads the UI, it doesn't know about user data. IndexedDB acts as your local Postgres replica.
+**Layer 2: The Data Cache (IndexedDB — 4 Stores)**
+- While Serwist loads the UI, it doesn't know about user data. IndexedDB acts as your local Postgres replica across 4 distinct stores:
+  1. `cached_tickets`: Attendee rosters, check-in statuses, and NFC purchase flags for the current event.
+  2. `cached_profiles`: Lightweight campus student directory (`profile_id`, `check_in_token`, `full_name`) enabling offline walk-up recognition for students who haven't RSVP'd.
+  3. `cached_events`: Event title and pricing metadata for offline door ticket sales.
+  4. `sync_queue`: Outgoing mutation ledger (`checkin`, `issue_nfc`, `walkup_sale`).
 - **Auto-Downloading:** To protect organizers from forgetting to click "Download Guest List", the scanner page `useEffect` is configured to silently fetch the entire guest list in the background the moment they open the camera.
 
 #### Architectural Summary
 
-By combining **Next.js Server Actions** (for secure, authenticated online processing), **Serwist** (for offline UI rendering), and **IndexedDB** (for resilient, conflict-free data storage), CETDIS provides an enterprise-grade check-in system that seamlessly bridges the gap between the server and the local device without data loss or duplicate entries.
+By combining **Next.js Server Actions** (for secure, authenticated online processing), **Serwist** (for offline UI rendering), and **IndexedDB** (for resilient, conflict-free data storage across 4 stores), CETDIS provides an enterprise-grade check-in system that seamlessly bridges the gap between the server and the local device without data loss or duplicate entries.
 
 ---
 

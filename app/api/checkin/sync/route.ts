@@ -8,9 +8,11 @@ import { and, eq, inArray } from "drizzle-orm";
 
 interface SyncEntry {
   ticket_id: string;
-  type?: "checkin" | "issue_nfc";
+  type?: "checkin" | "issue_nfc" | "walkup_sale";
   token?: string;
   event_id?: string;
+  profile_id?: string;
+  amount_collected?: number;
   scanned_at: string;
 }
 
@@ -28,8 +30,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  // Separate check-ins vs NFC issue events
-  const checkinEntries = entries.filter((e) => e.type !== "issue_nfc");
+  // Separate regular check-ins (which need ticket ownership verification)
+  const checkinEntries = entries.filter((e) => !e.type || e.type === "checkin");
 
   // Bulk ownership check for check-ins
   const incomingCheckinIds = checkinEntries.map((e) => e.ticket_id);
@@ -54,6 +56,61 @@ export async function POST(request: NextRequest) {
 
   const results = await Promise.all(
     entries.map(async (entry) => {
+      // ── Process Walk-Up Sale sync ──────────────────────────────
+      if (entry.type === "walkup_sale") {
+        const profileId = entry.profile_id;
+        const eventId = entry.event_id;
+        if (!profileId || !eventId) {
+          return { ticket_id: entry.ticket_id, success: false };
+        }
+        try {
+          // Verify organizer owns the event
+          const [eventRow] = await db
+            .select({ id: events.id })
+            .from(events)
+            .where(and(eq(events.id, eventId), eq(events.organizerId, user.id)))
+            .limit(1);
+
+          if (!eventRow) {
+            return { ticket_id: entry.ticket_id, success: false };
+          }
+
+          // Check if ticket already exists
+          const [existingTicket] = await db
+            .select({ id: tickets.id, isCheckedIn: tickets.isCheckedIn })
+            .from(tickets)
+            .where(
+              and(eq(tickets.userId, profileId), eq(tickets.eventId, eventId)),
+            )
+            .limit(1);
+
+          if (existingTicket) {
+            if (!existingTicket.isCheckedIn) {
+              await db
+                .update(tickets)
+                .set({
+                  isCheckedIn: true,
+                  scannedAt: new Date(entry.scanned_at),
+                  purchaseMethod: "cash_at_door",
+                })
+                .where(eq(tickets.id, existingTicket.id));
+            }
+          } else {
+            await db.insert(tickets).values({
+              userId: profileId,
+              eventId,
+              isCheckedIn: true,
+              scannedAt: new Date(entry.scanned_at),
+              purchaseMethod: "cash_at_door",
+            });
+          }
+
+          return { ticket_id: entry.ticket_id, success: true };
+        } catch {
+          return { ticket_id: entry.ticket_id, success: false };
+        }
+      }
+
       // ── Process NFC Tag Issue sync ─────────────────────────────
       if (entry.type === "issue_nfc") {
         const token = entry.token || entry.ticket_id.replace(/^issue_/, "");

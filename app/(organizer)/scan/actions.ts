@@ -267,5 +267,30 @@ export async function loadGuestListAction(eventId: string) {
     .innerJoin(profiles, eq(tickets.userId, profiles.id))
     .where(eq(tickets.eventId, eventId));
 
-  return { data: guestList };
+  const [event] = await db
+    .select({
+      id: events.id,
+      title: events.title,
+      price: events.price,
+    })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  const studentProfiles = await db
+    .select({
+      profile_id: profiles.id,
+      check_in_token: profiles.checkInToken,
+      full_name: profiles.fullName,
+      purchased_nfc: profiles.purchasedNfc,
+      nfc_issued: profiles.nfcIssued,
+    })
+    .from(profiles)
+    .where(eq(profiles.role, "student"));
+
+  return {
+    data: guestList,
+    eventMeta: event ?? null,
+    profiles: studentProfiles,
+  };
 }

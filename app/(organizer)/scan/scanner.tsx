@@ -14,6 +14,8 @@ import {
   getTicketByToken,
   upsertTicket,
   saveGuestList,
+  saveProfiles,
+  saveEventMeta,
   getPendingSyncs,
   hasCachedTickets,
   markNfcIssuedLocally,
@@ -190,7 +192,7 @@ export default function Scanner({ eventId }: Props) {
 
       if (!isOnlineRef.current || offlineEnabledRef.current) {
         // OFFLINE path
-        const result = await offlineCheckIn(token);
+        const result = await offlineCheckIn(token, eventId);
         handleResult(result as CheckInResult);
       } else {
         // ONLINE path
@@ -354,9 +356,17 @@ export default function Scanner({ eventId }: Props) {
         alert(result.error);
       } else if (result.data) {
         await saveGuestList(result.data);
+        if (result.eventMeta) {
+          await saveEventMeta(result.eventMeta);
+        }
+        if (result.profiles) {
+          await saveProfiles(result.profiles);
+        }
         offlineEnabledRef.current = true;
         setOfflineEnabled(true);
-        alert(`Guest list downloaded: ${result.data.length} attendees`);
+        alert(
+          `Offline mode ready: ${result.data.length} attendees & ${result.profiles?.length ?? 0} campus students cached`,
+        );
       }
     } catch {
       alert(
@@ -428,12 +438,51 @@ export default function Scanner({ eventId }: Props) {
     if (!noTicketData) return;
     setIsSellingWalkUp(true);
     try {
-      const res = await sellWalkUpTicketToStudentAction({
-        profileId: noTicketData.profileId,
-        eventId,
-        token: noTicketData.token,
-      });
-      handleResult(res);
+      if (!isOnlineRef.current || offlineEnabledRef.current) {
+        // OFFLINE Walk-Up Sale
+        const tempTicketId = `walkup_${crypto.randomUUID()}`;
+        const scannedAt = new Date().toISOString();
+
+        // 1. Put into local cached_tickets so subsequent scans show "already_scanned"
+        await upsertTicket({
+          ticket_id: tempTicketId,
+          event_id: eventId,
+          check_in_token: noTicketData.token,
+          full_name: noTicketData.fullName,
+          is_checked_in: true,
+        });
+
+        // 2. Add to sync_queue
+        await addToSyncQueue({
+          ticket_id: tempTicketId,
+          type: "walkup_sale",
+          token: noTicketData.token,
+          event_id: eventId,
+          profile_id: noTicketData.profileId,
+          amount_collected: noTicketData.eventPrice,
+          scanned_at: scannedAt,
+          sync_status: "pending",
+        });
+
+        // 3. Update pending count
+        const pending = await getPendingSyncs();
+        setPendingCount(pending.length);
+
+        // 4. Trigger success result for instant check-in
+        handleResult({
+          status: "success",
+          fullName: noTicketData.fullName,
+          ticketId: tempTicketId,
+          token: noTicketData.token,
+        });
+      } else {
+        const res = await sellWalkUpTicketToStudentAction({
+          profileId: noTicketData.profileId,
+          eventId,
+          token: noTicketData.token,
+        });
+        handleResult(res);
+      }
     } catch (err: unknown) {
       alert(`Walk-up sale failed: ${(err as Error).message || String(err)}`);
     } finally {
@@ -505,7 +554,7 @@ export default function Scanner({ eventId }: Props) {
               <p className="text-xs text-amber-900 font-bold uppercase tracking-wider font-dingos-bold">
                 Door Ticket Price
               </p>
-              <p className="font-bebas text-3xl sm:text-4xl text-amber-950 tracking-wide mt-1">
+              <p className="font-dingos-bold text-md sm:text-md text-amber-950 tracking-wide mt-1">
                 {noTicketData.eventPrice > 0
                   ? `${noTicketData.eventPrice.toLocaleString()} MMK`
                   : "Free Entry"}
@@ -640,7 +689,7 @@ export default function Scanner({ eventId }: Props) {
                 <div className="relative w-full max-w-xs sm:max-w-sm shrink-0">
                   <div
                     id="qr-reader"
-                    className="w-full rounded-3xl overflow-hidden shadow-md border-2 border-gray-100 bg-black"
+                    className="w-full rounded-3xl overflow-hidden shadow-md border-gray-100 bg-black"
                   />
                 </div>
               </>
@@ -902,10 +951,10 @@ export default function Scanner({ eventId }: Props) {
                   </button>
                   <button
                     onClick={disableOfflineMode}
-                    className="flex-1 rounded-full border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 active:scale-95 px-3 py-2 text-xs font-bold text-indigo-700 transition shadow-2xs flex items-center justify-center gap-1.5 font-dingos-bold tactile-btn"
+                    className="flex-1 rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 px-3 py-2 text-xs font-bold text-emerald-700 transition shadow-2xs flex items-center justify-center gap-1.5 font-dingos-bold tactile-btn"
                   >
                     <svg
-                      className="w-3.5 h-3.5 text-indigo-600"
+                      className="w-3.5 h-3.5 text-emerald-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

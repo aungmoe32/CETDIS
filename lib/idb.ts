@@ -10,17 +10,33 @@ export interface CachedTicket {
   nfc_issued?: boolean;
 }
 
+export interface CachedProfile {
+  profile_id: string;
+  check_in_token: string;
+  full_name: string;
+  purchased_nfc?: boolean;
+  nfc_issued?: boolean;
+}
+
+export interface CachedEvent {
+  id: string;
+  title: string;
+  price: number;
+}
+
 export interface SyncQueueEntry {
   ticket_id: string;
-  type?: "checkin" | "issue_nfc";
+  type?: "checkin" | "issue_nfc" | "walkup_sale";
   token?: string;
   event_id?: string;
+  profile_id?: string;
+  amount_collected?: number;
   scanned_at: string; // ISO timestamp
   sync_status: "pending" | "completed";
 }
 
 const DB_NAME = "cetdis-offline";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -36,6 +52,15 @@ function getDb() {
         }
         if (!db.objectStoreNames.contains("sync_queue")) {
           db.createObjectStore("sync_queue", { keyPath: "ticket_id" });
+        }
+        if (!db.objectStoreNames.contains("cached_profiles")) {
+          const store = db.createObjectStore("cached_profiles", {
+            keyPath: "profile_id",
+          });
+          store.createIndex("by_token", "check_in_token", { unique: true });
+        }
+        if (!db.objectStoreNames.contains("cached_events")) {
+          db.createObjectStore("cached_events", { keyPath: "id" });
         }
       },
     });
@@ -136,8 +161,6 @@ export async function clearSyncQueue() {
   await db.clear("sync_queue");
 }
 
-// ─── Cached Ticket Presence ───────────────────────────────────────────────────
-
 // Returns true if there is at least one cached ticket for the given event.
 // Scoped to eventId so we don't incorrectly restore offline mode when the
 // organizer switches to a different event whose list hasn't been downloaded.
@@ -146,3 +169,41 @@ export async function hasCachedTickets(eventId: string): Promise<boolean> {
   const all = await db.getAll("cached_tickets");
   return all.some((t) => t.event_id === eventId);
 }
+
+// ─── Cached Profiles (Campus Directory for Offline Walk-ups) ────────────────
+
+export async function saveProfiles(profiles: CachedProfile[]): Promise<void> {
+  const db = await getDb();
+  const tx = db.transaction("cached_profiles", "readwrite");
+  await tx.objectStore("cached_profiles").clear();
+  for (const profile of profiles) {
+    await tx.objectStore("cached_profiles").put(profile);
+  }
+  await tx.done;
+}
+
+export async function getProfileByToken(
+  token: string,
+): Promise<CachedProfile | undefined> {
+  const db = await getDb();
+  const index = db
+    .transaction("cached_profiles", "readonly")
+    .objectStore("cached_profiles")
+    .index("by_token");
+  return index.get(token);
+}
+
+// ─── Cached Event Metadata ──────────────────────────────────────────────────
+
+export async function saveEventMeta(event: CachedEvent): Promise<void> {
+  const db = await getDb();
+  await db.put("cached_events", event);
+}
+
+export async function getEventMeta(
+  eventId: string,
+): Promise<CachedEvent | undefined> {
+  const db = await getDb();
+  return db.get("cached_events", eventId);
+}
+

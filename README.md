@@ -19,7 +19,7 @@ Built on Next.js 16 (App Router), React 19, Supabase Auth, PostgreSQL via Drizzl
 - **Live Entrance Dashboard**: Streamlined dashboard (`/dashboard`) focused on real-time event operations, capacity tracking, crowd check-in rates, and quick door actions.
 - **Door Check-In Scanner**: High-speed scanner (`/scan?event=<event_id>`) supporting both camera QR scanning (`html5-qrcode`) and physical Web NFC tapping (`NDEFReader`).
 - **Offline-First Synchronization**: Downloads guest lists to client-side IndexedDB (`idb`). Processes check-ins locally in sub-10ms without network dependence, queuing transitions and syncing to Supabase when connectivity returns.
-- **Walk-Up Sales & Door Reconciliation**: Quick door ticketing workflow for registered attendees who forgot to RSVP as well as anonymous guests, including cash collection logging and cash-to-ticket reconciliation.
+- **Walk-Up Sales & Door Reconciliation**: Quick door ticketing workflow for registered attendees who forgot to RSVP as well as anonymous guests, including offline campus directory caching, local cash collection logging, background sync-back, and door reconciliation.
 - **Schedule & Event Management**: Full event lifecycle management (`/events/all`, `/events/new`, `/events/[id]/edit`) with status filters, price options, attendee capacity enforcement, and CSV guest list exports.
 - **Organizer Profile**: Dedicated profile page (`/profile`) with top navigation account menu, editable display name, and masked credential view.
 
