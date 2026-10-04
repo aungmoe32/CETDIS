@@ -25,10 +25,15 @@ export default function GlobalStatusBar() {
   const handleManualSync = async () => {
     if (!isOnline || isSyncing || pendingCount === 0) return;
     setIsSyncing(true);
+    const startTime = Date.now();
     try {
       await flushSyncQueue();
       await checkSyncCount();
     } finally {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 700) {
+        await new Promise((resolve) => setTimeout(resolve, 700 - elapsed));
+      }
       setIsSyncing(false);
     }
   };
@@ -38,9 +43,20 @@ export default function GlobalStatusBar() {
     setIsOnline(navigator.onLine);
     checkSyncCount();
 
-    const handleOnline = () => {
+    const handleOnline = async () => {
       setIsOnline(true);
-      flushSyncQueue().then(() => checkSyncCount());
+      setIsSyncing(true);
+      const startTime = Date.now();
+      try {
+        await flushSyncQueue();
+        await checkSyncCount();
+      } finally {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 700) {
+          await new Promise((resolve) => setTimeout(resolve, 700 - elapsed));
+        }
+        setIsSyncing(false);
+      }
     };
 
     const handleOffline = () => {
@@ -122,8 +138,8 @@ export default function GlobalStatusBar() {
 
         {/* Right: Status Indicators & Actions */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-          {/* Pending Sync Count Badge (if pending items exist) */}
-          {pendingCount > 0 && (
+          {/* Pending Sync Count Badge (if pending items exist or syncing) */}
+          {(pendingCount > 0 || isSyncing) && (
             <button
               onClick={handleManualSync}
               disabled={!isOnline || isSyncing}
@@ -139,7 +155,7 @@ export default function GlobalStatusBar() {
               }`}
             >
               <svg
-                className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-amber-700" : ""}`}
+                className={`h-3.5 w-3.5 transition-transform ${isSyncing ? "animate-spin text-amber-700" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

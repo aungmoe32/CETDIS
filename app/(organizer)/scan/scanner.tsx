@@ -54,6 +54,14 @@ export default function Scanner({ eventId }: Props) {
   } | null>(null);
   const [isWritingHandover, setIsWritingHandover] = useState(false);
   const [handoverSuccess, setHandoverSuccess] = useState(false);
+  const [downloadModal, setDownloadModal] = useState<{
+    isOpen: boolean;
+    type: "success" | "error";
+    title: string;
+    message?: string;
+    attendeesCount?: number;
+    profilesCount?: number;
+  } | null>(null);
 
   // Scenario A: Walk-up at door for existing student without ticket
   const [noTicketData, setNoTicketData] = useState<{
@@ -83,7 +91,25 @@ export default function Scanner({ eventId }: Props) {
     setIsOnline(online);
     isOnlineRef.current = online;
 
-    if (online) flushSyncQueue();
+    const triggerSync = async () => {
+      setIsSyncing(true);
+      const startTime = Date.now();
+      try {
+        await flushSyncQueue();
+        const q = await getPendingSyncs();
+        setPendingCount(q.length);
+      } catch (err) {
+        console.error("Auto sync failed", err);
+      } finally {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 700) {
+          await new Promise((resolve) => setTimeout(resolve, 700 - elapsed));
+        }
+        setIsSyncing(false);
+      }
+    };
+
+    if (online) triggerSync();
     getPendingSyncs().then((q) => setPendingCount(q.length));
     hasCachedTickets(eventId).then((has) => {
       if (has && !isOnlineRef.current) {
@@ -95,7 +121,7 @@ export default function Scanner({ eventId }: Props) {
     const handleOnline = () => {
       isOnlineRef.current = true;
       setIsOnline(true);
-      flushSyncQueue();
+      triggerSync();
     };
     const handleOffline = () => {
       isOnlineRef.current = false;
@@ -353,7 +379,12 @@ export default function Scanner({ eventId }: Props) {
     try {
       const result = await loadGuestListAction(eventId);
       if (result.error) {
-        alert(result.error);
+        setDownloadModal({
+          isOpen: true,
+          type: "error",
+          title: "Download Failed",
+          message: result.error,
+        });
       } else if (result.data) {
         await saveGuestList(result.data);
         if (result.eventMeta) {
@@ -364,14 +395,22 @@ export default function Scanner({ eventId }: Props) {
         }
         offlineEnabledRef.current = true;
         setOfflineEnabled(true);
-        alert(
-          `Offline mode ready: ${result.data.length} attendees & ${result.profiles?.length ?? 0} campus students cached`,
-        );
+        setDownloadModal({
+          isOpen: true,
+          type: "success",
+          title: "Guest List & Directory Ready",
+          attendeesCount: result.data.length,
+          profilesCount: result.profiles?.length ?? 0,
+        });
       }
     } catch {
-      alert(
-        "Network error: could not connect to the server. Check your connection and try again.",
-      );
+      setDownloadModal({
+        isOpen: true,
+        type: "error",
+        title: "Connection Failed",
+        message:
+          "Network error: could not connect to the server. Check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -383,11 +422,22 @@ export default function Scanner({ eventId }: Props) {
   };
 
   const handleManualSync = async () => {
+    if (isSyncing || !isOnline) return;
     setIsSyncing(true);
-    await flushSyncQueue();
-    const remaining = await getPendingSyncs();
-    setPendingCount(remaining.length);
-    setIsSyncing(false);
+    const startTime = Date.now();
+    try {
+      await flushSyncQueue();
+      const remaining = await getPendingSyncs();
+      setPendingCount(remaining.length);
+    } catch (err) {
+      console.error("Manual sync failed", err);
+    } finally {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 700) {
+        await new Promise((resolve) => setTimeout(resolve, 700 - elapsed));
+      }
+      setIsSyncing(false);
+    }
   };
 
   // ── NFC Handover Flow (Fast Issue At Door) ─────────────────────────────────
@@ -845,8 +895,8 @@ export default function Scanner({ eventId }: Props) {
                   )}
                 </div>
 
-                {/* Right: Pending Sync Button */}
-                {pendingCount > 0 && (
+                {/* Right: Pending Sync Button with rotating animation */}
+                {/* {(pendingCount > 0 || isSyncing) && (
                   <button
                     onClick={handleManualSync}
                     disabled={!isOnline || isSyncing}
@@ -862,7 +912,7 @@ export default function Scanner({ eventId }: Props) {
                     }`}
                   >
                     <svg
-                      className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-amber-700" : "text-amber-600"}`}
+                      className={`h-3.5 w-3.5 transition-transform ${isSyncing ? "animate-spin text-amber-700" : "text-amber-600"}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -874,12 +924,14 @@ export default function Scanner({ eventId }: Props) {
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
-                    <span className="font-bebas text-sm text-amber-900 tracking-wide">
-                      {pendingCount}
-                    </span>
+                    {pendingCount > 0 && (
+                      <span className="font-bebas text-sm text-amber-900 tracking-wide">
+                        {pendingCount}
+                      </span>
+                    )}
                     <span>{isSyncing ? "Syncing…" : "Unsynced"}</span>
                   </button>
-                )}
+                )} */}
               </div>
 
               {/* Row 2: Offline Actions */}
@@ -1091,6 +1143,117 @@ export default function Scanner({ eventId }: Props) {
                     )}
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Offline Guest List Download Result Dialog Modal ───────────────── */}
+      {downloadModal?.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 select-none"
+        >
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-gray-100 space-y-4 animate-in zoom-in-95 duration-150 relative">
+            {downloadModal.type === "success" ? (
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100/80 text-emerald-600 flex items-center justify-center shadow-2xs">
+                  <svg
+                    className="w-7 h-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 font-dingos-bold tracking-tight">
+                    {downloadModal.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Event roster and campus student identities are saved to
+                    local IndexedDB.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-left">
+                  <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100/80 p-3 text-center">
+                    <div className="font-bebas text-2xl text-emerald-900 leading-none">
+                      {downloadModal.attendeesCount ?? 0}
+                    </div>
+                    <div className="text-[11px] font-bold text-emerald-700 font-dingos-bold mt-1">
+                      Event Attendees
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-indigo-50/70 border border-indigo-100/80 p-3 text-center">
+                    <div className="font-bebas text-2xl text-indigo-900 leading-none">
+                      {downloadModal.profilesCount ?? 0}
+                    </div>
+                    <div className="text-[11px] font-bold text-indigo-700 font-dingos-bold mt-1">
+                      Campus Directory
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 text-gray-600 text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-left font-medium">
+                    Door scanning works 100% offline with zero internet access.
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDownloadModal(null)}
+                  className="w-full rounded-full bg-gray-900 hover:bg-black text-white py-3 text-xs sm:text-sm font-bold active:scale-95 transition shadow-sm font-dingos-bold tactile-btn"
+                >
+                  Start Scanning
+                </button>
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shadow-2xs">
+                  <svg
+                    className="w-7 h-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 font-dingos-bold tracking-tight">
+                    {downloadModal.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {downloadModal.message ||
+                      "An error occurred while downloading the guest list."}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDownloadModal(null)}
+                  className="w-full rounded-full bg-gray-900 hover:bg-black text-white py-3 text-xs sm:text-sm font-bold active:scale-95 transition shadow-sm font-dingos-bold tactile-btn"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
           </div>
