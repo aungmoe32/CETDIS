@@ -148,6 +148,7 @@ export default function TodayEvents({ events }: Props) {
           {activeEvents.map((event) => {
             const eventDate = new Date(event.dateTime);
             const isToday = eventDate.toDateString() === todayDateString;
+            const isPast = eventDate.getTime() < now.getTime() && !isToday;
             const isFree = !event.price || event.price === 0;
 
             // Capacity calculations
@@ -213,25 +214,27 @@ export default function TodayEvents({ events }: Props) {
                     </p>
                   </div>
 
-                  <Link
-                    href={`/scan?event=${event.id}`}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 sm:px-3.5 text-xs font-bold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs tactile-btn font-dingos-bold"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
+                  {!isPast && (
+                    <Link
+                      href={`/scan?event=${event.id}`}
+                      className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 sm:px-3.5 text-xs font-bold text-white hover:bg-indigo-700 active:scale-95 transition shadow-xs tactile-btn font-dingos-bold"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"
-                      />
-                    </svg>
-                    <span>Scan Door</span>
-                  </Link>
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"
+                        />
+                      </svg>
+                      <span>Scan Door</span>
+                    </Link>
+                  )}
                 </div>
 
                 {/* Dual Visual Progress Bars */}

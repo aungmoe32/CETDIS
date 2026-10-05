@@ -76,8 +76,17 @@ export default function ActionCenter({ events }: Props) {
     setNfcAvailable("NDEFReader" in window);
   }, []);
 
-  // Filter events happening today or active upcoming
-  const todayEvents = events.filter((e) => {
+  // Filter active events (exclude events that ended in the past)
+  const activeEvents = events.filter((e) => {
+    const eventDate = new Date(e.dateTime);
+    const today = new Date();
+    const isToday = eventDate.toDateString() === today.toDateString();
+    const isPast = eventDate.getTime() < today.getTime() && !isToday;
+    return !isPast;
+  });
+
+  // Filter events happening today
+  const todayEvents = activeEvents.filter((e) => {
     const eventDate = new Date(e.dateTime);
     const today = new Date();
     return (
@@ -87,17 +96,17 @@ export default function ActionCenter({ events }: Props) {
     );
   });
 
-  // If there's at least 1 today event, use today's events for smart scan; otherwise all events
-  const targetEvents = todayEvents.length > 0 ? todayEvents : events;
+  // If there's at least 1 today event, use today's events for smart scan; otherwise active events
+  const targetEvents = todayEvents.length > 0 ? todayEvents : activeEvents;
 
   const handleOpenScanner = () => {
     if (targetEvents.length === 1) {
       router.push(`/scan?event=${targetEvents[0].id}`);
     } else if (targetEvents.length > 1) {
       setIsModalOpen(true);
-    } else if (events.length === 1) {
-      router.push(`/scan?event=${events[0].id}`);
-    } else if (events.length > 1) {
+    } else if (activeEvents.length === 1) {
+      router.push(`/scan?event=${activeEvents[0].id}`);
+    } else if (activeEvents.length > 1) {
       setIsModalOpen(true);
     } else {
       router.push("/events/new");
@@ -696,57 +705,70 @@ export default function ActionCenter({ events }: Props) {
             </div>
 
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {events.map((e) => {
-                const eventDate = new Date(e.dateTime);
-                const isToday =
-                  eventDate.toDateString() === new Date().toDateString();
-
-                return (
+              {activeEvents.length === 0 ? (
+                <div className="py-8 text-center text-xs text-gray-500 space-y-2">
+                  <p>All scheduled events have ended.</p>
                   <Link
-                    key={e.id}
-                    href={`/scan?event=${e.id}`}
+                    href="/events/new"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex items-center justify-between p-3.5 rounded-2xl border border-gray-200/80 bg-slate-50/60 hover:border-indigo-300 hover:bg-indigo-50/40 transition tactile-hover group"
+                    className="inline-block font-bold text-indigo-600 hover:text-indigo-800 font-dingos-bold"
                   >
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-900 truncate font-dingos-bold">
-                          {e.title}
-                        </p>
-                        {isToday && (
-                          <span className="text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
-                            Today
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {eventDate.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        · {e.location || "Online"} · {e.totalRegistered}{" "}
-                        registered
-                      </p>
-                    </div>
-
-                    <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
+                    + Create a new event
                   </Link>
-                );
-              })}
+                </div>
+              ) : (
+                activeEvents.map((e) => {
+                  const eventDate = new Date(e.dateTime);
+                  const isToday =
+                    eventDate.toDateString() === new Date().toDateString();
+
+                  return (
+                    <Link
+                      key={e.id}
+                      href={`/scan?event=${e.id}`}
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex items-center justify-between p-3.5 rounded-2xl border border-gray-200/80 bg-slate-50/60 hover:border-indigo-300 hover:bg-indigo-50/40 transition tactile-hover group"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-900 truncate font-dingos-bold">
+                            {e.title}
+                          </p>
+                          {isToday && (
+                            <span className="text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {eventDate.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}{" "}
+                          · {e.location || "Online"} · {e.totalRegistered}{" "}
+                          registered
+                        </p>
+                      </div>
+
+                      <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
             </div>
 
             <div className="pt-1">
