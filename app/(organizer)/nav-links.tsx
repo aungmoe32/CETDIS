@@ -65,7 +65,7 @@ export function DesktopSidebarNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 lg:w-60 shrink-0 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-2 hidden md:block min-h-[calc(100vh-3.5rem)] select-none">
+    <aside className="w-56 lg:w-60 shrink-0 border-r border-gray-200/80 bg-white/95 backdrop-blur-xs p-4 space-y-2 hidden md:block h-full overflow-y-auto select-none">
       <div className="px-3 pb-1 pt-0.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
           Navigation

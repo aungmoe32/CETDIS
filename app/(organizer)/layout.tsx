@@ -45,11 +45,11 @@ export default async function OrganizerLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen md:h-screen md:overflow-hidden bg-gray-50 flex flex-col">
       <GlobalStatusBar />
-      <div className="flex flex-1 min-w-0">
+      <div className="flex flex-1 min-w-0 md:overflow-hidden">
         <DesktopSidebarNav />
-        <main className="flex-1 min-w-0 pb-24 md:pb-8">{children}</main>
+        <main className="flex-1 min-w-0 pb-24 md:pb-0 md:overflow-y-auto">{children}</main>
       </div>
       <MobileBottomNav />
     </div>

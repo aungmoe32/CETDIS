@@ -76,7 +76,7 @@ export default async function ScanPage({ searchParams }: Props) {
   if (!event) notFound();
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-10rem)] sm:h-[calc(100dvh-4rem)] overflow-hidden bg-gray-50/30">
+    <div className="flex flex-col min-h-[calc(100dvh-10rem)] sm:h-[calc(100dvh-4rem)] md:h-full overflow-hidden bg-gray-50/30">
       {/* Top Scanner Navigation Bar */}
       <div className="px-4 py-2.5 sm:py-3 border-b border-gray-200/90 bg-white shrink-0 flex items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3 min-w-0">

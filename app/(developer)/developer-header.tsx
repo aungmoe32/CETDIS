@@ -28,7 +28,7 @@ export function DeveloperHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-5 py-2.5 sm:py-3 transition-colors select-none">
+    <header className="sticky top-0 z-30 shrink-0 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-5 py-2.5 sm:py-3 transition-colors select-none">
       <div className="flex items-center justify-between gap-2 max-w-7xl mx-auto">
         {/* Left: Brand & Role */}
         <div className="flex items-center gap-2.5 min-w-0">

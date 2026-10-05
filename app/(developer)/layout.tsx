@@ -35,12 +35,12 @@ export default async function DeveloperLayout({
   if (profile.role !== "developer") redirect("/login");
 
   return (
-    <div className="min-h-screen bg-white flex flex-col select-none">
+    <div className="min-h-screen sm:h-screen sm:overflow-hidden bg-white flex flex-col select-none">
       <DeveloperHeader />
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 sm:overflow-hidden">
         {/* Desktop Sidebar Navigation */}
-        <aside className="w-56 border-r border-gray-100 bg-white p-4 space-y-2 hidden sm:block">
+        <aside className="w-56 shrink-0 border-r border-gray-100 bg-white p-4 space-y-2 hidden sm:block sm:h-full sm:overflow-y-auto">
           <div className="px-3 pb-1 pt-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold">
               Admin Controls
@@ -69,7 +69,7 @@ export default async function DeveloperLayout({
         </aside>
 
         {/* Main Content Viewport */}
-        <main className="flex-1 bg-white">{children}</main>
+        <main className="flex-1 min-w-0 bg-white sm:overflow-y-auto">{children}</main>
       </div>
     </div>
   );
