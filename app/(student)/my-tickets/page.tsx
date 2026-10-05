@@ -6,7 +6,7 @@ import { events, tickets, profiles } from "@/drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import MyTicketsClient from "./tickets-list";
 
-export const metadata = { title: "My Registered Events · CETDIS" };
+export const metadata = { title: "My Registered Events · CEDIS" };
 
 export default async function MyTicketsPage() {
   const cookieStore = await cookies();

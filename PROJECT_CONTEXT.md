@@ -1,6 +1,6 @@
-# CETDIS — Full Project Context & Architecture Guide
+# CEDIS — Full Project Context & Architecture Guide
 
-> **Campus Event Ticketing and Digital Identification System (CETDIS)**  
+> **Campus Events and Digital Identification System (CEDIS)**  
 > A Next.js 16 Progressive Web Application built for high-throughput campus event ticketing, door check-in, offline synchronization, physical Universal NFC pass management, and at-the-door Walk-Up sales with cash reconciliation.
 
 ---
@@ -9,7 +9,7 @@
 
 ### Core Mission
 
-CETDIS bridges digital campus identities with physical event entry. Students can RSVP to campus events, view their digital student pass, or tap in at the door using physical NFC wristbands/cards. Organizers can validate attendees using camera QR scanners or NFC hardware even in dead zones with zero internet connectivity, as well as sell tickets at the door in under 15 seconds.
+CEDIS bridges digital campus identities with physical event entry. Students can RSVP to campus events, view their digital student pass, or tap in at the door using physical NFC wristbands/cards. Organizers can validate attendees using camera QR scanners or NFC hardware even in dead zones with zero internet connectivity, as well as sell tickets at the door in under 15 seconds.
 
 ### Key Architectural Pillars
 
@@ -27,7 +27,7 @@ CETDIS bridges digital campus identities with physical event entry. Students can
 | Layer                    | Technology                                  | Rationale                                                                                                                                |
 | :----------------------- | :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
 | **Framework**            | **Next.js 16 (App Router)**                 | Modern React Server Components, Server Actions in colocated `actions.ts`, and root `proxy.ts` (replacing deprecated `middleware.ts`).    |
-| **Styling & Font**       | **Tailwind CSS v4 + Inter Font**            | Clean, minimalist white aesthetic with zero heavy external UI component libraries. Inter typography via `next/font/google`.             |
+| **Styling & Font**       | **Tailwind CSS v4 + Inter Font**            | Clean, minimalist white aesthetic with zero heavy external UI component libraries. Inter typography via `next/font/google`.              |
 | **Authentication**       | **Supabase Auth**                           | Passwordless Email OTP (`supabase.auth.signInWithOtp`).                                                                                  |
 | **Database & ORM**       | **PostgreSQL + Drizzle ORM**                | Type-safe schema definitions and SQL queries via `drizzle-orm`. Direct Supabase client is reserved strictly for auth session management. |
 | **Offline Storage**      | **IndexedDB (`idb`)**                       | Client-side database caching event attendees, check-in statuses, NFC issuance states, and sync queues.                                   |
@@ -125,7 +125,7 @@ erDiagram
 ## 4. Application Architecture & Routing Structure
 
 ```
-cetdis/
+CEDIS/
 ├── app/
 │   ├── (auth)/                         # Auth Route Group
 │   │   ├── login/                      # Passwordless OTP login
@@ -201,11 +201,11 @@ cetdis/
 
 ## 5. Roles & Access Control
 
-| Role        | Home Route             | Access                                                              |
-| :---------- | :--------------------- | :------------------------------------------------------------------ |
-| `student`   | `/my-id`               | `/events`, `/tickets`, `/my-id`                                     |
+| Role        | Home Route             | Access                                                                             |
+| :---------- | :--------------------- | :--------------------------------------------------------------------------------- |
+| `student`   | `/my-id`               | `/events`, `/tickets`, `/my-id`                                                    |
 | `organizer` | `/dashboard`           | `/dashboard`, `/events/all`, `/events/new`, `/events/[id]/edit`, `/scan`, `/admin` |
-| `developer` | `/developer/dashboard` | `/developer/*` only                                                 |
+| `developer` | `/developer/dashboard` | `/developer/*` only                                                                |
 
 - `proxy.ts` enforces role boundaries; any wrong-role access redirects to that role's home.
 - `(developer)/layout.tsx` performs a server-side role check and redirects non-developers to `/login`.
@@ -274,6 +274,7 @@ When an attendee arrives at an event:
 Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
 
 #### Scenario A: Existing Student (Forgot to RSVP)
+
 1. Student scans QR or taps wristband at the door.
 2. Scanner identifies the student profile (`check_in_token`) via server query (online) or `cached_profiles` (offline), but detects no ticket for the event.
 3. Scanner immediately displays an amber prompt: **"Student Recognized: [Full Name]. No Ticket for this Event."** with the event's door price.
@@ -282,6 +283,7 @@ Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
    - **Offline**: Scanner generates a local ticket ID (`walkup_${uuid}`), inserts into `cached_tickets` as checked in (preventing duplicate entries), enqueues a `walkup_sale` mutation in `sync_queue`, updates door metrics, and displays instant green check-in confirmation. When network connectivity resumes, the background sync worker flushes the sale to `/api/checkin/sync` to persist into PostgreSQL.
 
 #### Scenario B: The Guest (No App, No Account)
+
 1. Organizer taps **"Walk-Up Sale"** in the Dashboard Action Center.
 2. Selects event and enters optional name (or leaves blank for Anonymous).
 3. Organizer collects cash and taps **"Collect Cash & Program NFC Tag"**.
@@ -293,6 +295,7 @@ Designed to eliminate door bottlenecks and keep entry times under 15 seconds:
 6. Guest receives the physical tag and walks in. All future attendance can be tracked under this same tag.
 
 #### Cash Box Reconciliation
+
 - The dashboard automatically tracks `walkUpCount` and calculates `walkUpCount * event.price`.
 - Displays a dedicated cash reconciliation pill on each event card (e.g. `12 walk-ups (60,000 MMK cash box)`), providing a clear audit trail against the physical cash box.
 
@@ -408,6 +411,7 @@ The app solves this using a **3-Part Shield**:
 #### 3. The Synchronization Engine (Handling Offline Data)
 
 When tickets are scanned offline, they are trapped in the device's `sync_queue`. The engine supports three distinct mutation types:
+
 - `checkin`: Updates an existing ticket to `isCheckedIn: true` with the offline `scannedAt` timestamp.
 - `issue_nfc`: Sets `nfcIssued: true` and writes an audit row to `nfc_issuances`.
 - `walkup_sale`: Inserts a brand new `tickets` row with `purchaseMethod: 'cash_at_door'` and `isCheckedIn: true`.
@@ -421,14 +425,16 @@ Getting them safely to the server requires careful handling of network events:
 
 #### 4. The Multi-Store Caching Strategy
 
-An offline PWA requires two completely different types of caching to function. CETDIS handles both:
+An offline PWA requires two completely different types of caching to function. CEDIS handles both:
 
 **Layer 1: The Asset Cache (Serwist / Service Worker)**
+
 - Next.js and Turbopack generate the UI (HTML, CSS, JS, Fonts).
 - Serwist intercepts network traffic. If the user goes offline, Serwist serves the Next.js UI from the browser's Cache Storage.
 - _Crucial Rule:_ The Next.js `proxy.ts` middleware is configured to ignore the `/~offline` and `/serwist` routes. This ensures the Service Worker can install itself securely in the background without being accidentally redirected to the `/login` page.
 
 **Layer 2: The Data Cache (IndexedDB — 4 Stores)**
+
 - While Serwist loads the UI, it doesn't know about user data. IndexedDB acts as your local Postgres replica across 4 distinct stores:
   1. `cached_tickets`: Attendee rosters, check-in statuses, and NFC purchase flags for the current event.
   2. `cached_profiles`: Lightweight campus student directory (`profile_id`, `check_in_token`, `full_name`) enabling offline walk-up recognition for students who haven't RSVP'd.
@@ -438,7 +444,7 @@ An offline PWA requires two completely different types of caching to function. C
 
 #### Architectural Summary
 
-By combining **Next.js Server Actions** (for secure, authenticated online processing), **Serwist** (for offline UI rendering), and **IndexedDB** (for resilient, conflict-free data storage across 4 stores), CETDIS provides an enterprise-grade check-in system that seamlessly bridges the gap between the server and the local device without data loss or duplicate entries.
+By combining **Next.js Server Actions** (for secure, authenticated online processing), **Serwist** (for offline UI rendering), and **IndexedDB** (for resilient, conflict-free data storage across 4 stores), CEDIS provides an enterprise-grade check-in system that seamlessly bridges the gap between the server and the local device without data loss or duplicate entries.
 
 ---
 

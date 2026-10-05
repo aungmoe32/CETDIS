@@ -43,11 +43,17 @@ export function StudentHeader() {
               >
                 <circle cx="12" cy="12" r="9" />
                 <circle cx="12" cy="12" r="5" />
-                <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="1.5"
+                  fill="currentColor"
+                  strokeWidth={0}
+                />
               </svg>
             </div>
             <span className="font-bold text-gray-900 text-base tracking-tight font-dingos-bold">
-              CETDIS
+              CEDIS
             </span>
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full font-dingos-bold">
@@ -91,7 +97,11 @@ export function StudentHeader() {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </button>
 

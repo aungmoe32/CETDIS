@@ -1,8 +1,8 @@
 /**
  * Dynamically resolves the base URL across environments:
  * 1. Browser: Uses window.location.origin
- * 2. Vercel Production: Uses VERCEL_PROJECT_PRODUCTION_URL (e.g. cetdis.com)
- * 3. Vercel Preview Branch: Uses VERCEL_URL (e.g. cetdis-git-branch.vercel.app)
+ * 2. Vercel Production: Uses VERCEL_PROJECT_PRODUCTION_URL (e.g. CEDIS.com)
+ * 3. Vercel Preview Branch: Uses VERCEL_URL (e.g. CEDIS-git-branch.vercel.app)
  * 4. Local Development: Uses NEXT_PUBLIC_APP_URL or fallback http://localhost:3000
  */
 export function getBaseUrl(): string {

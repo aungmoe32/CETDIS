@@ -54,7 +54,7 @@ describe("Organizer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-123", email: "organizer@cetdis.edu" } },
+          data: { user: { id: "user-123", email: "organizer@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -72,7 +72,7 @@ describe("Organizer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-123", email: "organizer@cetdis.edu" } },
+          data: { user: { id: "user-123", email: "organizer@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -90,7 +90,7 @@ describe("Organizer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-123", email: "organizer@cetdis.edu" } },
+          data: { user: { id: "user-123", email: "organizer@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -108,7 +108,7 @@ describe("Organizer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-123", email: "organizer@cetdis.edu" } },
+          data: { user: { id: "user-123", email: "organizer@CEDIS.edu" } },
         }),
       },
     } as any);

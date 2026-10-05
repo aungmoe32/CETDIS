@@ -483,7 +483,7 @@ export default function MyTicketsClient({
                   value={
                     checkInToken
                       ? `${typeof window !== "undefined" ? window.location.origin : ""}/scan/${checkInToken}`
-                      : "cetdis-pass"
+                      : "CEDIS-pass"
                   }
                   size={160}
                   level="H"

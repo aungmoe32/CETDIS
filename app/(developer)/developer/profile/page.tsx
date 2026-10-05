@@ -8,7 +8,7 @@ import { profiles } from "@/drizzle/schema";
 import DeveloperProfileForm from "./profile-form";
 
 export const metadata = {
-  title: "Developer Profile · CETDIS",
+  title: "Developer Profile · CEDIS",
 };
 
 export default async function DeveloperProfilePage() {

@@ -33,9 +33,9 @@ describe("getBaseUrl helper", () => {
     const originalWindow = (globalThis as any).window;
     delete (globalThis as any).window;
 
-    process.env.VERCEL_PROJECT_PRODUCTION_URL = "cetdis.com";
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "CEDIS.com";
 
-    expect(getBaseUrl()).toBe("https://cetdis.com");
+    expect(getBaseUrl()).toBe("https://CEDIS.com");
 
     (globalThis as any).window = originalWindow;
   });
@@ -44,9 +44,9 @@ describe("getBaseUrl helper", () => {
     const originalWindow = (globalThis as any).window;
     delete (globalThis as any).window;
 
-    process.env.VERCEL_URL = "cetdis-git-feature-branch.vercel.app";
+    process.env.VERCEL_URL = "CEDIS-git-feature-branch.vercel.app";
 
-    expect(getBaseUrl()).toBe("https://cetdis-git-feature-branch.vercel.app");
+    expect(getBaseUrl()).toBe("https://CEDIS-git-feature-branch.vercel.app");
 
     (globalThis as any).window = originalWindow;
   });

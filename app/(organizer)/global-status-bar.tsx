@@ -129,7 +129,7 @@ export default function GlobalStatusBar() {
             </svg>
           </div>
           <span className="font-bold text-gray-900 text-base tracking-tight truncate font-dingos-bold">
-            CETDIS
+            CEDIS
           </span>
           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full flex-shrink-0 hidden sm:inline-block font-dingos-bold">
             Organizer

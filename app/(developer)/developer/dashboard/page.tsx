@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import AllocationModal from "./allocation-modal";
 import MaskedEmail from "./masked-email";
 
-export const metadata = { title: "Developer Dashboard · CETDIS" };
+export const metadata = { title: "Developer Dashboard · CEDIS" };
 
 export default async function DeveloperDashboardPage() {
   const cookieStore = await cookies();

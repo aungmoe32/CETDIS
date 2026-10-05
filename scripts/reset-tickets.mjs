@@ -4,11 +4,16 @@ const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("Error: DATABASE_URL is not set.");
-  console.error("Run with: node --env-file=.env.local scripts/reset-tickets.mjs <target> [options]");
+  console.error(
+    "Run with: node --env-file=.env.local scripts/reset-tickets.mjs <target> [options]",
+  );
   process.exit(1);
 }
 
-const sql = postgres(connectionString, { prepare: false, ssl: { rejectUnauthorized: false } });
+const sql = postgres(connectionString, {
+  prepare: false,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function main() {
   const args = process.argv.slice(2);
@@ -21,9 +26,13 @@ async function main() {
   // Find target if not --all and not flags
   const targetArg = args.find((a) => !a.startsWith("-") && a !== eventIdFilter);
 
-  if ((!targetArg && !isAll) || args.includes("--help") || args.includes("-h")) {
+  if (
+    (!targetArg && !isAll) ||
+    args.includes("--help") ||
+    args.includes("-h")
+  ) {
     console.log(`
-CETDIS Ticket Reset & Management Devtool
+CEDIS Ticket Reset & Management Devtool
 ================================================================================
 Usage:
   # 1. Reset check-in state to FALSE (keep tickets registered):
@@ -70,7 +79,9 @@ Options:
       FROM tickets
     `;
 
-    console.log(`Summary: ${stats.total_tickets} Total Tickets | ${stats.checked_in_count} Checked In | ${stats.walkup_count} Walk-Up Sales\n`);
+    console.log(
+      `Summary: ${stats.total_tickets} Total Tickets | ${stats.checked_in_count} Checked In | ${stats.walkup_count} Walk-Up Sales\n`,
+    );
 
     if (sampleTickets.length === 0) {
       console.log("No tickets currently exist in database.\n");
@@ -82,9 +93,11 @@ Options:
           Email: t.email,
           Event: t.event_title,
           "Checked In": t.is_checked_in,
-          "Scanned At": t.scanned_at ? new Date(t.scanned_at).toLocaleTimeString() : "-",
+          "Scanned At": t.scanned_at
+            ? new Date(t.scanned_at).toLocaleTimeString()
+            : "-",
           Method: t.purchase_method,
-        }))
+        })),
       );
     }
     await sql.end();
@@ -97,7 +110,7 @@ Options:
       console.log(
         eventIdFilter
           ? `Deleting ALL tickets for event "${eventIdFilter}"...`
-          : "Deleting ALL tickets across the entire database..."
+          : "Deleting ALL tickets across the entire database...",
       );
 
       const deleted = eventIdFilter
@@ -109,7 +122,7 @@ Options:
       console.log(
         eventIdFilter
           ? `Resetting check-in status (is_checked_in = false) for event "${eventIdFilter}"...`
-          : "Resetting check-in status (is_checked_in = false) for ALL tickets..."
+          : "Resetting check-in status (is_checked_in = false) for ALL tickets...",
       );
 
       const updated = eventIdFilter
@@ -126,7 +139,9 @@ Options:
             RETURNING id
           `;
 
-      console.log(`Successfully reset ${updated.length} ticket(s) to is_checked_in = false.`);
+      console.log(
+        `Successfully reset ${updated.length} ticket(s) to is_checked_in = false.`,
+      );
     }
 
     console.log("\nOperation completed successfully.");
@@ -135,25 +150,32 @@ Options:
   }
 
   // ── 2. SINGLE USER MODE ──────────────────────────────────────────────────
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetArg);
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      targetArg,
+    );
 
   const [profile] = isUuid
     ? await sql`SELECT id, email, full_name, role FROM profiles WHERE id = ${targetArg}`
     : await sql`SELECT id, email, full_name, role FROM profiles WHERE email = ${targetArg} LIMIT 1`;
 
   if (!profile) {
-    console.error(`User not found with ${isUuid ? "ID" : "email"}: "${targetArg}"`);
+    console.error(
+      `User not found with ${isUuid ? "ID" : "email"}: "${targetArg}"`,
+    );
     await sql.end();
     process.exit(1);
   }
 
-  console.log(`Target Attendee: ${profile.full_name} (${profile.email}) [ID: ${profile.id}]`);
+  console.log(
+    `Target Attendee: ${profile.full_name} (${profile.email}) [ID: ${profile.id}]`,
+  );
 
   if (isDelete) {
     console.log(
       eventIdFilter
         ? `Deleting ticket(s) for event "${eventIdFilter}"...`
-        : `Deleting ALL tickets registered under ${profile.full_name}...`
+        : `Deleting ALL tickets registered under ${profile.full_name}...`,
     );
 
     const deleted = eventIdFilter
@@ -168,12 +190,14 @@ Options:
           RETURNING id
         `;
 
-    console.log(`Successfully deleted ${deleted.length} ticket(s) for ${profile.full_name}.`);
+    console.log(
+      `Successfully deleted ${deleted.length} ticket(s) for ${profile.full_name}.`,
+    );
   } else {
     console.log(
       eventIdFilter
         ? `Resetting check-in status for event "${eventIdFilter}"...`
-        : `Resetting check-in status (is_checked_in = false) for all tickets of ${profile.full_name}...`
+        : `Resetting check-in status (is_checked_in = false) for all tickets of ${profile.full_name}...`,
     );
 
     const updated = eventIdFilter
@@ -190,7 +214,9 @@ Options:
           RETURNING id, event_id
         `;
 
-    console.log(`Successfully reset ${updated.length} ticket(s) to is_checked_in = false.`);
+    console.log(
+      `Successfully reset ${updated.length} ticket(s) to is_checked_in = false.`,
+    );
   }
 
   console.log("\nOperation completed successfully.");

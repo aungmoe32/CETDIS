@@ -26,7 +26,7 @@ async function main() {
 
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`
-CETDIS Mock Events & Random Student Tickets Seeder
+CEDIS Mock Events & Random Student Tickets Seeder
 ================================================================================
 Usage:
   # 1. Seed past, present (today), and future events with randomized student tickets:
@@ -54,7 +54,7 @@ Options:
     process.exit(0);
   }
 
-  console.log("🌱 [CETDIS Seeder] Starting mock data generation...\n");
+  console.log("🌱 [CEDIS Seeder] Starting mock data generation...\n");
 
   // Step 1: Find organizers
   let organizerId = null;
@@ -123,7 +123,9 @@ Options:
       SELECT id, email, full_name, role, check_in_token FROM profiles 
       ORDER BY created_at ASC
     `;
-    console.log(`Found ${students.length} total profile(s) to participate in mock RSVPs.`);
+    console.log(
+      `Found ${students.length} total profile(s) to participate in mock RSVPs.`,
+    );
   } else {
     // Include all students and developers (so developers testing student views also get mock tickets)
     students = await sql`
@@ -455,14 +457,20 @@ Over 40 international food stalls, cultural dance performances, traditional craf
       const existingAttendees = await sql`
         SELECT user_id, is_checked_in FROM tickets WHERE event_id = ${event.id}
       `;
-      const registeredUserIds = new Set(existingAttendees.map((t) => t.user_id));
+      const registeredUserIds = new Set(
+        existingAttendees.map((t) => t.user_id),
+      );
       const unassignedStudents = shuffle(
         students.filter((s) => !registeredUserIds.has(s.id)),
       );
 
       // Need more checked-in attendees?
-      let currentCheckedIn = existingAttendees.filter((t) => t.is_checked_in).length;
-      let currentPending = existingAttendees.filter((t) => !t.is_checked_in).length;
+      let currentCheckedIn = existingAttendees.filter(
+        (t) => t.is_checked_in,
+      ).length;
+      let currentPending = existingAttendees.filter(
+        (t) => !t.is_checked_in,
+      ).length;
 
       while (currentCheckedIn < 1 && unassignedStudents.length > 0) {
         const student = unassignedStudents.pop();
@@ -527,7 +535,8 @@ Over 40 international food stalls, cultural dance performances, traditional craf
         Timeline: e.category,
         Title: e.title,
         "Date & Time": `${dt.toLocaleDateString([], { month: "short", day: "numeric" })} ${dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-        Venue: e.location.length > 24 ? e.location.slice(0, 24) + "..." : e.location,
+        Venue:
+          e.location.length > 24 ? e.location.slice(0, 24) + "..." : e.location,
         Price: e.price === 0 ? "Free" : `${e.price.toLocaleString()} MMK`,
         Capacity: e.max_capacity,
         Registered: evReg ? evReg.total : 0,
@@ -555,9 +564,7 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   );
   console.log(`  • Tickets registered: ${ticketCount}`);
   console.log(`  • Already checked-in: ${checkedInCount}`);
-  console.log(
-    `  • Ready at door:      ${ticketCount - checkedInCount}`,
-  );
+  console.log(`  • Ready at door:      ${ticketCount - checkedInCount}`);
   console.log(
     "\n💡 You can now view Today's Events on the Organizer Dashboard and browse upcoming events on the Student Events Catalog!\n",
   );

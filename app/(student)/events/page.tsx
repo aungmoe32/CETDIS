@@ -3,7 +3,7 @@ import { events, tickets } from "@/drizzle/schema";
 import { count, gte } from "drizzle-orm";
 import StudentEventsCatalog from "./student-events-catalog";
 
-export const metadata = { title: "Campus Events · CETDIS" };
+export const metadata = { title: "Campus Events · CEDIS" };
 
 export default async function EventsPage() {
   const now = new Date();
@@ -47,4 +47,3 @@ export default async function EventsPage() {
 
   return <StudentEventsCatalog initialEvents={serializedEvents} />;
 }
-

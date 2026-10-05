@@ -8,7 +8,7 @@ import { profiles, tickets } from "@/drizzle/schema";
 import StudentProfileForm from "./profile-form";
 
 export const metadata = {
-  title: "My Profile · CETDIS",
+  title: "My Profile · CEDIS",
 };
 
 export default async function StudentProfilePage() {

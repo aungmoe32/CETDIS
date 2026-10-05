@@ -32,7 +32,10 @@ export function DeveloperHeader() {
       <div className="flex items-center justify-between gap-2 max-w-7xl mx-auto">
         {/* Left: Brand & Role */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <Link href="/developer/dashboard" className="flex items-center gap-2.5">
+          <Link
+            href="/developer/dashboard"
+            className="flex items-center gap-2.5"
+          >
             <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
               <svg
                 className="h-4 w-4 text-white"
@@ -43,11 +46,17 @@ export function DeveloperHeader() {
               >
                 <circle cx="12" cy="12" r="9" />
                 <circle cx="12" cy="12" r="5" />
-                <circle cx="12" cy="12" r="1.5" fill="currentColor" strokeWidth={0} />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="1.5"
+                  fill="currentColor"
+                  strokeWidth={0}
+                />
               </svg>
             </div>
             <span className="font-bold text-gray-900 text-base tracking-tight font-dingos-bold">
-              CETDIS
+              CEDIS
             </span>
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-full font-dingos-bold">
@@ -91,7 +100,11 @@ export function DeveloperHeader() {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </button>
 

@@ -27,7 +27,7 @@ function getAudioContext(): AudioContext | null {
 export function isSoundMuted(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return localStorage.getItem("cetdis:sound-muted") === "true";
+    return localStorage.getItem("CEDIS:sound-muted") === "true";
   } catch {
     return false;
   }
@@ -36,7 +36,7 @@ export function isSoundMuted(): boolean {
 export function setSoundMuted(muted: boolean): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("cetdis:sound-muted", muted ? "true" : "false");
+    localStorage.setItem("CEDIS:sound-muted", muted ? "true" : "false");
   } catch {
     // Ignore localStorage errors (e.g. in private browsing quota)
   }

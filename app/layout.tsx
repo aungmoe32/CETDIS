@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const APP_NAME = "Cetdis";
-const APP_DEFAULT_TITLE = "Cetdis App";
-const APP_TITLE_TEMPLATE = "%s - Cetdis";
-const APP_DESCRIPTION = "Cetdis App";
+const APP_NAME = "CEDIS";
+const APP_DEFAULT_TITLE = "CEDIS App";
+const APP_TITLE_TEMPLATE = "%s - CEDIS";
+const APP_DESCRIPTION = "CEDIS App";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,

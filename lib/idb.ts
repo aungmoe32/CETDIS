@@ -2,7 +2,7 @@ import { openDB, type IDBPDatabase } from "idb";
 
 export interface CachedTicket {
   ticket_id: string;
-  event_id: string;  // stored so we can scope presence checks to the current event
+  event_id: string; // stored so we can scope presence checks to the current event
   check_in_token: string;
   full_name: string;
   is_checked_in: boolean;
@@ -35,7 +35,7 @@ export interface SyncQueueEntry {
   sync_status: "pending" | "completed";
 }
 
-const DB_NAME = "cetdis-offline";
+const DB_NAME = "CEDIS-offline";
 const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
@@ -91,7 +91,6 @@ export async function saveGuestList(tickets: CachedTicket[]) {
   await tx.done;
 }
 
-
 export async function getTicketByToken(
   token: string,
 ): Promise<CachedTicket | undefined> {
@@ -136,7 +135,6 @@ export async function upsertTicket(ticket: CachedTicket): Promise<void> {
   const db = await getDb();
   await db.put("cached_tickets", ticket);
 }
-
 
 // ─── Sync Queue ───────────────────────────────────────────────────────────────
 
@@ -206,4 +204,3 @@ export async function getEventMeta(
   const db = await getDb();
   return db.get("cached_events", eventId);
 }
-

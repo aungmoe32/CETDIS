@@ -22,7 +22,7 @@ interface MerchantDetails {
 
 const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
   kpay: {
-    name: "U Kyaw Swar (CETDIS KPay)",
+    name: "U Kyaw Swar (CEDIS KPay)",
     phone: "09-250123456",
     label: "KBZPay",
     subLabel: "KPay Wallet",
@@ -30,7 +30,7 @@ const MERCHANTS: Record<PaymentMethod, MerchantDetails> = {
     activeBg: "border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20",
   },
   wave: {
-    name: "Daw Hnin Ei (CETDIS Wave)",
+    name: "Daw Hnin Ei (CEDIS Wave)",
     phone: "09-971234567",
     label: "WavePay",
     subLabel: "Wave Money",

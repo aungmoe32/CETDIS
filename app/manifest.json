@@ -1,6 +1,6 @@
 {
-  "name": "Cetdis App",
-  "short_name": "Cetdis",
+  "name": "CEDIS App",
+  "short_name": "CEDIS",
   "description": "Campus Event Ticket & Door Identification System",
   "start_url": "/",
   "display": "standalone",

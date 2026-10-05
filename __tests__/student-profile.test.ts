@@ -54,7 +54,7 @@ describe("Student Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "student-123", email: "student@cetdis.edu" } },
+          data: { user: { id: "student-123", email: "student@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -72,7 +72,7 @@ describe("Student Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "student-123", email: "student@cetdis.edu" } },
+          data: { user: { id: "student-123", email: "student@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -90,7 +90,7 @@ describe("Student Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "student-123", email: "student@cetdis.edu" } },
+          data: { user: { id: "student-123", email: "student@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -108,7 +108,7 @@ describe("Student Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "student-123", email: "student@cetdis.edu" } },
+          data: { user: { id: "student-123", email: "student@CEDIS.edu" } },
         }),
       },
     } as any);

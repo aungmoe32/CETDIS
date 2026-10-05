@@ -8,7 +8,7 @@ import { getBaseUrl } from "@/utils/url";
 import QrDisplay from "./qr-display";
 import NfcSection from "./nfc-section";
 
-export const metadata = { title: "My Digital ID · CETDIS" };
+export const metadata = { title: "My Digital ID · CEDIS" };
 
 export default async function MyIdPage() {
   const cookieStore = await cookies();
@@ -56,7 +56,7 @@ export default async function MyIdPage() {
               </svg>
             </div>
             <span className="font-bold text-gray-900 text-xs tracking-tight font-dingos-bold">
-              CETDIS PASS
+              CEDIS PASS
             </span>
           </div> */}
 

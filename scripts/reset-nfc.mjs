@@ -4,11 +4,16 @@ const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("Error: DATABASE_URL is not set.");
-  console.error("Run with: node --env-file=.env.local scripts/reset-nfc.mjs <email | userId | --all>");
+  console.error(
+    "Run with: node --env-file=.env.local scripts/reset-nfc.mjs <email | userId | --all>",
+  );
   process.exit(1);
 }
 
-const sql = postgres(connectionString, { prepare: false, ssl: { rejectUnauthorized: false } });
+const sql = postgres(connectionString, {
+  prepare: false,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function main() {
   const args = process.argv.slice(2);
@@ -16,7 +21,7 @@ async function main() {
 
   if (!target || target === "--help" || target === "-h") {
     console.log(`
-CETDIS NFC Reset Tool
+CEDIS NFC Reset Tool
 ---------------------------------------------
 Usage:
   node --env-file=.env.local scripts/reset-nfc.mjs <email | userId>
@@ -39,8 +44,10 @@ Options:
       LIMIT 20
     `;
 
-    const [issuanceCount] = await sql`SELECT count(*)::int as count FROM nfc_issuances`;
-    const [allocationCount] = await sql`SELECT count(*)::int as count FROM nfc_allocations`;
+    const [issuanceCount] =
+      await sql`SELECT count(*)::int as count FROM nfc_issuances`;
+    const [allocationCount] =
+      await sql`SELECT count(*)::int as count FROM nfc_allocations`;
 
     console.log(`Total nfc_issuances rows in DB: ${issuanceCount.count}`);
     console.log(`Total nfc_allocations rows in DB: ${allocationCount.count}\n`);
@@ -56,7 +63,7 @@ Options:
           Role: p.role,
           Purchased: p.purchased_nfc,
           Issued: p.nfc_issued,
-        }))
+        })),
       );
     }
     await sql.end();
@@ -69,11 +76,16 @@ Options:
     console.log("Resetting NFC data for ALL users across the database...\n");
 
     const deletedIssuances = await sql`DELETE FROM nfc_issuances RETURNING id`;
-    console.log(`Deleted ${deletedIssuances.length} row(s) from nfc_issuances.`);
+    console.log(
+      `Deleted ${deletedIssuances.length} row(s) from nfc_issuances.`,
+    );
 
     if (includeAllocations) {
-      const deletedAllocations = await sql`DELETE FROM nfc_allocations RETURNING id`;
-      console.log(`Deleted ${deletedAllocations.length} row(s) from nfc_allocations.`);
+      const deletedAllocations =
+        await sql`DELETE FROM nfc_allocations RETURNING id`;
+      console.log(
+        `Deleted ${deletedAllocations.length} row(s) from nfc_allocations.`,
+      );
     }
 
     const updatedProfiles = await sql`
@@ -86,27 +98,38 @@ Options:
       RETURNING id, email, full_name
     `;
 
-    console.log(`Reset ${updatedProfiles.length} profile(s) (purchased_nfc=false, nfc_issued=false, new check_in_token generated).`);
+    console.log(
+      `Reset ${updatedProfiles.length} profile(s) (purchased_nfc=false, nfc_issued=false, new check_in_token generated).`,
+    );
     console.log("\nDone. All NFC state has been completely undone.");
     await sql.end();
     return;
   }
 
   // ── RESET SINGLE USER (BY EMAIL OR ID) ─────────────────────────────────────
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target);
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      target,
+    );
 
   const [profile] = isUuid
     ? await sql`SELECT id, email, full_name, role, purchased_nfc, nfc_issued FROM profiles WHERE id = ${target}`
     : await sql`SELECT id, email, full_name, role, purchased_nfc, nfc_issued FROM profiles WHERE email = ${target} LIMIT 1`;
 
   if (!profile) {
-    console.error(`User not found with ${isUuid ? "ID" : "email"}: "${target}"`);
+    console.error(
+      `User not found with ${isUuid ? "ID" : "email"}: "${target}"`,
+    );
     await sql.end();
     process.exit(1);
   }
 
-  console.log(`Found profile: ${profile.full_name} (${profile.email}) [Role: ${profile.role}]`);
-  console.log(`Previous Status: purchasedNfc = ${profile.purchased_nfc}, nfcIssued = ${profile.nfc_issued}`);
+  console.log(
+    `Found profile: ${profile.full_name} (${profile.email}) [Role: ${profile.role}]`,
+  );
+  console.log(
+    `Previous Status: purchasedNfc = ${profile.purchased_nfc}, nfcIssued = ${profile.nfc_issued}`,
+  );
 
   // Delete issuances where this user is the recipient (or issuer)
   const deletedIssuances = await sql`
@@ -114,7 +137,9 @@ Options:
     WHERE user_id = ${profile.id} OR issued_by = ${profile.id}
     RETURNING id
   `;
-  console.log(`Deleted ${deletedIssuances.length} related row(s) from nfc_issuances.`);
+  console.log(
+    `Deleted ${deletedIssuances.length} related row(s) from nfc_issuances.`,
+  );
 
   // Reset profile fields and rotate token to invalidate any previously written physical tag
   const [updated] = await sql`
@@ -137,7 +162,9 @@ Options:
     newToken: updated.check_in_token,
   });
 
-  console.log("\nDone! Physical tag access revoked and NFC fields reset to default.");
+  console.log(
+    "\nDone! Physical tag access revoked and NFC fields reset to default.",
+  );
   await sql.end();
 }
 

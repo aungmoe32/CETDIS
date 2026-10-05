@@ -54,7 +54,7 @@ describe("Developer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "dev-123", email: "dev@cetdis.edu" } },
+          data: { user: { id: "dev-123", email: "dev@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -72,7 +72,7 @@ describe("Developer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "dev-123", email: "dev@cetdis.edu" } },
+          data: { user: { id: "dev-123", email: "dev@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -90,7 +90,7 @@ describe("Developer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "dev-123", email: "dev@cetdis.edu" } },
+          data: { user: { id: "dev-123", email: "dev@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -108,7 +108,7 @@ describe("Developer Profile Server Actions", () => {
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "dev-123", email: "dev@cetdis.edu" } },
+          data: { user: { id: "dev-123", email: "dev@CEDIS.edu" } },
         }),
       },
     } as any);
@@ -131,9 +131,10 @@ describe("Developer Profile Server Actions", () => {
 
 describe("Developer Dashboard maskEmail helper", () => {
   it("masks email in the format a*****@domain.com", async () => {
-    const { maskEmail } = await import("@/app/(developer)/developer/dashboard/masked-email");
+    const { maskEmail } =
+      await import("@/app/(developer)/developer/dashboard/masked-email");
     expect(maskEmail("alex@gmail.com")).toBe("a*****@gmail.com");
-    expect(maskEmail("john.doe@cetdis.edu")).toBe("j*****@cetdis.edu");
+    expect(maskEmail("john.doe@CEDIS.edu")).toBe("j*****@CEDIS.edu");
     expect(maskEmail("invalid-email")).toBe("••••••••");
   });
 });

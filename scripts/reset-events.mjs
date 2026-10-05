@@ -4,11 +4,16 @@ const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("❌ Error: DATABASE_URL is not set.");
-  console.error("Run with: node --env-file=.env.local scripts/reset-events.mjs [options]");
+  console.error(
+    "Run with: node --env-file=.env.local scripts/reset-events.mjs [options]",
+  );
   process.exit(1);
 }
 
-const sql = postgres(connectionString, { prepare: false, ssl: { rejectUnauthorized: false } });
+const sql = postgres(connectionString, {
+  prepare: false,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function main() {
   const args = process.argv.slice(2);
@@ -19,7 +24,7 @@ async function main() {
 
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`
-CETDIS Event & Ticket Reset Devtool
+CEDIS Event & Ticket Reset Devtool
 ================================================================================
 Usage:
   # 1. Remove all events and all tickets across the entire database:
@@ -43,7 +48,7 @@ Options:
     process.exit(0);
   }
 
-  console.log("🧹 [CETDIS Reset Devtool] Scanning current database state...\n");
+  console.log("🧹 [CEDIS Reset Devtool] Scanning current database state...\n");
 
   let organizerId = null;
   if (organizerTarget) {
@@ -58,7 +63,9 @@ Options:
       process.exit(1);
     }
     organizerId = org.id;
-    console.log(`Targeting organizer: ${org.full_name || "Organizer"} (${org.email}) [ID: ${org.id}]`);
+    console.log(
+      `Targeting organizer: ${org.full_name || "Organizer"} (${org.email}) [ID: ${org.id}]`,
+    );
   }
 
   // Count current records
@@ -108,7 +115,9 @@ Options:
         await tx`DELETE FROM tickets`;
         await tx`DELETE FROM events`;
       }
-      console.log(`✅ Successfully deleted ${ticketCount.count} tickets and ${eventCount.count} events.`);
+      console.log(
+        `✅ Successfully deleted ${ticketCount.count} tickets and ${eventCount.count} events.`,
+      );
     }
   });
 
