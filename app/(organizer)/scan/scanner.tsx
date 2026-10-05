@@ -21,6 +21,15 @@ import {
   markNfcIssuedLocally,
   addToSyncQueue,
 } from "@/lib/idb";
+import {
+  playSuccessSound,
+  playAlreadyScannedSound,
+  playErrorSound,
+  playWalkUpSound,
+  isSoundMuted,
+  toggleSound,
+  unlockAudioContext,
+} from "@/lib/sound";
 import type { CheckInResult } from "./actions";
 
 interface Props {
@@ -54,6 +63,7 @@ export default function Scanner({ eventId }: Props) {
   } | null>(null);
   const [isWritingHandover, setIsWritingHandover] = useState(false);
   const [handoverSuccess, setHandoverSuccess] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(false);
   const [downloadModal, setDownloadModal] = useState<{
     isOpen: boolean;
     type: "success" | "error";
@@ -83,6 +93,7 @@ export default function Scanner({ eventId }: Props) {
   // ── Detect NFC on mount ───────────────────────────────────────────────────
   useEffect(() => {
     setNfcAvailable("NDEFReader" in window);
+    setSoundMuted(isSoundMuted());
   }, []);
 
   // ── Network + bootstrap effect ────────────────────────────────────────────
@@ -154,6 +165,7 @@ export default function Scanner({ eventId }: Props) {
   // ── Result handler ────────────────────────────────────────────────────────
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
+      playSuccessSound();
       setNoTicketData(null);
       setStatus("success");
       setMessage(result.fullName);
@@ -168,6 +180,7 @@ export default function Scanner({ eventId }: Props) {
         setMessage("");
       }, 3000);
     } else if (result.status === "no_ticket") {
+      playWalkUpSound();
       setStatus("no_ticket");
       setNoTicketData({
         profileId: result.profileId,
@@ -178,6 +191,7 @@ export default function Scanner({ eventId }: Props) {
       });
       // Do NOT auto-dismiss immediately so organizer can click "Sell Ticket At Door"
     } else if (result.status === "already_scanned") {
+      playAlreadyScannedSound();
       setNoTicketData(null);
       setStatus("already_scanned");
       setMessage("Already checked in");
@@ -186,6 +200,7 @@ export default function Scanner({ eventId }: Props) {
         setMessage("");
       }, 3000);
     } else {
+      playErrorSound();
       setNoTicketData(null);
       setStatus("not_found");
       setMessage("Not on guest list");
@@ -352,6 +367,7 @@ export default function Scanner({ eventId }: Props) {
 
   // ── Unified start / stop (dispatches to correct mode) ────────────────────
   const startScanner = useCallback(() => {
+    unlockAudioContext();
     if (scanMode === "qr") return startQRScanner();
     return startNFCScanner();
   }, [scanMode, startQRScanner, startNFCScanner]);
@@ -472,12 +488,14 @@ export default function Scanner({ eventId }: Props) {
         await markNfcIssuedAction(handoverData.token, eventId);
       }
 
+      playSuccessSound();
       setHandoverSuccess(true);
       setTimeout(() => {
         setHandoverData(null);
         setHandoverSuccess(false);
       }, 1500);
     } catch (err: unknown) {
+      playErrorSound();
       alert(`NFC Write Failed: ${(err as Error).message || String(err)}`);
     } finally {
       setIsWritingHandover(false);
@@ -649,14 +667,18 @@ export default function Scanner({ eventId }: Props) {
           <span className="text-7xl font-bold text-white leading-none">
             {status === "success" ? "✓" : "✗"}
           </span>
-          <p className="text-white text-2xl font-semibold text-center">
+          {/* <p className="text-white text-2xl font-semibold text-center">
             {message}
-          </p>
+          </p> */}
           {status === "success" && (
-            <p className="text-white/70 text-sm">Check-in successful</p>
+            <p className="text-white/70 text-md font-dingos-bold">
+              Check-in successful
+            </p>
           )}
           {status === "already_scanned" && (
-            <p className="text-white/70 text-sm">Already checked in</p>
+            <p className="text-white/70 text-md font-dingos-bold">
+              Already checked in
+            </p>
           )}
         </div>
       )}
@@ -868,8 +890,8 @@ export default function Scanner({ eventId }: Props) {
             <div className="max-w-md mx-auto space-y-2.5">
               {/* Row 1: status chips + sync badge */}
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                {/* Left: Cache Mode Pill */}
-                <div>
+                {/* Left: Cache Mode Pill & Audio Toggle */}
+                <div className="flex items-center gap-2">
                   {offlineEnabled ? (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200 font-dingos-bold">
                       <svg
@@ -893,6 +915,56 @@ export default function Scanner({ eventId }: Props) {
                       <span className="text-[11px]">Live Mode</span>
                     </div>
                   )}
+
+                  {/* Sound Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setSoundMuted(toggleSound())}
+                    title={
+                      soundMuted
+                        ? "Unmute check-in sounds"
+                        : "Mute check-in sounds"
+                    }
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border border-gray-200/80 bg-white hover:bg-gray-50 active:scale-95 text-gray-600 transition shadow-2xs tactile-btn font-dingos-bold cursor-pointer"
+                  >
+                    {soundMuted ? (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.414 0-.75-.336-.75-.75V9.75c0-.414.336-.75.75-.75h4.49z"
+                          />
+                        </svg>
+                        <span className="text-[11px] text-gray-500">Muted</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5 text-emerald-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.414 0-.75-.336-.75-.75V9.75c0-.414.336-.75.75-.75h2.24z"
+                          />
+                        </svg>
+                        <span className="text-[11px] text-emerald-700">
+                          Audio
+                        </span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* Right: Pending Sync Button with rotating animation */}

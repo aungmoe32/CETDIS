@@ -11,6 +11,7 @@ import {
   type StudentSearchResult,
 } from "./actions";
 import { markNfcIssuedLocally } from "@/lib/idb";
+import { playSuccessSound, playErrorSound } from "@/lib/sound";
 import WobbleButton from "@/components/ui/wobble-button";
 
 interface EventSummary {
@@ -128,6 +129,7 @@ export default function ActionCenter({ events }: Props) {
     try {
       const res = await manualCheckInAction(ticketId);
       if (res.error) {
+        playErrorSound();
         setActionStatus({
           id: ticketId,
           type: "checkin",
@@ -135,6 +137,7 @@ export default function ActionCenter({ events }: Props) {
           error: res.error,
         });
       } else {
+        playSuccessSound();
         // Update local search results state immediately
         setSearchResults((prev) =>
           prev.map((student) => ({
@@ -149,6 +152,7 @@ export default function ActionCenter({ events }: Props) {
         setActionStatus(null);
       }
     } catch {
+      playErrorSound();
       setActionStatus({
         id: ticketId,
         type: "checkin",
@@ -191,6 +195,7 @@ export default function ActionCenter({ events }: Props) {
       // Execute Server Action transaction
       const res = await manualIssueNfcAction(nfcModalStudent.token);
       if (res.error) {
+        playErrorSound();
         setNfcWriteError(res.error);
         setIsWritingNfc(false);
         return;
@@ -205,6 +210,7 @@ export default function ActionCenter({ events }: Props) {
         ),
       );
 
+      playSuccessSound();
       setNfcWriteSuccess(true);
       setTimeout(() => {
         setNfcModalStudent(null);
@@ -212,6 +218,7 @@ export default function ActionCenter({ events }: Props) {
         setIsWritingNfc(false);
       }, 1500);
     } catch (err: unknown) {
+      playErrorSound();
       setNfcWriteError((err as Error).message || String(err));
       setIsWritingNfc(false);
     }
@@ -282,6 +289,7 @@ export default function ActionCenter({ events }: Props) {
       // Update local IndexedDB cache immediately
       await markNfcIssuedLocally(walkUpResultData.token);
 
+      playSuccessSound();
       setWalkUpStep("success");
       setIsProcessingWalkUp(false);
       setTimeout(() => {
@@ -290,6 +298,7 @@ export default function ActionCenter({ events }: Props) {
         setWalkUpResultData(null);
       }, 1800);
     } catch (err: unknown) {
+      playErrorSound();
       setWalkUpError((err as Error).message || String(err));
       setIsProcessingWalkUp(false);
     }
