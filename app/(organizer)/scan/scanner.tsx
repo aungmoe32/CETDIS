@@ -87,6 +87,7 @@ export default function Scanner({ eventId }: Props) {
   const nfcAbortRef = useRef<AbortController | null>(null);
   const activeRef = useRef(false); // guards QR double-processing
   const nfcScanningRef = useRef(false); // so handleResult returns to "scanning" for NFC
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isOnlineRef = useRef(true);
   const offlineEnabledRef = useRef(false);
 
@@ -168,17 +169,21 @@ export default function Scanner({ eventId }: Props) {
       playSuccessSound();
       setNoTicketData(null);
       setStatus("success");
-      setMessage(result.fullName);
+      setMessage(result.fullName || "Student Attendee");
       if (result.needsNfcHandover) {
         setHandoverData({
           fullName: result.fullName,
           token: result.token,
         });
       }
-      setTimeout(() => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+      successTimerRef.current = setTimeout(() => {
         setStatus(nfcScanningRef.current ? "scanning" : "idle");
         setMessage("");
-      }, 3000);
+        successTimerRef.current = null;
+      }, 3500);
     } else if (result.status === "no_ticket") {
       playWalkUpSound();
       setStatus("no_ticket");
@@ -563,6 +568,15 @@ export default function Scanner({ eventId }: Props) {
     setStatus(nfcScanningRef.current ? "scanning" : "idle");
   };
 
+  const handleDismissSuccess = () => {
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+      successTimerRef.current = null;
+    }
+    setStatus(nfcScanningRef.current ? "scanning" : "idle");
+    setMessage("");
+  };
+
   const handleDismissHandover = () => {
     setHandoverData(null);
     setHandoverSuccess(false);
@@ -661,27 +675,117 @@ export default function Scanner({ eventId }: Props) {
         </div>
       )}
 
-      {/* ── Result flash (Standard success / already_scanned / not_found) ──── */}
-      {status !== "idle" && status !== "scanning" && status !== "no_ticket" && (
-        <div className="flex-1 flex flex-col items-center justify-center px-8 gap-3">
-          <span className="text-7xl font-bold text-white leading-none">
-            {status === "success" ? "✓" : "✗"}
-          </span>
-          {/* <p className="text-white text-2xl font-semibold text-center">
-            {message}
-          </p> */}
-          {status === "success" && (
-            <p className="text-white/70 text-md font-dingos-bold">
-              Check-in successful
-            </p>
-          )}
-          {status === "already_scanned" && (
-            <p className="text-white/70 text-md font-dingos-bold">
-              Already checked in
-            </p>
-          )}
+      {/* ── Scenario B: Successful Check-In Dialog Card (Displays Attendee Name) ─── */}
+      {status === "success" && (
+        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-white max-w-sm mx-auto w-full animate-in zoom-in-95 duration-200 select-none">
+          <div className="w-full bg-white rounded-3xl p-6 sm:p-7 text-gray-900 shadow-2xl border border-emerald-100 space-y-4 text-center">
+            {/* Emerald Checkmark Badge */}
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
+              <svg
+                className="w-9 h-9"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-0.5 rounded-full font-dingos-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Check-in Verified
+              </span>
+              <h3 className="text-2xl font-bold text-gray-900 mt-2 font-dingos-bold tracking-tight">
+                {message || "Student Attendee"}
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Attendee admitted to event
+              </p>
+            </div>
+
+            {/* Check-in timestamp pill */}
+            <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100/80 p-3 text-center">
+              <p className="text-[11px] text-emerald-800 font-bold font-dingos-bold flex items-center justify-center gap-1.5">
+                <svg
+                  className="w-3.5 h-3.5 text-emerald-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6l4 2"
+                  />
+                </svg>
+                <span>
+                  Checked in at{" "}
+                  {new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDismissSuccess}
+              className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white py-3 text-xs sm:text-sm font-bold transition shadow-xs font-dingos-bold tactile-btn flex items-center justify-center gap-1.5"
+            >
+              <span>Next Scan / Done</span>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
+
+      {/* ── Result flash (already_scanned / not_found / error) ──── */}
+      {status !== "idle" &&
+        status !== "scanning" &&
+        status !== "no_ticket" &&
+        status !== "success" && (
+          <div className="flex-1 flex flex-col items-center justify-center px-8 gap-3">
+            <span className="text-7xl font-bold text-white leading-none">
+              ✗
+            </span>
+            {status === "already_scanned" && (
+              <p className="text-white/90 text-xl font-bold font-dingos-bold text-center">
+                Already Checked In
+              </p>
+            )}
+            {status === "not_found" && (
+              <p className="text-white/90 text-xl font-bold font-dingos-bold text-center">
+                Not on Guest List
+              </p>
+            )}
+            {status === "error" && (
+              <p className="text-white/90 text-xl font-bold font-dingos-bold text-center">
+                {message || "Scan Error"}
+              </p>
+            )}
+          </div>
+        )}
 
       {/* ── Scanner state ─────────────────────────────────────────────────── */}
       {(status === "idle" || status === "scanning") && (
