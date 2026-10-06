@@ -1,7 +1,9 @@
 import { updateSession } from "@/utils/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login"];
+const isPublicPath = (pathname: string) => {
+  return pathname === "/" || pathname.startsWith("/login");
+};
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,7 +14,7 @@ export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
 
   // Already authenticated user trying to access public auth paths (e.g. /login) -> redirect to root
-  if (user && PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  if (user && pathname.startsWith("/login")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
@@ -24,7 +26,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Public paths for unauthenticated users — let them through.
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  if (isPublicPath(pathname)) {
     return supabaseResponse;
   }
 

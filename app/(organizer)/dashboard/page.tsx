@@ -92,7 +92,7 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-2xl mx-auto space-y-5 sm:space-y-6">
+    <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-3xl mx-auto space-y-5 sm:space-y-6">
       {/* ── Dashboard Header ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <div>
@@ -219,7 +219,9 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center sm:block justify-between sm:text-right sm:pl-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-indigo-100/60 w-full sm:w-auto flex-shrink-0">
-          <span className="text-xs text-gray-500 font-medium sm:hidden">Total Issued:</span>
+          <span className="text-xs text-gray-500 font-medium sm:hidden">
+            Total Issued:
+          </span>
           <div className="flex items-baseline gap-1.5 sm:block">
             <span className="text-2xl sm:text-3xl text-gray-900 font-bebas tracking-wide block leading-none">
               {totalNfcIssued}
