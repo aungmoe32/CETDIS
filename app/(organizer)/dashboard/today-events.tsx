@@ -186,7 +186,7 @@ export default function TodayEvents({ events }: Props) {
                         {event.title}
                       </h4>
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-dingos-bold ${
                           isFree
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "bg-indigo-50 text-indigo-700 border border-indigo-200"

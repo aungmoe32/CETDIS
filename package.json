@@ -12,7 +12,8 @@
     "db:reset-nfc": "node --env-file=.env.local scripts/reset-nfc.mjs",
     "db:reset-tickets": "node --env-file=.env.local scripts/reset-tickets.mjs",
     "db:reset-events": "node --env-file=.env.local scripts/reset-events.mjs",
-    "db:seed-events": "node --env-file=.env.local scripts/seed-events.mjs"
+    "db:seed-events": "node --env-file=.env.local scripts/seed-events.mjs",
+    "db:showcase": "node --env-file=.env.local scripts/seed-showcase.mjs"
   },
   "dependencies": {
     "@serwist/turbopack": "^9.5.12",

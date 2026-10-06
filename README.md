@@ -217,6 +217,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `pnpm test`             | Runs the Vitest test suite once.                  |
 | `pnpm test:watch`       | Runs Vitest in interactive watch mode.            |
 | `pnpm db:seed-events`   | Inserts sample events into the database.          |
+| `pnpm db:showcase`      | Deterministic showcase reset & seed for live demos.|
 | `pnpm db:reset-events`  | Clears and resets event tables.                   |
 | `pnpm db:reset-tickets` | Resets all ticket records and check-in statuses.  |
 | `pnpm db:reset-nfc`     | Resets NFC allocation and issuance tables.        |
