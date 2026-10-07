@@ -1,4 +1,4 @@
-import { openDB, type IDBPDatabase } from "idb";
+import { openDB, deleteDB, type IDBPDatabase } from "idb";
 
 export interface CachedTicket {
   ticket_id: string;
@@ -204,3 +204,15 @@ export async function getEventMeta(
   const db = await getDb();
   return db.get("cached_events", eventId);
 }
+
+// ─── Reset / Wipe Offline DB (For Demos & Testing) ──────────────────────────
+
+export async function wipeOfflineDatabase(): Promise<void> {
+  if (dbPromise) {
+    const db = await dbPromise;
+    db.close();
+    dbPromise = null;
+  }
+  await deleteDB(DB_NAME);
+}
+

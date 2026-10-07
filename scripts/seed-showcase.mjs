@@ -28,7 +28,9 @@ try {
     REALISTIC_NAMES = JSON.parse(process.env.SHOWCASE_STUDENT_NAMES);
   }
 } catch {
-  console.warn("⚠️ Warning: Failed to parse SHOWCASE_STUDENT_NAMES JSON from env.");
+  console.warn(
+    "⚠️ Warning: Failed to parse SHOWCASE_STUDENT_NAMES JSON from env.",
+  );
 }
 
 async function main() {
@@ -72,12 +74,20 @@ Options:
     process.exit(0);
   }
 
-  console.log("================================================================================");
-  console.log("🚀 [CEDIS Showcase] Resetting & Seeding Deterministic Showcase State...");
-  console.log("================================================================================\n");
+  console.log(
+    "================================================================================",
+  );
+  console.log(
+    "🚀 [CEDIS Showcase] Resetting & Seeding Deterministic Showcase State...",
+  );
+  console.log(
+    "================================================================================\n",
+  );
 
   // ── Step 1: Clean Up Previous Demo State ─────────────────────────────────────
-  console.log("🧹 Step 1: Wiping previous demo check-ins, guest walk-ups, and tickets...");
+  console.log(
+    "🧹 Step 1: Wiping previous demo check-ins, guest walk-ups, and tickets...",
+  );
 
   await sql.begin(async (tx) => {
     // 1. Delete previous NFC issuances
@@ -93,10 +103,14 @@ Options:
     await tx`DELETE FROM profiles WHERE email LIKE 'guest-%@walkup.local'`;
   });
 
-  console.log("   ✓ Cleaned previous issuances, tickets, events, and ephemeral guests.\n");
+  console.log(
+    "   ✓ Cleaned previous issuances, tickets, events, and ephemeral guests.\n",
+  );
 
   // ── Step 2: Query and Standardize Profiles ──────────────────────────────────
-  console.log("👥 Step 2: Loading and preparing student and organizer profiles...");
+  console.log(
+    "👥 Step 2: Loading and preparing student and organizer profiles...",
+  );
 
   const allProfiles = await sql`
     SELECT id, email, full_name, role, check_in_token, purchased_nfc, nfc_issued 
@@ -105,7 +119,9 @@ Options:
   `;
 
   if (allProfiles.length === 0) {
-    console.error("❌ No profiles found in the database. Please sign up or log in first.");
+    console.error(
+      "❌ No profiles found in the database. Please sign up or log in first.",
+    );
     await sql.end();
     process.exit(1);
   }
@@ -176,7 +192,9 @@ Options:
       `   ⚠️ Warning: Only ${studentProfiles.length} student profile(s) found. For best showcase experience, at least 5 profiles are recommended.`,
     );
   } else {
-    console.log(`   ✓ Found ${studentProfiles.length} student profile(s) for deterministic assignment.`);
+    console.log(
+      `   ✓ Found ${studentProfiles.length} student profile(s) for deterministic assignment.`,
+    );
   }
 
   // Reset all student NFC flags to baseline false
@@ -207,9 +225,18 @@ Options:
   };
 
   const personaCleanScan = findStudentByEnv("SHOWCASE_STUDENT_CLEAN_SCAN", 0);
-  const personaCleanScan2 = findStudentByEnv("SHOWCASE_STUDENT_CLEAN_SCAN_2", 1);
-  const personaAlreadyScanned = findStudentByEnv("SHOWCASE_STUDENT_ALREADY_SCANNED", 2);
-  const personaNfcHandover = findStudentByEnv("SHOWCASE_STUDENT_NFC_HANDOVER", 3);
+  const personaCleanScan2 = findStudentByEnv(
+    "SHOWCASE_STUDENT_CLEAN_SCAN_2",
+    1,
+  );
+  const personaAlreadyScanned = findStudentByEnv(
+    "SHOWCASE_STUDENT_ALREADY_SCANNED",
+    2,
+  );
+  const personaNfcHandover = findStudentByEnv(
+    "SHOWCASE_STUDENT_NFC_HANDOVER",
+    3,
+  );
   const personaWalkUpSale = findStudentByEnv("SHOWCASE_STUDENT_WALKUP_SALE", 4);
   const personaWalkUpPaid = findStudentByEnv("SHOWCASE_STUDENT_WALKUP_PAID", 5);
 
@@ -234,10 +261,14 @@ Options:
       VALUES (${org.id}, 100, 'Showcase Demo Roll (100 Blank Physical Tags)')
     `;
   }
-  console.log("   ✓ Allocated 100 blank physical NFC tags to organizer inventory.\n");
+  console.log(
+    "   ✓ Allocated 100 blank physical NFC tags to organizer inventory.\n",
+  );
 
   // ── Step 5: Insert Fixed Showcase Events ────────────────────────────────────
-  console.log("📅 Step 5: Creating fixed realistic events (Past, Today Live, Upcoming)...");
+  console.log(
+    "📅 Step 5: Creating fixed realistic events (Past, Today Live, Upcoming)...",
+  );
 
   const now = new Date();
   const addDays = (days, h = 10, m = 0) => {
@@ -256,7 +287,7 @@ Options:
     {
       key: "MAIN_SHOWCASE",
       category: "TODAY (LIVE DEMO)",
-      title: "AI Hackathon & Project Expo 2026",
+      title: "Internship Seminar TU Hmawbi",
       dateTime: todayShowcaseTime,
       location: "Innovation Hub, Lab 304 (Level 3)",
       maxCapacity: 80,
@@ -383,19 +414,27 @@ Over 40 international food stalls, cultural dance performances, traditional craf
     }
   }
 
-  console.log(`   ✓ Inserted ${insertedEvents.length} events across timeline.\n`);
+  console.log(
+    `   ✓ Inserted ${insertedEvents.length} events across timeline.\n`,
+  );
 
   // ── Step 6: Insert Deterministic Tickets ─────────────────────────────────────
-  console.log("🎟️ Step 6: Issuing fixed, predictable tickets for showcase personas...");
+  console.log(
+    "🎟️ Step 6: Issuing fixed, predictable tickets for showcase personas...",
+  );
 
   let ticketCount = 0;
   let checkedInCount = 0;
 
   // Find the primary demo event (the Today Showcase Event)
-  const mainShowcaseEvent = insertedEvents.find((e) => e.key === "MAIN_SHOWCASE");
+  const mainShowcaseEvent = insertedEvents.find(
+    (e) => e.key === "MAIN_SHOWCASE",
+  );
   const acousticEvent = insertedEvents.find((e) => e.key === "TODAY_ACOUSTIC");
   const pastSummitEvent = insertedEvents.find((e) => e.key === "PAST_SUMMIT");
-  const pastOrientationEvent = insertedEvents.find((e) => e.key === "PAST_ORIENTATION");
+  const pastOrientationEvent = insertedEvents.find(
+    (e) => e.key === "PAST_ORIENTATION",
+  );
   const esportsEvent = insertedEvents.find((e) => e.key === "FUTURE_ESPORTS");
   const securityEvent = insertedEvents.find((e) => e.key === "FUTURE_SECURITY");
   const designEvent = insertedEvents.find((e) => e.key === "FUTURE_DESIGN");
@@ -544,7 +583,12 @@ Over 40 international food stalls, cultural dance performances, traditional craf
 
   // 2. SECONDARY TODAY EVENT (Campus Acoustic Evening - Free)
   // ────────────────────────────────────────────────────────
-  for (const s of [personaCleanScan, personaAlreadyScanned, personaWalkUpSale, remainingStudents[0]].filter(Boolean)) {
+  for (const s of [
+    personaCleanScan,
+    personaAlreadyScanned,
+    personaWalkUpSale,
+    remainingStudents[0],
+  ].filter(Boolean)) {
     await insertTicket({
       userId: s.id,
       eventId: acousticEvent.id,
@@ -557,8 +601,15 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   // 3. PAST EVENTS (Shows attended history on Student profile & tickets)
   // ───────────────────────────────────────────────────────────────────
   if (pastSummitEvent) {
-    for (const s of [personaCleanScan, personaAlreadyScanned, personaNfcHandover, personaWalkUpPaid]) {
-      const pastTime = new Date(pastSummitEvent.date_time.getTime() + 15 * 60 * 1000);
+    for (const s of [
+      personaCleanScan,
+      personaAlreadyScanned,
+      personaNfcHandover,
+      personaWalkUpPaid,
+    ]) {
+      const pastTime = new Date(
+        pastSummitEvent.date_time.getTime() + 15 * 60 * 1000,
+      );
       await insertTicket({
         userId: s.id,
         eventId: pastSummitEvent.id,
@@ -571,7 +622,9 @@ Over 40 international food stalls, cultural dance performances, traditional craf
 
   if (pastOrientationEvent) {
     for (const s of studentProfiles.slice(0, 6)) {
-      const pastTime = new Date(pastOrientationEvent.date_time.getTime() + 10 * 60 * 1000);
+      const pastTime = new Date(
+        pastOrientationEvent.date_time.getTime() + 10 * 60 * 1000,
+      );
       await insertTicket({
         userId: s.id,
         eventId: pastOrientationEvent.id,
@@ -585,7 +638,11 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   // 4. FUTURE EVENTS (Shows upcoming RSVPs in student app)
   // ─────────────────────────────────────────────────────
   if (esportsEvent) {
-    for (const s of [personaCleanScan, personaWalkUpPaid, remainingStudents[1]].filter(Boolean)) {
+    for (const s of [
+      personaCleanScan,
+      personaWalkUpPaid,
+      remainingStudents[1],
+    ].filter(Boolean)) {
       await insertTicket({
         userId: s.id,
         eventId: esportsEvent.id,
@@ -609,7 +666,9 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   }
 
   if (designEvent) {
-    for (const s of [personaAlreadyScanned, remainingStudents[2]].filter(Boolean)) {
+    for (const s of [personaAlreadyScanned, remainingStudents[2]].filter(
+      Boolean,
+    )) {
       await insertTicket({
         userId: s.id,
         eventId: designEvent.id,
@@ -625,17 +684,31 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   // ── Step 7: Print Showcase Cheat Sheet & Dashboard Summary ─────────────────
   const primaryOrg = targetOrganizers[0];
 
-  console.log("================================================================================");
-  console.log("🎯 CEDIS PROJECT SHOWCASE CHEAT SHEET (PRINT OR KEEP OPEN ON BOOTH DESK)");
-  console.log("================================================================================\n");
+  console.log(
+    "================================================================================",
+  );
+  console.log(
+    "🎯 CEDIS PROJECT SHOWCASE CHEAT SHEET (PRINT OR KEEP OPEN ON BOOTH DESK)",
+  );
+  console.log(
+    "================================================================================\n",
+  );
 
-  console.log(`📌 Primary Organizer Login:   ${primaryOrg.email} (${primaryOrg.full_name || "Organizer"})`);
+  console.log(
+    `📌 Primary Organizer Login:   ${primaryOrg.email} (${primaryOrg.full_name || "Organizer"})`,
+  );
   console.log(`📌 Organizer Dashboard URL:   http://localhost:3000/dashboard`);
-  console.log(`📌 Door Scanner URL:          http://localhost:3000/scan?event=${mainShowcaseEvent.id}\n`);
+  console.log(
+    `📌 Door Scanner URL:          http://localhost:3000/scan?event=${mainShowcaseEvent.id}\n`,
+  );
 
-  console.log("────────────────────────────────────────────────────────────────────────────────");
+  console.log(
+    "────────────────────────────────────────────────────────────────────────────────",
+  );
   console.log("DEMO TEST SCENARIOS (Guaranteed 100% Predictable Behavior):");
-  console.log("────────────────────────────────────────────────────────────────────────────────");
+  console.log(
+    "────────────────────────────────────────────────────────────────────────────────",
+  );
 
   const personasSummary = [
     {
@@ -684,9 +757,15 @@ Over 40 international food stalls, cultural dance performances, traditional craf
 
   console.table(personasSummary);
 
-  console.log("────────────────────────────────────────────────────────────────────────────────");
-  console.log("TODAY SHOWCASE EVENT OVERVIEW (AI Hackathon & Project Expo 2026):");
-  console.log("────────────────────────────────────────────────────────────────────────────────");
+  console.log(
+    "────────────────────────────────────────────────────────────────────────────────",
+  );
+  console.log(
+    "TODAY SHOWCASE EVENT OVERVIEW (AI Hackathon & Project Expo 2026):",
+  );
+  console.log(
+    "────────────────────────────────────────────────────────────────────────────────",
+  );
 
   // Query actual counts from DB
   const [eventStats] = await sql`
@@ -704,22 +783,39 @@ Over 40 international food stalls, cultural dance performances, traditional craf
   console.log(`  • Max Capacity:       80 seats`);
   console.log(`  • Total Registered:   ${eventStats.total_tickets} students`);
   console.log(`  • Already Checked In: ${eventStats.checked_in} attendees`);
-  console.log(`  • Ready At Door:      ${eventStats.ready_at_door} attendees (ready for live scan)`);
-  console.log(`  • Door Cash Sales:    ${eventStats.walkup_sales} (5,000 MMK collected)`);
-  console.log(`  • Blank NFC Inventory: 100 tags in stock (0 low-stock warnings)`);
+  console.log(
+    `  • Ready At Door:      ${eventStats.ready_at_door} attendees (ready for live scan)`,
+  );
+  console.log(
+    `  • Door Cash Sales:    ${eventStats.walkup_sales} (5,000 MMK collected)`,
+  );
+  console.log(
+    `  • Blank NFC Inventory: 100 tags in stock (0 low-stock warnings)`,
+  );
 
-  console.log("\n────────────────────────────────────────────────────────────────────────────────");
+  console.log(
+    "\n────────────────────────────────────────────────────────────────────────────────",
+  );
   console.log("QUICK RESET INSTRUCTION:");
-  console.log("────────────────────────────────────────────────────────────────────────────────");
-  console.log("Whenever you finish a showcase session with judges/visitors, simply run:");
+  console.log(
+    "────────────────────────────────────────────────────────────────────────────────",
+  );
+  console.log(
+    "Whenever you finish a showcase session with judges/visitors, simply run:",
+  );
   console.log("  pnpm db:showcase");
-  console.log("Everything will be restored to this exact clean demo state in 1 second!\n");
+  console.log(
+    "Everything will be restored to this exact clean demo state in 1 second!\n",
+  );
 
   await sql.end();
 }
 
 main().catch(async (err) => {
-  console.error("\n❌ Fatal error during showcase seeding:", err.message || err);
+  console.error(
+    "\n❌ Fatal error during showcase seeding:",
+    err.message || err,
+  );
   await sql.end();
   process.exit(1);
 });
