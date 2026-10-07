@@ -26,8 +26,13 @@ export type CheckInResult =
       purchasedNfc?: boolean;
       nfcIssued?: boolean;
     }
+  | {
+      status: "already_scanned";
+      fullName?: string;
+      scannedAt?: string | null;
+      token?: string;
+    }
   | { status: "not_found" }
-  | { status: "already_scanned" }
   | { status: "error"; message: string };
 
 export async function checkInAction(
@@ -98,7 +103,14 @@ export async function checkInAction(
     };
   }
 
-  if (ticket.isCheckedIn) return { status: "already_scanned" };
+  if (ticket.isCheckedIn) {
+    return {
+      status: "already_scanned",
+      fullName: profile.fullName,
+      scannedAt: ticket.scannedAt ? ticket.scannedAt.toISOString() : null,
+      token,
+    };
+  }
 
   // Mark as checked in
   await db

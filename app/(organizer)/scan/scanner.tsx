@@ -84,12 +84,17 @@ export default function Scanner({ eventId }: Props) {
   } | null>(null);
   const [isSellingWalkUp, setIsSellingWalkUp] = useState(false);
   const [isWipingCache, setIsWipingCache] = useState(false);
+  const [alreadyScannedData, setAlreadyScannedData] = useState<{
+    fullName: string;
+    scannedAt?: string | null;
+  } | null>(null);
 
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const nfcAbortRef = useRef<AbortController | null>(null);
   const activeRef = useRef(false); // guards QR double-processing
   const nfcScanningRef = useRef(false); // so handleResult returns to "scanning" for NFC
   const successTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const alreadyScannedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isOnlineRef = useRef(true);
   const offlineEnabledRef = useRef(false);
 
@@ -201,11 +206,21 @@ export default function Scanner({ eventId }: Props) {
       playAlreadyScannedSound();
       setNoTicketData(null);
       setStatus("already_scanned");
-      setMessage("Already checked in");
-      setTimeout(() => {
+      const attendeeName = result.fullName || message || "Student Attendee";
+      setMessage(attendeeName);
+      setAlreadyScannedData({
+        fullName: attendeeName,
+        scannedAt: result.scannedAt || null,
+      });
+      if (alreadyScannedTimerRef.current) {
+        clearTimeout(alreadyScannedTimerRef.current);
+      }
+      alreadyScannedTimerRef.current = setTimeout(() => {
         setStatus(nfcScanningRef.current ? "scanning" : "idle");
         setMessage("");
-      }, 3000);
+        setAlreadyScannedData(null);
+        alreadyScannedTimerRef.current = null;
+      }, 4000);
     } else {
       playErrorSound();
       setNoTicketData(null);
@@ -233,7 +248,11 @@ export default function Scanner({ eventId }: Props) {
       // Split-brain shield: always check local DB first.
       const localTicket = await getTicketByToken(token);
       if (localTicket?.is_checked_in) {
-        handleResult({ status: "already_scanned" });
+        handleResult({
+          status: "already_scanned",
+          fullName: localTicket.full_name,
+          token,
+        });
         getPendingSyncs().then((q) => setPendingCount(q.length));
         return;
       }
@@ -600,6 +619,16 @@ export default function Scanner({ eventId }: Props) {
     setMessage("");
   };
 
+  const handleDismissAlreadyScanned = () => {
+    if (alreadyScannedTimerRef.current) {
+      clearTimeout(alreadyScannedTimerRef.current);
+      alreadyScannedTimerRef.current = null;
+    }
+    setStatus(nfcScanningRef.current ? "scanning" : "idle");
+    setMessage("");
+    setAlreadyScannedData(null);
+  };
+
   const handleDismissHandover = () => {
     setHandoverData(null);
     setHandoverSuccess(false);
@@ -783,20 +812,109 @@ export default function Scanner({ eventId }: Props) {
         </div>
       )}
 
-      {/* ── Result flash (already_scanned / not_found / error) ──── */}
+      {/* ── Scenario C: Already Checked-In Dialog Card (Displays Attendee Name) ─── */}
+      {status === "already_scanned" && (
+        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-white max-w-sm mx-auto w-full animate-in zoom-in-95 duration-200 select-none">
+          <div className="w-full bg-white rounded-3xl p-6 sm:p-7 text-gray-900 shadow-2xl border border-amber-200 space-y-4 text-center">
+            {/* Amber Warning Badge */}
+            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
+              <svg
+                className="w-9 h-9"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.3}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+
+            <div>
+              {/* <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-3 py-0.5 rounded-full font-dingos-bold">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                Duplicate Entry Blocked
+              </span> */}
+              <h3 className="text-2xl font-bold text-gray-900 mt-2 font-dingos-bold tracking-tight">
+                {alreadyScannedData?.fullName || message || "Student Attendee"}
+              </h3>
+              <p className="text-xs text-amber-700 font-medium mt-0.5">
+                Pass already scanned &amp; admitted
+              </p>
+            </div>
+
+            {/* Check-in timestamp pill */}
+            <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3 text-center">
+              <p className="text-[11px] text-amber-900 font-bold font-dingos-bold flex items-center justify-center gap-1.5">
+                <svg
+                  className="w-3.5 h-3.5 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6l4 2"
+                  />
+                </svg>
+                <span>
+                  {alreadyScannedData?.scannedAt ? (
+                    <>
+                      First admitted at{" "}
+                      {new Date(
+                        alreadyScannedData.scannedAt,
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </>
+                  ) : (
+                    "Already admitted earlier today"
+                  )}
+                </span>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDismissAlreadyScanned}
+              className="w-full rounded-full bg-amber-600 hover:bg-amber-700 active:scale-95 text-white py-3 text-xs sm:text-sm font-bold transition shadow-xs font-dingos-bold tactile-btn flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Next Scan / Dismiss</span>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Result flash (not_found / error) ──── */}
       {status !== "idle" &&
         status !== "scanning" &&
         status !== "no_ticket" &&
-        status !== "success" && (
+        status !== "success" &&
+        status !== "already_scanned" && (
           <div className="flex-1 flex flex-col items-center justify-center px-8 gap-3">
             <span className="text-7xl font-bold text-white leading-none">
               ✗
             </span>
-            {status === "already_scanned" && (
-              <p className="text-white/90 text-xl font-bold font-dingos-bold text-center">
-                Already Checked In
-              </p>
-            )}
             {status === "not_found" && (
               <p className="text-white/90 text-xl font-bold font-dingos-bold text-center">
                 Not on Guest List

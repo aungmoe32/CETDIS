@@ -18,7 +18,12 @@ export type CheckInResult =
       needsNfcHandover?: boolean;
     }
   | { status: "not_found" }
-  | { status: "already_scanned" }
+  | {
+      status: "already_scanned";
+      fullName?: string;
+      scannedAt?: string | null;
+      token?: string;
+    }
   | {
       status: "no_ticket";
       profileId: string;
@@ -44,7 +49,11 @@ export async function offlineCheckIn(
   // If ticket exists and matches the event (or eventId is omitted)
   if (ticket && (!eventId || ticket.event_id === eventId)) {
     if (ticket.is_checked_in) {
-      return { status: "already_scanned" };
+      return {
+        status: "already_scanned",
+        fullName: ticket.full_name,
+        token,
+      };
     }
 
     const scannedAt = new Date().toISOString();
