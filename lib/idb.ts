@@ -22,6 +22,7 @@ export interface CachedEvent {
   id: string;
   title: string;
   price: number;
+  maxCapacity?: number;
 }
 
 export interface SyncQueueEntry {

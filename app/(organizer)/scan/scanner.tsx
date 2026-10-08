@@ -35,6 +35,9 @@ import type { CheckInResult } from "./actions";
 
 interface Props {
   eventId: string;
+  maxCapacity?: number;
+  initialCheckedIn?: number;
+  initialTotalRegistered?: number;
 }
 
 type ScanStatus =
@@ -48,7 +51,15 @@ type ScanStatus =
 
 type ScanMode = "qr" | "nfc";
 
-export default function Scanner({ eventId }: Props) {
+export default function Scanner({
+  eventId,
+  maxCapacity = 0,
+  initialCheckedIn = 0,
+  initialTotalRegistered = 0,
+}: Props) {
+  const [capacity, setCapacity] = useState(maxCapacity);
+  const [checkedInCount, setCheckedInCount] = useState(initialCheckedIn);
+  const [totalRegisteredCount, setTotalRegisteredCount] = useState(initialTotalRegistered);
   const [status, setStatus] = useState<ScanStatus>("idle");
   const [message, setMessage] = useState("");
   const [isOnline, setIsOnline] = useState(true);
@@ -174,6 +185,7 @@ export default function Scanner({ eventId }: Props) {
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
       playSuccessSound();
+      setCheckedInCount((prev) => prev + 1);
       setNoTicketData(null);
       setStatus("success");
       setMessage(result.fullName || "Student Attendee");
@@ -429,8 +441,14 @@ export default function Scanner({ eventId }: Props) {
         });
       } else if (result.data) {
         await saveGuestList(result.data);
+        const checkedIn = result.data.filter((t) => t.is_checked_in).length;
+        setCheckedInCount(checkedIn);
+        setTotalRegisteredCount(result.data.length);
         if (result.eventMeta) {
           await saveEventMeta(result.eventMeta);
+          if (result.eventMeta.maxCapacity) {
+            setCapacity(result.eventMeta.maxCapacity);
+          }
         }
         if (result.profiles) {
           await saveProfiles(result.profiles);
@@ -584,6 +602,7 @@ export default function Scanner({ eventId }: Props) {
         setPendingCount(pending.length);
 
         // 4. Trigger success result for instant check-in
+        setTotalRegisteredCount((prev) => prev + 1);
         handleResult({
           status: "success",
           fullName: noTicketData.fullName,
@@ -596,6 +615,9 @@ export default function Scanner({ eventId }: Props) {
           eventId,
           token: noTicketData.token,
         });
+        if (res.status === "success") {
+          setTotalRegisteredCount((prev) => prev + 1);
+        }
         handleResult(res);
       }
     } catch (err: unknown) {
@@ -761,8 +783,8 @@ export default function Scanner({ eventId }: Props) {
               </p>
             </div>
 
-            {/* Check-in timestamp pill */}
-            <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100/80 p-3 text-center">
+            {/* Check-in timestamp pill & Hall capacity context */}
+            <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100/80 p-3 text-center space-y-1">
               <p className="text-[11px] text-emerald-800 font-bold font-dingos-bold flex items-center justify-center gap-1.5">
                 <svg
                   className="w-3.5 h-3.5 text-emerald-600"
@@ -786,6 +808,15 @@ export default function Scanner({ eventId }: Props) {
                   })}
                 </span>
               </p>
+              {capacity > 0 && (
+                <p className="text-[10px] text-emerald-700 font-medium">
+                  Hall Occupancy:{" "}
+                  <strong className="font-dingos-bold text-emerald-950">
+                    {checkedInCount} / {capacity}
+                  </strong>{" "}
+                  ({Math.min(100, Math.round((checkedInCount / capacity) * 100))}%)
+                </p>
+              )}
             </div>
 
             <button
@@ -931,6 +962,68 @@ export default function Scanner({ eventId }: Props) {
       {/* ── Scanner state ─────────────────────────────────────────────────── */}
       {(status === "idle" || status === "scanning") && (
         <>
+          {/* ── Real-Time Door Attendance & Hall Capacity Bar ────────────────── */}
+          <div className="w-full max-w-sm sm:max-w-md mx-auto mt-2 px-3 sm:px-0 shrink-0 select-none">
+            <div className="bg-white rounded-2xl border border-gray-200/90 p-3 sm:p-3.5 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                {/* Left: Admitted counter */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-gray-900 font-dingos-bold block leading-tight">
+                      <span className="text-emerald-700 text-sm font-extrabold">{checkedInCount}</span> Admitted at Door
+                    </span>
+                    {totalRegisteredCount > 0 && (
+                      <span className="text-[10px] text-gray-500 truncate block">
+                        of {totalRegisteredCount} registered attendees
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Hall Capacity badge */}
+                {capacity > 0 && (
+                  <div className="text-right shrink-0">
+                    <span
+                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full font-dingos-bold ${
+                        checkedInCount >= capacity
+                          ? "bg-rose-50 text-rose-700 border border-rose-200"
+                          : checkedInCount / capacity >= 0.8
+                          ? "bg-amber-50 text-amber-800 border border-amber-200"
+                          : "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                      }`}
+                    >
+                      <span>{checkedInCount} / {capacity}</span>
+                      <span className="text-[9px] opacity-80">
+                        ({Math.min(100, Math.round((checkedInCount / capacity) * 100))}%)
+                      </span>
+                    </span>
+                    <span className="text-[9px] text-gray-400 block mt-0.5">
+                      {Math.max(0, capacity - checkedInCount)} spots left
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Progress Bar */}
+              {capacity > 0 && (
+                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 rounded-full ${
+                      checkedInCount >= capacity
+                        ? "bg-rose-500"
+                        : checkedInCount / capacity >= 0.8
+                        ? "bg-amber-500"
+                        : "bg-emerald-500"
+                    }`}
+                    style={{
+                      width: `${Math.min(100, Math.round((checkedInCount / capacity) * 100))}%`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
           {/* Mode tabs — only shown on devices that support NFC */}
           {nfcAvailable && status === "idle" && (
             <div className="flex gap-1 mx-auto mt-3 sm:mt-4 rounded-full bg-gray-100 p-1 shrink-0 select-none">

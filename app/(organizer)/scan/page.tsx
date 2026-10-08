@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/utils/db";
-import { events } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { events, tickets } from "@/drizzle/schema";
+import { eq, count, sql } from "drizzle-orm";
 import Scanner from "./scanner";
 
 interface Props {
@@ -68,12 +68,22 @@ export default async function ScanPage({ searchParams }: Props) {
       id: events.id,
       title: events.title,
       location: events.location,
+      maxCapacity: events.maxCapacity,
     })
     .from(events)
     .where(eq(events.id, eventId))
     .limit(1);
 
   if (!event) notFound();
+
+  // Query live door stats
+  const [ticketStats] = await db
+    .select({
+      totalRegistered: count(tickets.id),
+      checkedIn: count(sql`CASE WHEN ${tickets.isCheckedIn} = true THEN 1 END`),
+    })
+    .from(tickets)
+    .where(eq(tickets.eventId, eventId));
 
   return (
     <div className="flex flex-col min-h-[calc(100dvh-10rem)] sm:h-[calc(100dvh-4rem)] md:h-full overflow-hidden bg-gray-50/30">
@@ -129,7 +139,12 @@ export default async function ScanPage({ searchParams }: Props) {
       </div>
 
       {/* Main Interactive Scanner Component */}
-      <Scanner eventId={event.id} />
+      <Scanner
+        eventId={event.id}
+        maxCapacity={event.maxCapacity}
+        initialCheckedIn={Number(ticketStats?.checkedIn ?? 0)}
+        initialTotalRegistered={Number(ticketStats?.totalRegistered ?? 0)}
+      />
     </div>
   );
 }

@@ -284,6 +284,7 @@ export async function loadGuestListAction(eventId: string) {
       id: events.id,
       title: events.title,
       price: events.price,
+      maxCapacity: events.maxCapacity,
     })
     .from(events)
     .where(eq(events.id, eventId))
