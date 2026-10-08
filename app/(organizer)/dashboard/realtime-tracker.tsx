@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
@@ -11,6 +11,8 @@ import { createClient } from "@/utils/supabase/client";
  */
 export default function RealtimeTracker() {
   const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
 
   useEffect(() => {
     const supabase = createClient();
@@ -25,15 +27,19 @@ export default function RealtimeTracker() {
           table: "tickets",
         },
         () => {
-          router.refresh();
+          routerRef.current.refresh();
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.warn("[RealtimeTracker] status:", status, err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, []);
 
   return null;
 }

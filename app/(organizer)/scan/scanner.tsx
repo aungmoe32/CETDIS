@@ -172,7 +172,11 @@ export default function Scanner({
           }
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.warn("[Scanner Realtime] status:", status, err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
