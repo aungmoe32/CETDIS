@@ -565,6 +565,9 @@ export default function Scanner({
     setIsWipingCache(true);
     try {
       await wipeOfflineDatabase();
+      setOfflineEnabled(false);
+      offlineEnabledRef.current = false;
+      setPendingCount(0);
       window.location.reload();
     } catch (err) {
       alert(

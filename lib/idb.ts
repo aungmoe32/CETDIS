@@ -64,6 +64,15 @@ function getDb() {
           db.createObjectStore("cached_events", { keyPath: "id" });
         }
       },
+      blocking() {
+        if (dbPromise) {
+          dbPromise.then((db) => db.close());
+          dbPromise = null;
+        }
+      },
+      terminated() {
+        dbPromise = null;
+      },
     });
   }
   return dbPromise;
@@ -209,11 +218,33 @@ export async function getEventMeta(
 // ─── Reset / Wipe Offline DB (For Demos & Testing) ──────────────────────────
 
 export async function wipeOfflineDatabase(): Promise<void> {
+  try {
+    const db = await getDb();
+    const storeNames = [
+      "cached_tickets",
+      "sync_queue",
+      "cached_profiles",
+      "cached_events",
+    ].filter((name) => db.objectStoreNames.contains(name));
+
+    if (storeNames.length > 0) {
+      const tx = db.transaction(storeNames, "readwrite");
+      await Promise.all([
+        ...storeNames.map((s) => tx.objectStore(s).clear()),
+        tx.done,
+      ]);
+    }
+  } catch (err) {
+    console.warn("Could not clear stores in existing DB connection:", err);
+  }
+
+  // Close and clean up connection reference
   if (dbPromise) {
-    const db = await dbPromise;
-    db.close();
+    try {
+      const db = await dbPromise;
+      db.close();
+    } catch {}
     dbPromise = null;
   }
-  await deleteDB(DB_NAME);
 }
 
