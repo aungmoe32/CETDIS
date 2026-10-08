@@ -30,7 +30,7 @@ export default function RealtimeTracker() {
           routerRef.current.refresh();
         },
       )
-      .subscribe((status, err) => {
+      .subscribe((status: string, err?: unknown) => {
         if (err) {
           console.warn("[RealtimeTracker] status:", status, err);
         }

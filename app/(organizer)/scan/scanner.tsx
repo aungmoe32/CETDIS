@@ -139,7 +139,11 @@ export default function Scanner({
           table: "tickets",
           filter: `event_id=eq.${eventId}`,
         },
-        (payload) => {
+        (payload: {
+          eventType: string;
+          new: Record<string, unknown>;
+          old: Record<string, unknown>;
+        }) => {
           const ticketId =
             (payload.new as { id?: string })?.id ||
             (payload.old as { id?: string })?.id;
@@ -172,7 +176,7 @@ export default function Scanner({
           }
         },
       )
-      .subscribe((status, err) => {
+      .subscribe((status: string, err?: unknown) => {
         if (err) {
           console.warn("[Scanner Realtime] status:", status, err);
         }
