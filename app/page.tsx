@@ -64,11 +64,31 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
       {/* ── Top Announcement Bar ─────────────────────────────────────────── */}
-      {/* <div className="bg-gradient-to-r from-[#4A1D96] via-[#623795] to-[#DF2490] text-white px-4 py-2 text-center text-xs font-bold font-dingos-bold tracking-wide">
-        <span>
-          🎓 University Final Year Capstone Project Showcase • Live Demo in Main
-          Lobby • 100% Offline-First
-        </span>
+      {/* <div className="bg-gradient-to-r from-[#4A1D96] via-[#623795] to-[#DF2490] text-white px-4 py-1.5 text-xs font-medium tracking-wide">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <span className="truncate">
+            🎓 Campus Event &amp; Digital Identification System (CEDIS)
+          </span>
+          <a
+            href="mailto:aungmoemyintthu@gmail.com"
+            className="inline-flex items-center gap-1.5 text-white/95 hover:text-white underline font-semibold shrink-0 transition text-[11px]"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-pink-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+              />
+            </svg>
+            <span>Contact: aungmoemyintthu@gmail.com</span>
+          </a>
+        </div>
       </div> */}
 
       {/* ── Navigation Header ────────────────────────────────────────────── */}
@@ -933,6 +953,30 @@ export default async function HomePage() {
               Campus Event &amp; Digital Identification System. Delivering
               offline-first entrance verification and universal identity access.
             </p>
+            <div className="pt-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-dingos-bold block mb-1">
+                Contact Us
+              </span>
+              <a
+                href="mailto:aungmoemyintthu@gmail.com"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-900 transition"
+              >
+                <svg
+                  className="w-3.5 h-3.5 text-purple-600 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                  />
+                </svg>
+                <span>aungmoemyintthu@gmail.com</span>
+              </a>
+            </div>
           </div>
 
           {/* Col 2 */}
@@ -1017,11 +1061,20 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto border-t border-gray-200/80 mt-10 pt-6 text-center text-xs text-gray-500">
+        <div className="max-w-7xl mx-auto border-t border-gray-200/80 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>
             © 2026 CEDIS — Built with Next.js 16, Supabase, Drizzle ORM, and
             Serwist PWA.
           </p>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span>Contact &amp; Inquiries:</span>
+            <a
+              href="mailto:aungmoemyintthu@gmail.com"
+              className="text-purple-700 hover:text-purple-900 font-semibold hover:underline transition"
+            >
+              aungmoemyintthu@gmail.com
+            </a>
+          </div>
         </div>
       </footer>
     </div>

@@ -82,6 +82,12 @@ export default function HomepageNav({ userRole, userName, isLoggedIn }: Props) {
             >
               For Organizers
             </a>
+            <a
+              href="mailto:aungmoemyintthu@gmail.com"
+              className="hover:text-[#623795] transition-colors text-purple-700"
+            >
+              Contact Us
+            </a>
           </nav>
 
           {/* Right Action Buttons */}
@@ -205,6 +211,13 @@ export default function HomepageNav({ userRole, userName, isLoggedIn }: Props) {
             className="block px-3 py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:bg-purple-50 font-dingos-bold"
           >
             For Organizers
+          </a>
+          <a
+            href="mailto:aungmoemyintthu@gmail.com"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2.5 rounded-xl text-sm font-bold text-purple-700 hover:bg-purple-50 font-dingos-bold"
+          >
+            Contact Us (aungmoemyintthu@gmail.com)
           </a>
 
           <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
