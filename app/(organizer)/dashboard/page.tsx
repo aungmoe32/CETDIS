@@ -12,6 +12,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import ActionCenter from "./action-center";
 import TodayEvents, { type DashboardEventItem } from "./today-events";
+import RealtimeTracker from "./realtime-tracker";
 
 export const metadata = { title: "Dashboard" };
 
@@ -93,6 +94,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="px-3.5 sm:px-4 py-4 sm:py-6 max-w-3xl mx-auto space-y-5 sm:space-y-6">
+      {/* ── Realtime Sync Listener ────────────────────────────────────── */}
+      <RealtimeTracker />
+
       {/* ── Dashboard Header ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <div>

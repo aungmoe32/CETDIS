@@ -107,6 +107,18 @@ Options:
     "   ✓ Cleaned previous issuances, tickets, events, and ephemeral guests.\n",
   );
 
+  // Ensure Realtime publication and FULL replica identity for multi-door live tracking
+  try {
+    await sql`ALTER PUBLICATION supabase_realtime ADD TABLE tickets;`;
+  } catch {
+    // Already in publication
+  }
+  try {
+    await sql`ALTER TABLE tickets REPLICA IDENTITY FULL;`;
+  } catch {
+    // Ignored
+  }
+
   // ── Step 2: Query and Standardize Profiles ──────────────────────────────────
   console.log(
     "👥 Step 2: Loading and preparing student and organizer profiles...",

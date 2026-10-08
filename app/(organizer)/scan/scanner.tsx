@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import {
   checkInAction,
@@ -108,6 +109,75 @@ export default function Scanner({
   const alreadyScannedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isOnlineRef = useRef(true);
   const offlineEnabledRef = useRef(false);
+  const localHandledTicketsRef = useRef<Set<string>>(new Set());
+
+  // Keep state synchronized with server props
+  useEffect(() => {
+    setCheckedInCount(initialCheckedIn);
+  }, [initialCheckedIn]);
+
+  useEffect(() => {
+    setTotalRegisteredCount(initialTotalRegistered);
+  }, [initialTotalRegistered]);
+
+  useEffect(() => {
+    setCapacity(maxCapacity);
+  }, [maxCapacity]);
+
+  // ── Multi-Scanner Realtime Sync ───────────────────────────────────────────
+  useEffect(() => {
+    if (!eventId) return;
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel(`scanner-tickets-${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tickets",
+          filter: `event_id=eq.${eventId}`,
+        },
+        (payload) => {
+          const ticketId =
+            (payload.new as { id?: string })?.id ||
+            (payload.old as { id?: string })?.id;
+
+          // If this scan or walk-up was performed by this device, ignore to avoid double counting
+          if (ticketId && localHandledTicketsRef.current.has(ticketId)) {
+            return;
+          }
+
+          if (payload.eventType === "INSERT") {
+            const newRow = payload.new as { id?: string; is_checked_in?: boolean };
+            setTotalRegisteredCount((prev) => prev + 1);
+            if (newRow?.is_checked_in) {
+              setCheckedInCount((prev) => prev + 1);
+            }
+          } else if (payload.eventType === "UPDATE") {
+            const newRow = payload.new as { id?: string; is_checked_in?: boolean };
+            const oldRow = payload.old as { id?: string; is_checked_in?: boolean };
+            if (newRow?.is_checked_in && !oldRow?.is_checked_in) {
+              setCheckedInCount((prev) => prev + 1);
+            } else if (!newRow?.is_checked_in && oldRow?.is_checked_in) {
+              setCheckedInCount((prev) => Math.max(0, prev - 1));
+            }
+          } else if (payload.eventType === "DELETE") {
+            const oldRow = payload.old as { id?: string; is_checked_in?: boolean };
+            setTotalRegisteredCount((prev) => Math.max(0, prev - 1));
+            if (oldRow?.is_checked_in) {
+              setCheckedInCount((prev) => Math.max(0, prev - 1));
+            }
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId]);
 
   // ── Detect NFC on mount ───────────────────────────────────────────────────
   useEffect(() => {
@@ -185,6 +255,9 @@ export default function Scanner({
   const handleResult = useCallback((result: CheckInResult) => {
     if (result.status === "success") {
       playSuccessSound();
+      if (result.ticketId) {
+        localHandledTicketsRef.current.add(result.ticketId);
+      }
       setCheckedInCount((prev) => prev + 1);
       setNoTicketData(null);
       setStatus("success");
@@ -617,6 +690,9 @@ export default function Scanner({
         });
         if (res.status === "success") {
           setTotalRegisteredCount((prev) => prev + 1);
+          if (res.ticketId) {
+            localHandledTicketsRef.current.add(res.ticketId);
+          }
         }
         handleResult(res);
       }
